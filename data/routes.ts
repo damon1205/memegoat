@@ -4,6 +4,10 @@ export const routes: RouteI[] = [
     name: "Dashboard",
   },
   {
+    path: "/staking",
+    name: "Staking",
+  },
+  {
     path: "/launchpad",
     name: "Launchpad",
   },

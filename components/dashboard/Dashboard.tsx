@@ -4,6 +4,7 @@ import { Avatar, Button } from "antd"
 import { Orbitron } from "next/font/google"
 import { motion } from "framer-motion"
 import { TransactionTable } from "./TransactionTable"
+import { Attestation } from "./Attestation"
 
 export const Dashboard = () => {
   return (
@@ -41,14 +42,14 @@ export const Dashboard = () => {
             </div>
             <div className="bg-primary-100/10 border-[1px] border-primary-100 w-full px-5 py-5">
               <p className="text-sm">
-                <Avatar src="/images/stx.svg" size={25} />
+                <Avatar src="/logo.svg" size={30} />
                 <span className="ml-2">MemeGoat Price</span>
               </p>
               <p className="text-2xl font-semibold mt-3">$ 0.04662922</p>
             </div>
             <div className="bg-primary-100/10 border-[1px] border-primary-100 w-full px-5 py-5">
               <p className="text-sm">
-                <Avatar src="/images/stx.svg" size={25} />
+                <Avatar src="/logo.svg" size={30} />
                 <span className="ml-2">MemeGoat Ecosystem</span>
               </p>
               <div className="mt-3 flex items-center gap-2">
@@ -77,6 +78,9 @@ export const Dashboard = () => {
       >
         <TransactionTable />
       </motion.div>
+      <div className="mt-14">
+        <Attestation />
+      </div>
     </div>
   )
 }
