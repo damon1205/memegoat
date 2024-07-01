@@ -7,7 +7,7 @@ import { motion } from "framer-motion"
 export const Hero = () => {
   return (
     <>
-      <div className="fixed top-0 left-[50%] translate-x-[-50%] w-[430px] h-[340px] blur-[300px] bg-primary-20"></div>
+      <div className="fixed top-0 left-[50%] translate-x-[-50%] w-[430px] h-[340px] blur-[300px] bg-primary-20 hidden md:block"></div>
 
       <div className="fixed top-[10vh] right-0 md:right-[-30rem] hidden xl:block -z-[20]">
         <motion.div
