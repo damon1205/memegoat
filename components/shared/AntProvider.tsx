@@ -10,7 +10,7 @@ export const AntProvider = ({ children }: { children: React.ReactNode }) => {
           algorithm: theme.darkAlgorithm,
           token: {
             borderRadius: 0,
-            colorPrimary: "#6EDE8A",
+            colorPrimary: "#2DC653",
             controlHeight: 40,
             colorBgContainer: "#0A0908",
             colorText: "#EBEBEB",
