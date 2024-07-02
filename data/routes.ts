@@ -27,4 +27,8 @@ export const routes: RouteI[] = [
     path: "/community",
     name: "Community",
   },
+  {
+    path: "/games",
+    name: "Games",
+  },
 ]

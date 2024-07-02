@@ -81,7 +81,7 @@ export const Attestation = () => {
   return (
     <div className="py-5">
       <h3
-        className={`orbitron special-text md:text-4xl font-medium text-custom-white mb-10`}
+        className={`orbitron special-text md:text-4xl text-xl font-medium text-custom-white mb-10`}
       >
         Attestation
       </h3>

@@ -16,7 +16,7 @@ export const Dashboard = () => {
       >
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h3
-            className={`orbitron special-text md:text-4xl font-medium text-custom-white`}
+            className={`orbitron special-text md:text-4xl text-xl font-medium text-custom-white`}
           >
             Dashboard
           </h3>
