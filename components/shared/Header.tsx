@@ -21,7 +21,7 @@ export const Header = () => {
         onClose={toggleDrawer}
         placement="left"
         styles={{
-          mask: { backdropFilter: "blur(12px)" },
+          mask: { backdropFilter: "blur(22px)" },
           content: {
             background: "rgba(16,69,29,0.1)",
             border: "1px solid rgba(16,69,29,0.85)",
