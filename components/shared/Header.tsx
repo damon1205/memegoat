@@ -32,7 +32,7 @@ export const Header = () => {
           <IoCloseCircleOutline className="text-2xl text-primary-50" />
         }
       >
-        <div className="mt-10">
+        <div className="mt-10 relative">
           <Logo />
           <div className="pt-14">
             <nav className="">
@@ -145,7 +145,7 @@ export const Header = () => {
               <Button className="px-14 font-bold bg-transparent border-primary-90 md:text-primary-50">
                 Connect Wallet
               </Button>
-              <div className="md:hidden border-[1px] border-primary-90 text-primary-50 p-2">
+              <div className="xl:hidden border-[1px] border-primary-90 text-primary-50 p-2">
                 <GiHamburgerMenu
                   className="cursor-pointer"
                   onClick={toggleDrawer}
