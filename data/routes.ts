@@ -12,7 +12,7 @@ export const routes: RouteI[] = [
     name: "Launchpad",
   },
   {
-    path: "/lock-tokens",
+    path: "/locker",
     name: "Lock Tokens",
   },
   {
@@ -30,5 +30,9 @@ export const routes: RouteI[] = [
   {
     path: "/games",
     name: "Games",
+  },
+  {
+    path: "/nft",
+    name: "NFT",
   },
 ]

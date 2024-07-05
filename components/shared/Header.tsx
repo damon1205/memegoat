@@ -23,9 +23,12 @@ export const Header = () => {
               <ul className="inline-flex gap-7 items-center">
                 {routes.map((route, index) => {
                   const active = route.path === pathname
-                  const activeCls = active
-                    ? "font-bold"
-                    : "text-silver hover:text-custom-white"
+                  const isLockerPage =
+                    pathname.includes("locker") && index === 3
+                  const activeCls =
+                    active || isLockerPage
+                      ? "font-bold"
+                      : "text-silver hover:text-custom-white"
                   return (
                     <li key={index}>
                       <Link
