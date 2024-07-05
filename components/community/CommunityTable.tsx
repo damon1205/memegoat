@@ -128,7 +128,7 @@ export const CommunityTable: React.FC = () => {
   return (
     <div>
       <h3
-        className={`orbitron special-text md:text-4xl text-xl font-medium text-custom-white mt-10 mb-5`}
+        className={`orbitron special-text md:text-4xl text-3xl font-medium text-custom-white mt-10 mb-5`}
       >
         Leaderboard
       </h3>

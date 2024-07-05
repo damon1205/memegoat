@@ -242,7 +242,7 @@ export const TransactionTable: React.FC = () => {
   return (
     <div>
       <h3
-        className={`orbitron special-text md:text-4xl text-xl font-medium text-custom-white mb-5`}
+        className={`orbitron special-text md:text-4xl text-3xl font-medium text-custom-white mb-5`}
       >
         Transaction History
       </h3>
