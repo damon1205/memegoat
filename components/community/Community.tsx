@@ -4,6 +4,7 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import { Button } from "antd"
 import { FaCoins } from "react-icons/fa6"
+import { CommunityTable } from "./CommunityTable"
 
 export const Community = () => {
   return (
@@ -39,6 +40,7 @@ export const Community = () => {
             <FaCoins />
           </div>
         </div>
+        <CommunityTable />
       </motion.div>
     </>
   )
