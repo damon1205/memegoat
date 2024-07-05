@@ -3,6 +3,7 @@ import { Avatar, Button } from "antd"
 import Image from "next/image"
 import React from "react"
 import { motion } from "framer-motion"
+import { CreatePool } from "./CreatePool"
 
 export const Hero = () => {
   return (
@@ -34,19 +35,15 @@ export const Hero = () => {
           </h3>
           <h3 className="md:hidden block text-4xl">Stake with GoatSTX</h3>
         </div>
-        <div className="text-center md:mt-10 mt-5">
+        <div className="text-center md:mt-10 mt-5 md:text-[16px] text-sm">
           <span className="text-primary-20">Stake</span> GoatSTX to earn tokens.
         </div>
-        <p className="text-center">
+        <p className="text-center md:text-[16px] text-sm">
           <span className="text-primary-20">Create</span> staking pool for your
           community. <span className="text-primary-20">Earn</span> rewards from
           your favourite community.
         </p>
-        <div>
-          <Button className="bg-transparent md:px-10 mt-7">
-            Create Staking Pool
-          </Button>
-        </div>
+        <CreatePool />
       </motion.div>
     </>
   )
