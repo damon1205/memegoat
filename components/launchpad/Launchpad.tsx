@@ -8,6 +8,7 @@ import { motion } from "framer-motion"
 
 const launchpads: LaunchpadI[] = [
   {
+    id: "1",
     name: "GoatSTX",
     icon: "/logo.svg",
     target_raise: "150k",
@@ -17,6 +18,7 @@ const launchpads: LaunchpadI[] = [
       "Join GoatSTX's IDO and be a pioneer in Bitcoin DeFi innovation. Secure your whitelist spot with our Gleam campaign and take part in shaping the future of decentralized finance on Bitcoin. Don't miss out—get ready to make your mark with GoatSTX.",
   },
   {
+    id: "2",
     name: "STX",
     icon: "/images/stx.svg",
     target_raise: "150k",
@@ -26,6 +28,7 @@ const launchpads: LaunchpadI[] = [
       "Join GoatSTX's IDO and be a pioneer in Bitcoin DeFi innovation. Secure your whitelist spot with our Gleam campaign and take part in shaping the future of decentralized finance on Bitcoin. Don't miss out—get ready to make your mark with GoatSTX.",
   },
   {
+    id: "3",
     name: "Ethos",
     icon: "/images/ethos.svg",
     target_raise: "150k",
@@ -35,6 +38,7 @@ const launchpads: LaunchpadI[] = [
       "Join GoatSTX's IDO and be a pioneer in Bitcoin DeFi innovation. Secure your whitelist spot with our Gleam campaign and take part in shaping the future of decentralized finance on Bitcoin. Don't miss out—get ready to make your mark with GoatSTX.",
   },
   {
+    id: "4",
     name: "Leo",
     icon: "/images/leo.jpg",
     target_raise: "150k",
@@ -44,6 +48,7 @@ const launchpads: LaunchpadI[] = [
       "Join GoatSTX's IDO and be a pioneer in Bitcoin DeFi innovation. Secure your whitelist spot with our Gleam campaign and take part in shaping the future of decentralized finance on Bitcoin. Don't miss out—get ready to make your mark with GoatSTX.",
   },
   {
+    id: "5",
     name: "Nothing",
     icon: "/images/nothing.jpg",
     target_raise: "150k",
@@ -53,6 +58,7 @@ const launchpads: LaunchpadI[] = [
       "Join GoatSTX's IDO and be a pioneer in Bitcoin DeFi innovation. Secure your whitelist spot with our Gleam campaign and take part in shaping the future of decentralized finance on Bitcoin. Don't miss out—get ready to make your mark with GoatSTX.",
   },
   {
+    id: "6",
     name: "Odin",
     icon: "/images/odin.jpg",
     target_raise: "150k",
