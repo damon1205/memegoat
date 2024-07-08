@@ -9,7 +9,7 @@ const raleway = Raleway({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "MemeGoat",
-  description: "Secure layer of meme on Bitcoin",
+  description: "Secure layer for memes on Bitcoin",
   keywords: [
     "MemeGoat",
     "Meme",

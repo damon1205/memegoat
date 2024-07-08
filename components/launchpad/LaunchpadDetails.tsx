@@ -24,7 +24,7 @@ export const LaunchpadDetails = () => {
         <div className="p-4 md:h-[15rem] h-[10rem] from-primary-80/5 to-primary-80/20 bg-gradient-to-r relative overflow-hidden flex items-center justify-center flex-col lp-card-top">
           <div className="absolute top-[-1rem] right-5 h-[6rem] w-[2rem] bg-primary-30 rotate-[60deg] blur-[32px]" />
           <p className="relative text-custom-white/70 text-center backdrop-blur-[22px] p-1 rounded-sm md:text-3xl text-xl neonText">
-            Secure layer of meme on Bitcoin
+            Secure layer for memes on Bitcoin
           </p>
         </div>
         <div className="p-4 bg-custom-black/60 md:w-[90%] md:mx-auto">

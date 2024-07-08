@@ -21,7 +21,7 @@ export const LaunchpadCard = ({ ...props }: LaunchpadI) => {
         <div className="p-4 h-[8rem] from-primary-80/5 to-primary-80/20 bg-gradient-to-r relative overflow-hidden flex items-center justify-center flex-col lp-card-top">
           <div className="absolute top-[-1rem] right-5 h-[6rem] w-[2rem] bg-primary-30 rotate-[60deg] blur-[32px]" />
           <p className="relative text-custom-white/70 text-sm text-center backdrop-blur-[22px] p-1 rounded-sm">
-            Secure layer of meme on Bitcoin
+            Secure layer for memes on Bitcoin
           </p>
         </div>
         <div className="p-4 bg-custom-black/60">
