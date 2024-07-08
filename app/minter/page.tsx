@@ -1,3 +1,4 @@
+"use client"
 import { Minter } from "@/components/minter/Minter"
 import React from "react"
 

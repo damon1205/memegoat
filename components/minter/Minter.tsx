@@ -13,12 +13,12 @@ import Image from "next/image"
 import { BsDot } from "react-icons/bs"
 
 interface PropI {
-  current: number
-  setCurrent: React.Dispatch<React.SetStateAction<number>>
-  minter: boolean
+  current?: number
+  setCurrent?: React.Dispatch<React.SetStateAction<number>>
+  minter?: boolean
 }
 
-export const Minter = () => {
+export const Minter = ({ ...props }: PropI) => {
   const [form] = useForm()
   const resetForm = () => form.resetFields()
   const fieldRule = (name: string): Rule => {
@@ -26,10 +26,12 @@ export const Minter = () => {
   }
   const [showSocials, setShowSocials] = useState(false)
   const [showMinter, setShowMinter] = useState(true)
+  const next = () => props.setCurrent && props.setCurrent(1)
 
   const handleForm = async () => {
     try {
       const formData = form.getFieldsValue()
+      next()
       setShowMinter(!showMinter)
     } catch (e) {
       console.log(e)
@@ -236,7 +238,7 @@ export const Minter = () => {
                 <Button
                   size="large"
                   onClick={() => {
-                    setShowMinter(true)
+                    next()
                   }}
                   type="primary"
                   className="h-[45px]"

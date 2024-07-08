@@ -5,6 +5,7 @@ import { MdOutlineRocketLaunch } from "react-icons/md"
 import { LaunchpadCard, LaunchpadI } from "./LaunchpadCard"
 import Image from "next/image"
 import { motion } from "framer-motion"
+import { CreateLaunchPad } from "./CreateLaunchPad"
 
 const launchpads: LaunchpadI[] = [
   {
@@ -95,9 +96,7 @@ export const Launchpad = () => {
           <p className="text-custom-white/55 text-sm md:text-[16px] mt-1">
             Creating and investing in the best memecoins just became easier.
           </p>
-          <Button className="bg-primary-60 mt-4" type="primary">
-            Create Launchpad
-          </Button>
+          <CreateLaunchPad />
 
           <div className="absolute top-0 right-0 text-primary-10/15 text-[10rem]">
             <MdOutlineRocketLaunch />
