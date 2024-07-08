@@ -20,7 +20,12 @@ export const LaunchpadDetails = () => {
           <Image src="/logo.svg" className="w-full h-full" alt="" fill />
         </motion.div>
       </div>
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 1 }}
+        className="relative"
+      >
         <div className="p-4 md:h-[15rem] h-[10rem] from-primary-80/5 to-primary-80/20 bg-gradient-to-r relative overflow-hidden flex items-center justify-center flex-col lp-card-top">
           <div className="absolute top-[-1rem] right-5 h-[6rem] w-[2rem] bg-primary-30 rotate-[60deg] blur-[32px]" />
           <p className="relative text-custom-white/70 text-center backdrop-blur-[22px] p-1 rounded-sm md:text-3xl text-xl neonText">
@@ -153,7 +158,7 @@ export const LaunchpadDetails = () => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
