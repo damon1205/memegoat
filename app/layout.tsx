@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   ],
   publisher: "MemeGoat",
   openGraph: {
-    title: "MemeGoate",
+    title: "MemeGoat",
     siteName: "MemeGoat",
     images: [
       {
