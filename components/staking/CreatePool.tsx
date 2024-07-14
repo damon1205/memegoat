@@ -98,8 +98,9 @@ export const CreatePool = () => {
       </Drawer>
       <div>
         <Button
-          className="bg-transparent md:px-10 mt-7 border-primary-90"
+          className="md:px-10 mt-7 border-primary-90"
           onClick={toggleDrawer}
+          type="primary"
         >
           Create Staking Pool
         </Button>

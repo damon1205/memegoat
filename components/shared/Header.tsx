@@ -39,6 +39,7 @@ export const Header = () => {
               <ul className="flex flex-col gap-1">
                 {routes.map((route, index) => {
                   const active = route.path === pathname
+                  const gamesNav = route.path === "/games"
                   const isLockerPage =
                     pathname.includes("locker") && index === 3
                   const activeCls =
@@ -47,13 +48,21 @@ export const Header = () => {
                       : "text-silver hover:text-custom-white"
                   return (
                     <li key={index}>
-                      <Link
-                        href={route.path}
-                        className={`${activeCls} text-sm block p-4 hover:text-white`}
-                        onClick={toggleDrawer}
-                      >
-                        {route.name}
-                      </Link>
+                      {!gamesNav ? (
+                        <Link
+                          href={route.path}
+                          className={`${activeCls} text-sm block p-4 hover:text-white`}
+                          onClick={toggleDrawer}
+                        >
+                          {route.name}
+                        </Link>
+                      ) : (
+                        <p
+                          className={`text-sm block p-4 hover:text-silver text-silver`}
+                        >
+                          {route.name}(coming soon)
+                        </p>
+                      )}
                     </li>
                   )
                 })}
@@ -97,6 +106,7 @@ export const Header = () => {
                 <ul className="inline-flex gap-7 items-center">
                   {routes.map((route, index) => {
                     const active = route.path === pathname
+                    const gamesNav = route.path === "/games"
                     const isLockerPage =
                       pathname.includes("locker") && index === 3
                     const activeCls =
@@ -105,12 +115,20 @@ export const Header = () => {
                         : "text-silver hover:text-custom-white"
                     return (
                       <li key={index}>
-                        <Link
-                          href={route.path}
-                          className={`${activeCls} text-sm`}
-                        >
-                          {route.name}
-                        </Link>
+                        {!gamesNav ? (
+                          <Link
+                            href={route.path}
+                            className={`${activeCls} text-sm block p-4 px-0 hover:text-white`}
+                          >
+                            {route.name}
+                          </Link>
+                        ) : (
+                          <p
+                            className={`text-sm block hover:text-silver text-silver cursor-not-allowed`}
+                          >
+                            {route.name}(coming soon)
+                          </p>
+                        )}
                       </li>
                     )
                   })}
