@@ -42,7 +42,7 @@ export const Minter = ({ ...props }: PropI) => {
     <>
       <div className="fixed bottom-0 left-[50%] translate-x-[-50%] w-[430px] h-[340px] blur-[300px] bg-primary-20 hidden md:block" />
 
-      <div className="fixed top-[10vh] right-[50%] translate-x-[50%]  z-[0]">
+      <div className="fixed top-[10vh] right-[50%] translate-x-[50%]  z-[0] minter-foreground">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ y: 0, opacity: 0.05 }}
@@ -56,7 +56,7 @@ export const Minter = ({ ...props }: PropI) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 1 }}
-        className="max-w-[450px] mx-auto p-4  from-primary-100/25 to-primary-100/40 bg-gradient-to-r relative border-[1px] border-primary-90"
+        className="max-w-[450px] mx-auto p-4 bg-[#121d16] relative border-[1px] border-primary-60"
       >
         <div className="-mb-4 flex justify-between items-center">
           <h3 className="text-[1.2rem]">
@@ -81,7 +81,7 @@ export const Minter = ({ ...props }: PropI) => {
                     setFieldValue={form.setFieldValue}
                   />
                 </Form.Item>
-                <div className="from-primary-60/5 to-primary-90/20 bg-gradient-to-r mb-3 p-3 border-[1px] border-primary-90/60 text-custom-white/60">
+                <div className="mb-3 p-3 text-custom-white/60">
                   <Form.Item
                     label="Token name"
                     name={"token_name"}
@@ -89,7 +89,7 @@ export const Minter = ({ ...props }: PropI) => {
                     required
                   >
                     <Input
-                      className="bg-transparent border-0 border-b-[1px] border-primary-90 h-[40px]"
+                      className="bg-primary-20/5 border-primary-60 h-[40px]"
                       size="large"
                     />
                   </Form.Item>
@@ -100,7 +100,7 @@ export const Minter = ({ ...props }: PropI) => {
                     required
                   >
                     <Input.TextArea
-                      className="bg-transparent border-primary-90 border-0 border-b-[1px]"
+                      className="bg-primary-20/5 border-primary-60"
                       size="large"
                       style={{ minHeight: "6rem" }}
                     />
@@ -112,7 +112,7 @@ export const Minter = ({ ...props }: PropI) => {
                     required
                   >
                     <Input
-                      className="bg-transparent border-primary-90 h-[40px] border-0 border-b-[1px]"
+                      className="bg-primary-20/5 border-primary-60 h-[40px]"
                       size="large"
                     />
                   </Form.Item>
@@ -124,7 +124,7 @@ export const Minter = ({ ...props }: PropI) => {
                     required
                   >
                     <Input
-                      className="bg-transparent border-primary-90 h-[40px] border-0 border-b-[1px]"
+                      className="bg-primary-20/5 border-primary-60 h-[40px]"
                       size="large"
                       type="number"
                     />
@@ -146,7 +146,7 @@ export const Minter = ({ ...props }: PropI) => {
                       required
                     >
                       <Input
-                        className="bg-transparent border-primary-90 h-[40px] border-0 border-b-[1px]"
+                        className="bg-primary-20/5 border-primary-60 h-[40px]"
                         size="large"
                         type="text"
                         prefix={<FaGlobe />}
@@ -160,7 +160,7 @@ export const Minter = ({ ...props }: PropI) => {
                         required
                       >
                         <Input
-                          className="bg-transparent border-primary-90 h-[40px] border-0 border-b-[1px]"
+                          className="bg-primary-20/5 border-primary-60 h-[40px]"
                           size="large"
                           type="text"
                           prefix={<FaXTwitter />}
@@ -173,7 +173,7 @@ export const Minter = ({ ...props }: PropI) => {
                         required
                       >
                         <Input
-                          className="bg-transparent border-primary-90 h-[40px] border-0 border-b-[1px]"
+                          className="bg-primary-20/5 border-primary-60 h-[40px]"
                           size="large"
                           type="text"
                           prefix={<FaDiscord />}
@@ -231,7 +231,7 @@ export const Minter = ({ ...props }: PropI) => {
                   onClick={() => {
                     setShowMinter(false)
                   }}
-                  className="h-[45px] bg-transparent border-primary-50 text-primary-50"
+                  className="h-[45px] bg-primary-20/5 border-primary-50 text-primary-50"
                 >
                   No
                 </Button>

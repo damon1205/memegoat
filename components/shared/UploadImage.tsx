@@ -15,7 +15,7 @@ export const UploadImage = ({
   field_name?: string
   hideRecommendation?: boolean
 }) => {
-  const [image_, setImage_] = useState("/upload.png")
+  const [image_, setImage_] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const onChangeImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files![0]
@@ -35,11 +35,11 @@ export const UploadImage = ({
               <Avatar
                 src={image_}
                 size={128}
-                className="border-[1px] border-primary-70 rounded-none bg-primary-90/40 hover:bg-primary-80/40"
+                className="border-[1px] border-primary-70 rounded-none bg-transparent hover:bg-primary-100/25"
               >
                 <FaCloudUploadAlt />
               </Avatar>
-              <div className="absolute bg-gray-900/70 top-0 left-0 h-[100%] w-[100%] rounded-none flex flex-col items-center justify-center">
+              <div className="absolute top-0 left-0 h-[100%] w-[100%] rounded-none flex flex-col items-center justify-center">
                 <Oval />
               </div>
             </div>
@@ -58,7 +58,7 @@ export const UploadImage = ({
               <Avatar
                 src={image_}
                 size={128}
-                className="border-[1px] border-primary-70 rounded-none bg-primary-90/40 hover:bg-primary-80/40"
+                className="border-[1px] border-primary-70 rounded-none bg-transparent hover:bg-primary-100/25"
               >
                 <BiUpload />
               </Avatar>

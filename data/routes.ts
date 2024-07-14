@@ -21,7 +21,7 @@ export const routes: RouteI[] = [
   },
   {
     path: "/dex",
-    name: "Meme DEx",
+    name: "Aggregator DEx",
   },
   {
     path: "/community",
@@ -31,8 +31,8 @@ export const routes: RouteI[] = [
     path: "/games",
     name: "Games",
   },
-  {
-    path: "/nft",
-    name: "NFT",
-  },
+  // {
+  //   path: "/nft",
+  //   name: "NFT",
+  // },
 ]

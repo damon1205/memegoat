@@ -31,10 +31,10 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="bg-primary-60/5 p-5 rounded-lg shadow-md shadow-[#161515fd]"
+      initial={{ opacity: 0, x: -200 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="bg-[#121d16] p-5 rounded-lg shadow-md shadow-[#161515fd]"
     >
       <div className="-mb-4 flex justify-between items-center">
         <h3 className="text-[1.2rem]">
@@ -64,7 +64,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                   className="mb-0"
                 >
                   <Input
-                    className="bg-transparent"
+                    className="bg-primary-20/5 border-primary-60"
                     size="large"
                     type="number"
                   />
@@ -82,7 +82,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                   className="mb-0"
                 >
                   <Input
-                    className="bg-transparent"
+                    className="bg-primary-20/5 border-primary-60"
                     size="large"
                     type="number"
                   />
@@ -97,7 +97,11 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                 rules={[fieldRule("Hard Cap")]}
                 required
               >
-                <Input className="bg-transparent" size="large" type="number" />
+                <Input
+                  className="bg-primary-20/5 border-primary-60"
+                  size="large"
+                  type="number"
+                />
               </Form.Item>
               <Form.Item
                 label="Soft Cap (STX)"
@@ -105,7 +109,11 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                 rules={[fieldRule("Soft Cap")]}
                 required
               >
-                <Input className="bg-transparent" size="large" type="number" />
+                <Input
+                  className="bg-primary-20/5 border-primary-60"
+                  size="large"
+                  type="number"
+                />
               </Form.Item>
               <Form.Item
                 label="Maximum Buy (STX)"
@@ -113,7 +121,11 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                 rules={[fieldRule("Maximum Buy")]}
                 required
               >
-                <Input className="bg-transparent" size="large" type="number" />
+                <Input
+                  className="bg-primary-20/5 border-primary-60"
+                  size="large"
+                  type="number"
+                />
               </Form.Item>
               <Form.Item
                 label="Minimum Buy (STX)"
@@ -122,7 +134,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                 required
               >
                 <Input
-                  className="bg-transparent"
+                  className="bg-primary-20/5 border-primary-60"
                   size="large"
                   type="number"
                   name="minimum_buy"
@@ -135,7 +147,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                 required
               >
                 <Input.TextArea
-                  className="bg-transparent"
+                  className="bg-primary-20/5 border-primary-60"
                   size="large"
                   name="sale_description"
                   style={{ minHeight: "6rem" }}
@@ -152,7 +164,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                     format="YYYY-MM-DD HH:mm:ss"
                     showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                     size="large"
-                    className="w-full bg-transparent"
+                    className="w-full bg-primary-20/5 border-primary-60"
                     name="start_date"
                   />
                 </Form.Item>
@@ -166,7 +178,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                     format="YYYY-MM-DD HH:mm:ss"
                     showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                     size="large"
-                    className="w-full bg-transparent"
+                    className="w-full bg-primary-20/5 border-primary-60"
                     name="end_date"
                   />
                 </Form.Item>
@@ -183,7 +195,12 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
           </div>
         </div>
       ) : (
-        <div className="min-h-[50vh]">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="min-h-[50vh]"
+        >
           <div className="flex items-center justify-center flex-col">
             <img src="/logo.svg" className="w-[7rem]" />
             <h3 className="text-align text-xl mt-2">
@@ -210,7 +227,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
               onClick={() => {
                 router.push(`/launchpad/${1}`)
               }}
-              className="bg-transparent"
+              className="bg-primary-20/5 border-primary-60"
             >
               No
             </Button>
@@ -224,7 +241,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
               Yes
             </Button>
           </div>
-        </div>
+        </motion.div>
       )}
     </motion.div>
   )

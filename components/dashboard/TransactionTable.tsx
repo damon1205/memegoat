@@ -256,7 +256,9 @@ export const TransactionTable: React.FC = () => {
             <BiSearch className="text-[20px]" />
           </Button>
         </div>
-        <Select className="h-full" defaultValue={"all"}>
+        <DatePicker />
+
+        {/* <Select className="h-full" defaultValue={"all"}>
           {assetsOptions.map((asset, index) => {
             return (
               <Select.Option value={asset.value} key={index}>
@@ -275,9 +277,9 @@ export const TransactionTable: React.FC = () => {
               </Select.Option>
             )
           })}
-        </Select>
+        </Select> */}
       </div>
-      <div className="mb-8 grid md:grid-cols-4 gap-7">
+      {/* <div className="mb-8 grid md:grid-cols-4 gap-7">
         <Select className="h-full" defaultValue={"STX"}>
           {assetsOptions.map((asset, index) => {
             return (
@@ -320,7 +322,7 @@ export const TransactionTable: React.FC = () => {
         </Select>
         <DatePicker />
         <DatePicker />
-      </div>
+      </div> */}
       <Table
         columns={columns}
         dataSource={data}

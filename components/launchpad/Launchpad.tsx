@@ -78,7 +78,7 @@ export const Launchpad = () => {
           initial={{ opacity: 0 }}
           animate={{ y: 0, opacity: 0.05 }}
           transition={{ duration: 0.5 }}
-          className="relative  w-[60rem] h-[60rem]"
+          className=" w-[60rem] h-[60rem]"
         >
           <Image src="/logo.svg" className="w-full h-full" alt="" fill />
         </motion.div>

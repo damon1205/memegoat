@@ -5,6 +5,7 @@ import { Orbitron } from "next/font/google"
 import { motion } from "framer-motion"
 import { TransactionTable } from "./TransactionTable"
 import { Attestation } from "./Attestation"
+import Link from "next/link"
 
 export const Dashboard = () => {
   return (
@@ -22,12 +23,10 @@ export const Dashboard = () => {
           </h3>
           <div className="inline-flex gap-2 items-center">
             <p className="">Supported Tokens</p>
-            <Avatar src="/images/bitcoinsvg.svg" size={30} />
+            <Avatar src="/logo.svg" size={30} />
             <Avatar src="/images/stx.svg" size={30} />
-            <Avatar src="/images/eth.svg" size={30} />
-            <Avatar src="/images/usdt.svg" size={30} />
-            <Avatar src="/images/ethos.svg" size={30} />
-            <Avatar src="/images/xmr.svg" size={30} />
+            <Avatar src="/images/leo.jpg" size={30} />
+            <Avatar src="/images/odin.jpg" size={30} />
           </div>
         </div>
         <div className="mt-7">
@@ -37,7 +36,7 @@ export const Dashboard = () => {
               <p className="text-2xl font-semibold mt-3">38 Tokens</p>
             </div>
             <div className="bg-primary-100/10 border-[1px] border-primary-100 w-full px-5 py-5">
-              <p className="text-sm">MemeGoat Total Volume</p>
+              <p className="text-sm">Funds Raised</p>
               <p className="text-2xl font-semibold mt-3">$ 268,844,327.23</p>
             </div>
             <div className="bg-primary-100/10 border-[1px] border-primary-100 w-full px-5 py-5">
@@ -55,15 +54,20 @@ export const Dashboard = () => {
               <div className="mt-3 flex items-center gap-2">
                 <Button
                   type="primary"
-                  className="h-[30px] text-primary-100 font-medium"
+                  className="h-[30px] text-white font-medium"
                 >
-                  Stake
+                  <Link href={"/staking"}>Stake</Link>
                 </Button>
                 <Button
                   type="link"
-                  className="h-[30px] text-primary-30 hover:text-primary-20 underline font-medium"
+                  className="h-[30px]  underline font-medium text-primary-30 hover:text-primary-20"
                 >
-                  Swap
+                  <Link
+                    href={"/dex"}
+                    className="text-primary-30 hover:text-primary-20"
+                  >
+                    Swap
+                  </Link>
                 </Button>
               </div>
             </div>
@@ -74,13 +78,13 @@ export const Dashboard = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 2 }}
-        className="mt-14"
+        className="my-14"
       >
         <TransactionTable />
       </motion.div>
-      <div className="mt-14">
+      {/* <div className="mt-14">
         <Attestation />
-      </div>
+      </div> */}
     </div>
   )
 }

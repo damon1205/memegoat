@@ -12,7 +12,7 @@ export const CreateLaunchPad = () => {
   const [current, setCurrent] = useState(0)
   const stepsNodes: ReactNode[] = [
     <Minter {...{ current, setCurrent, minter: false }} key={0} />,
-    <CampaignAllocation {...{ current, setCurrent }} key={1} />,
+    // <CampaignAllocation {...{ current, setCurrent }} key={1} />,
     <CreateTokenSale {...{ current, setCurrent }} key={2} />,
   ]
   const onChange = (value: number) => {
@@ -26,7 +26,7 @@ export const CreateLaunchPad = () => {
         placement="left"
         title={"Create Staking Pool"}
         styles={{
-          mask: { backdropFilter: "blur(22px)", zIndex: 100 },
+          mask: { backdropFilter: "blur(22px)" },
           content: {
             background: "rgba(16,69,29,0.1)",
             border: "1px solid rgba(16,69,29,0.85)",
@@ -49,13 +49,13 @@ export const CreateLaunchPad = () => {
               ),
               disabled: true,
             },
-            {
-              title: <p className="md:text-lg text-[14px]">Allocation</p>,
-              description: (
-                <p className="text-zinc-400 text-xs">Campaign Allocation</p>
-              ),
-              disabled: true,
-            },
+            // {
+            //   title: <p className="md:text-lg text-[14px]">Allocation</p>,
+            //   description: (
+            //     <p className="text-zinc-400 text-xs">Campaign Allocation</p>
+            //   ),
+            //   disabled: true,
+            // },
             {
               title: <p className="md:text-lg text-[14px]">Token Sale</p>,
               description: (
@@ -66,7 +66,7 @@ export const CreateLaunchPad = () => {
           ]}
           responsive={false}
         />
-        <div className="py-[2rem] md:max-w-[90%] mx-auto">
+        <div className="py-[2rem] md:max-w-[90%] mx-auto [&>.minter-foreground]:hidden">
           {stepsNodes[current]}
         </div>
       </Drawer>
