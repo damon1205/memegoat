@@ -3,6 +3,7 @@ import { LockerRoutes } from "@/components/locker/LockerRoutes"
 import Image from "next/image"
 import React from "react"
 import { motion } from "framer-motion"
+import { BsLockFill } from "react-icons/bs"
 
 const LockerLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -25,6 +26,16 @@ const LockerLayout = ({ children }: { children: React.ReactNode }) => {
           className="relative md:mt-[3rem] max-w-[550px] mx-auto p-4"
         >
           <LockerRoutes />
+          <div className="rounded-sm from-primary-90/5 to-primary-60/20 md:p-6 p-4 border-[1px] border-primary-100 relative bg-gradient-to-r mb-10 overflow-hidden">
+            <h3 className="text-lg md:text-2xl">Token Locker</h3>
+            <p className="text-custom-white/55 text-sm md:text-[16px] mt-1">
+              Creating and investing in the best memecoins just became easier.
+            </p>
+
+            <div className="absolute top-0 right-0 text-primary-10/15 text-[10rem] overflow-hidden">
+              <BsLockFill />
+            </div>
+          </div>
           <div>{children}</div>
         </motion.div>
       </div>
