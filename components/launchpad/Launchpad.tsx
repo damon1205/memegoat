@@ -1,76 +1,12 @@
 "use client"
-import { Button } from "antd"
 import React from "react"
 import { MdOutlineRocketLaunch } from "react-icons/md"
-import { LaunchpadCard, LaunchpadI } from "./LaunchpadCard"
+import { LaunchpadCard } from "./LaunchpadCard"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { CreateLaunchPad } from "./CreateLaunchPad"
-
-const launchpads: LaunchpadI[] = [
-  {
-    id: "1",
-    name: "GoatSTX",
-    icon: "/logo.svg",
-    target_raise: "150k",
-    start_date: "JUl 2, 8:00pm UTC",
-    end_date: "Sep 2, 8:00pm UTC",
-    description:
-      "Join GoatSTX's IDO and be a pioneer in Bitcoin DeFi innovation. Secure your whitelist spot with our Gleam campaign and take part in shaping the future of decentralized finance on Bitcoin. Don't miss out—get ready to make your mark with GoatSTX.",
-  },
-  {
-    id: "2",
-    name: "STX",
-    icon: "/images/stx.svg",
-    target_raise: "150k",
-    start_date: "JUl 2, 8:00pm UTC",
-    end_date: "Sep 2, 8:00pm UTC",
-    description:
-      "Join GoatSTX's IDO and be a pioneer in Bitcoin DeFi innovation. Secure your whitelist spot with our Gleam campaign and take part in shaping the future of decentralized finance on Bitcoin. Don't miss out—get ready to make your mark with GoatSTX.",
-  },
-  {
-    id: "3",
-    name: "Ethos",
-    icon: "/images/ethos.svg",
-    target_raise: "150k",
-    start_date: "JUl 2, 8:00pm UTC",
-    end_date: "Sep 2, 8:00pm UTC",
-    description:
-      "Join GoatSTX's IDO and be a pioneer in Bitcoin DeFi innovation. Secure your whitelist spot with our Gleam campaign and take part in shaping the future of decentralized finance on Bitcoin. Don't miss out—get ready to make your mark with GoatSTX.",
-  },
-  {
-    id: "4",
-    name: "Leo",
-    icon: "/images/leo.jpg",
-    target_raise: "150k",
-    start_date: "JUl 2, 8:00pm UTC",
-    end_date: "Sep 2, 8:00pm UTC",
-    description:
-      "Join GoatSTX's IDO and be a pioneer in Bitcoin DeFi innovation. Secure your whitelist spot with our Gleam campaign and take part in shaping the future of decentralized finance on Bitcoin. Don't miss out—get ready to make your mark with GoatSTX.",
-  },
-  {
-    id: "5",
-    name: "Nothing",
-    icon: "/images/nothing.jpg",
-    target_raise: "150k",
-    start_date: "JUl 2, 8:00pm UTC",
-    end_date: "Sep 2, 8:00pm UTC",
-    description:
-      "Join GoatSTX's IDO and be a pioneer in Bitcoin DeFi innovation. Secure your whitelist spot with our Gleam campaign and take part in shaping the future of decentralized finance on Bitcoin. Don't miss out—get ready to make your mark with GoatSTX.",
-  },
-  {
-    id: "6",
-    name: "Odin",
-    icon: "/images/odin.jpg",
-    target_raise: "150k",
-    start_date: "JUl 2, 8:00pm UTC",
-    end_date: "Sep 2, 8:00pm UTC",
-    description:
-      "Join GoatSTX's IDO and be a pioneer in Bitcoin DeFi innovation. Secure your whitelist spot with our Gleam campaign and take part in shaping the future of decentralized finance on Bitcoin. Don't miss out—get ready to make your mark with GoatSTX.",
-  },
-]
-
-export const Launchpad = () => {
+import { LaunchpadI } from "@/interface"
+export const Launchpad = async ({ data }: { data: LaunchpadI[] }) => {
   return (
     <>
       <div className="fixed top-[10vh] right-[50%] translate-x-[50%]  z-[0]">
@@ -104,7 +40,7 @@ export const Launchpad = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-5 my-8">
-          {launchpads.map((launchpad, index) => {
+          {data.map((launchpad, index) => {
             return <LaunchpadCard key={index} {...launchpad} />
           })}
         </div>

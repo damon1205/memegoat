@@ -1,18 +1,10 @@
 "use client"
+import { LaunchpadI } from "@/interface"
+import { formatDate } from "@/utils/format"
 import { Avatar, Tag } from "antd"
 import Link from "next/link"
 import React from "react"
 import { BsClock } from "react-icons/bs"
-
-export interface LaunchpadI {
-  icon: string
-  name: string
-  description: string
-  target_raise: string
-  start_date: string
-  end_date: string
-  id: string
-}
 
 export const LaunchpadCard = ({ ...props }: LaunchpadI) => {
   return (
@@ -27,7 +19,7 @@ export const LaunchpadCard = ({ ...props }: LaunchpadI) => {
         <div className="p-4 bg-custom-black/60">
           <div className="flex justify-between items-center -mt-11">
             <Avatar
-              src={props.icon}
+              src={props.token_image}
               size={50}
               className="rounded-lg bg-primary-90/20 border-2 border-custom-black/30 p-1"
             />
@@ -38,21 +30,21 @@ export const LaunchpadCard = ({ ...props }: LaunchpadI) => {
               Closed
             </Tag>
           </div>
-          <div className="mt-5">
-            <h3 className="text-sm">{props.name}</h3>
+          <div className="mt-5 h-[100px]">
+            <h3 className="text-sm">{props.token_name}</h3>
             <p className="text-xs mt-2 text-custom-white/60">
-              {props.description}
+              {props.token_desc}
             </p>
           </div>
 
           <div className="mt-8 flex items-center justify-between">
             <div>
               <p className="text-xs mt-2 text-custom-white/60">Target raise</p>
-              <p className="text-sm">{props.target_raise}</p>
+              <p className="text-sm">{props.hard_cap} STX</p>
             </div>
             <div>
               <p className="text-xs mt-2 text-custom-white/60">Starts In</p>
-              <p className="text-sm">{props.start_date}</p>
+              <p className="text-sm">{formatDate(props.start_date)}</p>
             </div>
           </div>
         </div>
