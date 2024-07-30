@@ -17,6 +17,7 @@ import { BiCheckCircle, BiLinkExternal, BiSearch } from "react-icons/bi"
 import { AiOutlineLoading3Quarters } from "react-icons/ai"
 
 interface DataType {
+  key: string
   id: string
   date: string
   amount: number
@@ -155,6 +156,7 @@ const columns: TableProps<DataType>["columns"] = [
 
 const data: DataType[] = [
   {
+    key: '1',
     id: "1",
     date: new Date().toUTCString(),
     amount: 5000,
@@ -169,6 +171,7 @@ const data: DataType[] = [
     fee: 5,
   },
   {
+    key: '2',
     id: "2",
     date: new Date().toUTCString(),
     amount: 19000,
@@ -183,6 +186,7 @@ const data: DataType[] = [
     fee: 105,
   },
   {
+    key: '3',
     id: "3",
     date: new Date().toUTCString(),
     amount: 25000,
@@ -197,6 +201,7 @@ const data: DataType[] = [
     fee: 295,
   },
   {
+    key: '4',
     id: "4",
     date: new Date().toUTCString(),
     amount: 125000,
@@ -211,6 +216,7 @@ const data: DataType[] = [
     fee: 395,
   },
   {
+    key: '5',
     id: "5",
     date: new Date().toUTCString(),
     amount: 19000,

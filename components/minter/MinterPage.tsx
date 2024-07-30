@@ -1,3 +1,4 @@
+"use client";
 import React from "react"
 import { GiToken } from "react-icons/gi"
 import { motion } from "framer-motion"
@@ -35,7 +36,7 @@ export const MinterPage = () => {
             <GiToken />
           </div>
         </div>
-        <Minter />
+        <Minter minter={true} current={1} setCurrent={() => { }} />
       </motion.div>
     </>
   )

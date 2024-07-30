@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { Logo } from "./Logo"
 import { routes } from "@/data/routes"
 import Link from "next/link"
@@ -9,11 +9,42 @@ import { MdEmail } from "react-icons/md"
 import { FaXTwitter, FaDiscord } from "react-icons/fa6"
 import { GiHamburgerMenu } from "react-icons/gi"
 import { IoCloseCircleOutline } from "react-icons/io5"
+import { appDetails, userSession } from "@/utils/stacks.data"
+import { showConnect } from "@stacks/connect"
 
 export const Header = () => {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const toggleDrawer = () => setOpen(!open)
+
+  const onConnectWallet = useCallback(() => {
+    showConnect({
+      appDetails,
+      onFinish: () => {
+        window.location.reload();
+      },
+      userSession,
+    });
+  }, []);
+
+  function disconnectWallet() {
+    userSession.signUserOut("/");
+  }
+
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [hasCheckedSession, setHasCheckedSession] = useState(false);
+
+  useEffect(() => {
+    if (userSession.isUserSignedIn()) {
+      setIsSignedIn(true);
+    }
+    setHasCheckedSession(true);
+  }, []);
+
+  if (!hasCheckedSession) {
+    return null; // or a loading spinner, etc.
+  }
+
   return (
     <>
       <Drawer
@@ -160,9 +191,15 @@ export const Header = () => {
                   <FaDiscord />
                 </Link>
               </div>
-              <Button className="px-14 font-bold bg-transparent border-primary-90 md:text-primary-50">
-                Connect Wallet
-              </Button>
+              {isSignedIn ? (
+                <Button onClick={() => disconnectWallet()} className="px-14 font-bold bg-transparent border-primary-90 md:text-primary-50">
+                  Disconnect Wallet
+                </Button>
+              ) : (
+                <Button onClick={() => onConnectWallet()} className="px-14 font-bold bg-transparent border-primary-90 md:text-primary-50">
+                  Connect Wallet
+                </Button>
+              )}
               <div className="xl:hidden border-[1px] border-primary-90 text-primary-50 p-2">
                 <GiHamburgerMenu
                   className="cursor-pointer"

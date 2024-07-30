@@ -1,30 +1,44 @@
 "use client"
+import { uploadToGaia } from "@/utils/helpers"
 import { Avatar } from "antd"
 import { NamePath } from "antd/es/form/interface"
 import React, { useState } from "react"
 import { BiUpload } from "react-icons/bi"
 import { FaCloudUploadAlt } from "react-icons/fa"
 import { Oval } from "react-loading-icons"
+import { toast } from "react-hot-toast"
 
 export const UploadImage = ({
   setFieldValue,
   field_name,
   hideRecommendation,
+  initialValue
 }: {
   setFieldValue: (name: NamePath, value: string) => void
   field_name?: string
   hideRecommendation?: boolean
+  initialValue: string | null
 }) => {
-  const [image_, setImage_] = useState<string | null>(null)
+  const [image_, setImage_] = useState<string | null>(initialValue)
   const [isLoading, setIsLoading] = useState(false)
   const onChangeImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files![0]
-    const value = URL.createObjectURL(file as never)
-    setIsLoading(true)
-    setImage_(value)
-    setFieldValue(field_name || "token_image", file as any)
-    setIsLoading(false)
-  }
+    setIsLoading(true);
+    const file = e.target.files![0];
+    const filename = file.name;
+    const mimeType = file.type;
+    const value = URL.createObjectURL(file as never);
+    const fileUrl = await uploadToGaia(filename.replace(/ /g, '-'), file, mimeType);
+    console.log(fileUrl)
+    if (fileUrl === "") {
+      console.log('sjd,fj')
+      setIsLoading(false)
+      toast.error("Please connect Wallet")
+      return;
+    }
+    setFieldValue(field_name || "token_image", fileUrl);
+    setImage_(value);
+    setIsLoading(false);
+  };
 
   return (
     <div className="">

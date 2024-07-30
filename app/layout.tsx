@@ -1,13 +1,14 @@
 import type { Metadata } from "next"
-import { Inter, Raleway } from "next/font/google"
+import { Inter } from "next/font/google"
 import "./globals.css"
 import { PageContainer } from "@/components/shared/PageContainer"
 import { AntProvider } from "@/components/shared/AntProvider"
-
+import config from "@/utils/config"
+import StacksProvider from "@/provider/stacks"
 const inter = Inter({ subsets: ["latin"] })
-const raleway = Raleway({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(config.BASE_URL),
   title: "MemeGoat",
   description: "Secure layer for memes on Bitcoin",
   keywords: [
@@ -27,12 +28,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: "MemeGoat",
     siteName: "MemeGoat",
-    images: [
-      {
-        url: "/opengraph-image.png",
-      },
-    ],
+    images: '/og-image.png'
   },
+
 }
 
 export default function RootLayout({
@@ -44,7 +42,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-custom-black`}>
         <AntProvider>
-          <PageContainer>{children}</PageContainer>
+          <StacksProvider>
+            <PageContainer>
+              {children}
+            </PageContainer>
+          </StacksProvider>
         </AntProvider>
       </body>
     </html>

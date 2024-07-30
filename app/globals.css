@@ -25,8 +25,15 @@
 
 .neonText {
   color: #fff;
-  text-shadow: 0 0 7px #fff, 0 0 10px #fff, 0 0 21px #fff, 0 0 42px #46584b,
-    0 0 2px #46584b, 0 0 2px #46584b, 0 0 52px #46584b, 0 0 51px #46584b;
+  text-shadow:
+    0 0 7px #fff,
+    0 0 10px #fff,
+    0 0 21px #fff,
+    0 0 42px #46584b,
+    0 0 2px #46584b,
+    0 0 2px #46584b,
+    0 0 52px #46584b,
+    0 0 51px #46584b;
 }
 
 .special-text {
