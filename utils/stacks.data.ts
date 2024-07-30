@@ -1,4 +1,4 @@
-import { TokenMinterProgressI } from "@/interface";
+import { LaunchpadDataI } from "@/interface";
 import { AppConfig, UserSession } from "@stacks/connect";
 import {
   StacksMainnet,
@@ -226,7 +226,7 @@ export const fetchTokenMetadata = async (token: string) => {
   } catch (error) {
     try {
       const response = await instance().get(`/campaign-requests/${token}`);
-      const tokenInfo: TokenMinterProgressI = response.data.data;
+      const tokenInfo: LaunchpadDataI = response.data.data;
       const metadata: ITokenMetadata = {
         ...emptyMetadata,
         name: tokenInfo.token_name,

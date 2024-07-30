@@ -8,7 +8,7 @@ import { BsClock } from "react-icons/bs"
 
 export const LaunchpadCard = ({ ...props }: LaunchpadI) => {
   return (
-    <Link href={`/launchpad/${props.id}`}>
+    <Link href={`/launchpad/${props.token_address}`}>
       <div className="border-[1px] border-primary-100/50 relative [&>div]:hover:to-primary-80/50 transition-all">
         <div className="p-4 h-[8rem] from-primary-80/5 to-primary-80/20 bg-gradient-to-r relative overflow-hidden flex items-center justify-center flex-col lp-card-top">
           <div className="absolute top-[-1rem] right-5 h-[6rem] w-[2rem] bg-primary-30 rotate-[60deg] blur-[32px]" />

@@ -10,7 +10,7 @@ import Link from "next/link"
 import { FiArrowUpRight } from "react-icons/fi"
 import { motion } from "framer-motion"
 import { BsDot } from "react-icons/bs"
-import { TokenMinterProgressI } from "@/interface"
+import { LaunchpadDataI } from "@/interface"
 import { useTokenMinterFields } from "@/hooks/useTokenMinterHooks"
 import { ApiURLS, appDetails, getExplorerLink, getUserPrincipal, network, networkInstance, userSession } from "@/utils/stacks.data"
 import { uploadToGaia, generateContract } from "@/utils/helpers"
@@ -31,7 +31,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
   const [hasCheckedSession, setHasCheckedSession] = useState(false);
 
   const { doContractDeploy } = useConnect();
-  const [form] = useForm<TokenMinterProgressI>()
+  const [form] = useForm<LaunchpadDataI>()
   const { tokenMintProgress, setTokenMintProgress } = useTokenMinterFields();
   const resetForm = () => form.resetFields()
   const fieldRule = (name: string): Rule => {

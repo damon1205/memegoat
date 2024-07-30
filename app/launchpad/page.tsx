@@ -7,7 +7,7 @@ const LaunchpadPage = async () => {
   const fetchLaunches = async () => {
     try {
       const res = await instance().get("/campaign-requests");
-      return [GoatLaunchpad, ...res.data.data];
+      return res.data.data;
     } catch (error) {
       console.error("Error fetching products:", error);
       return null;

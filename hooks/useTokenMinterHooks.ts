@@ -1,11 +1,11 @@
 "use client";
 import { initialData, pendingInitial } from "@/data/constants";
-import { PendingTxnsI, TokenMinterProgressI } from "@/interface";
+import { PendingTxnsI, LaunchpadDataI } from "@/interface";
 import { useLocalStorage } from "usehooks-ts";
 
 const useTokenMinterFields = () => {
   const [tokenMintProgress, setTokenMintProgress] =
-    useLocalStorage<TokenMinterProgressI>("token-minter-fields", initialData, {
+    useLocalStorage<LaunchpadDataI>("token-minter-fields", initialData, {
       initializeWithValue: false,
     });
   return { tokenMintProgress, setTokenMintProgress };

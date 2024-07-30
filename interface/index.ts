@@ -21,7 +21,7 @@ export interface ITokenMetadata {
   tokenAddress: string;
 }
 
-export interface TokenMinterProgressI {
+export interface LaunchpadDataI {
   step: string;
   tx_id: string;
   tx_status: string;
@@ -74,6 +74,7 @@ export interface LaunchpadI {
   token_image: string;
   token_name: string;
   token_desc: string;
+  token_address: string;
   hard_cap: string;
   start_date: string;
   end_date: string;

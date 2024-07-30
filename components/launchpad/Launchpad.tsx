@@ -6,7 +6,7 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import { CreateLaunchPad } from "./CreateLaunchPad"
 import { LaunchpadI } from "@/interface"
-export const Launchpad = async ({ data }: { data: LaunchpadI[] }) => {
+export const Launchpad = ({ data }: { data: LaunchpadI[] }) => {
   return (
     <>
       <div className="fixed top-[10vh] right-[50%] translate-x-[50%]  z-[0]">

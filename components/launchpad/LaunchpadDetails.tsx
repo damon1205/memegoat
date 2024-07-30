@@ -6,14 +6,10 @@ import { Avatar, Button, Divider, Tag } from "antd"
 import { BsClock } from "react-icons/bs"
 import moment from "moment"
 import { BiCopy } from "react-icons/bi"
-import { LaunchpadI } from "@/interface"
-import { useRouter } from "next/router"
+import { LaunchpadDataI } from "@/interface"
+import { formatNumber, truncateTokenAddress } from "@/utils/format"
 
-export const LaunchpadDetails = ({ data }: { data: LaunchpadI | null }) => {
-  const router = useRouter()
-  if (!data) {
-    router.push("/launchpad");
-  }
+export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
   return (
     <>
       {data &&
@@ -25,7 +21,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadI | null }) => {
               transition={{ duration: 0.5 }}
               className="relative  w-[60rem] h-[60rem]"
             >
-              <Image src="/logo.svg" className="w-full h-full" alt="" fill />
+              <Image src={data.token_image} className="w-full h-full" alt={data.token_ticker} fill />
             </motion.div>
           </div>
           <motion.div
@@ -60,11 +56,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadI | null }) => {
                     Secure layer of meme on Bitcoin
                   </p>
                   <p className="text-[14px]">
-                    Join GoatSTX&apos;s IDO and be a pioneer in Bitcoin DeFi
-                    innovation. Secure your whitelist spot with our Gleam campaign
-                    and take part in shaping the future of decentralized finance on
-                    Bitcoin. Don&apos;t miss out—get ready to make your mark with
-                    GoatSTX.
+                    {data.token_desc}
                   </p>
                   <div className="mt-7">
                     <p className="border-b-[1px] border-primary-100/80 pb-2">
@@ -76,14 +68,14 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadI | null }) => {
                           <p className="text-xs mt-2 text-custom-white/60">
                             Token Name
                           </p>
-                          <p className="text-sm">GoatMemeSTX</p>
+                          <p className="text-sm">{data.token_name}</p>
                         </div>
                         <div>
                           <p className="text-xs mt-2 text-custom-white/60 text-end">
                             Contract Address
                           </p>
                           <p className="text-sm">
-                            <span>shgygyegueghiietsefj...</span>
+                            <span>{truncateTokenAddress(data.token_address)}</span>
                             <BiCopy className="inline ml-5 cursor-pointer" />
                           </p>
                         </div>
@@ -93,13 +85,13 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadI | null }) => {
                           <p className="text-xs mt-2 text-custom-white/60">
                             Hard Cap
                           </p>
-                          <p className="text-sm">44,000 GoatSTX</p>
+                          <p className="text-sm">{formatNumber(data.hard_cap)} STX</p>
                         </div>
                         <div>
                           <p className="text-xs mt-2 text-custom-white/60 text-end">
                             Soft Cap
                           </p>
-                          <p className="text-sm">30,000 GoatSTX</p>
+                          <p className="text-sm">{formatNumber(data.soft_cap)} STX</p>
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
@@ -107,7 +99,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadI | null }) => {
                           <p className="text-xs mt-2 text-custom-white/60">
                             Total Supply
                           </p>
-                          <p className="text-sm">60,144,000 GoatSTX</p>
+                          <p className="text-sm">{formatNumber(data.token_supply)} {data.token_ticker}</p>
                         </div>
                         <div>
                           <p className="text-xs mt-2 text-custom-white/60 text-end">
@@ -119,15 +111,15 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadI | null }) => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs mt-2 text-custom-white/60">
-                            Target Raise
+                            Target Sale
                           </p>
-                          <p className="text-sm">{"55,000,000 GoatSTX"}</p>
+                          <p className="text-sm">{formatNumber(data.sale_allocation)} {data.token_ticker}</p>
                         </div>
                         <div>
                           <p className="text-xs mt-2 text-custom-white/60 text-end">
                             Starts In
                           </p>
-                          <p className="text-sm">{moment().format("LL LT")}</p>
+                          <p className="text-sm">{moment(data.start_date).format("LL LT")}</p>
                         </div>
                       </div>
                     </div>

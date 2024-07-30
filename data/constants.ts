@@ -1,5 +1,5 @@
 import { LaunchpadI } from "@/interface";
-import { TokenMinterProgressI } from "@/interface";
+import { LaunchpadDataI } from "@/interface";
 import { TokenInfo, Currency } from "alex-sdk";
 
 export const dummyToken: TokenInfo = {
@@ -132,7 +132,7 @@ export const emptyMetadata = {
   tokenAddress: "",
 };
 
-export const initialData: TokenMinterProgressI = {
+export const initialData: LaunchpadDataI = {
   step: "",
   tx_id: "",
   tx_status: "",
@@ -180,6 +180,7 @@ export const GoatLaunchpad: LaunchpadI = {
   id: "1sdjkjd",
   token_name: "GoatSTX",
   token_image: "/logo.svg",
+  token_address: "SP2F4QC563WN0A0949WPH5W1YXVC4M1R46QKE0G14.memegoatstx",
   hard_cap: "50000",
   start_date: "2024-04-29T16:00:00.000Z",
   end_date: "2024-05-01T16:00:00.000Z",
