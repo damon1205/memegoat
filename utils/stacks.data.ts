@@ -144,7 +144,7 @@ const address = (network: string) => {
 };
 
 type NetworkType = "mainnet" | "devnet" | "testnet";
-export const network: NetworkType = "testnet";
+export const network: NetworkType = "mainnet";
 export const networkInstance = getNetwork(network);
 export const contractAddress = address(network);
 
@@ -252,5 +252,47 @@ export const fetchTokenMetadata = async (token: string) => {
       };
       return metadata;
     }
+  }
+};
+
+export const fetchCurrNoOfBlocks = async () => {
+  try {
+    const config = {
+      method: "get",
+      maxBodyLength: Infinity,
+      url: ApiURLS[network].getBlocks,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    const response = await axios.request(config);
+    return response.data.results[0].height;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const fetchSTXBalance = async () => {
+  const network = networkInstance;
+  const userPrincipal = getUserPrincipal();
+  if (userPrincipal == "") {
+    return 0;
+  }
+  const balanceURL = network.getAccountExtendedBalancesApiUrl(userPrincipal);
+  try {
+    const config = {
+      method: "get",
+      maxBodyLength: Infinity,
+      url: balanceURL,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    const response = await axios.request(config);
+    const stxBal = response.data.stx;
+    return stxBal ? (stxBal.balance as number) : 0;
+  } catch (error) {
+    console.error(error);
+    return 0;
   }
 };

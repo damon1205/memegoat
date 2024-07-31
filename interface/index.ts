@@ -1,3 +1,12 @@
+import {
+  StandardPrincipalCV,
+  UIntCV,
+  BooleanCV,
+  OptionalCV,
+  StringUtf8CV,
+  TupleCV,
+} from "@stacks/transactions";
+
 export interface ITokenMetadata {
   name: string;
   symbol: string;
@@ -79,4 +88,61 @@ export interface LaunchpadI {
   start_date: string;
   end_date: string;
   id: string;
+}
+
+export interface PendingTxnLaunchPad {
+  key: string;
+  tag: string;
+  txID: string;
+  userAddr: string;
+  amount: string;
+  action: string;
+}
+
+export interface LaunchpadI {
+  token: StandardPrincipalCV;
+  "pool-amount": UIntCV;
+  hardcap: UIntCV;
+  softcap: UIntCV;
+  "total-stx-deposited": UIntCV;
+  "no-of-participants": UIntCV;
+  "min-stx-deposit": UIntCV;
+  "max-stx-deposit": UIntCV;
+  duration: UIntCV;
+  "start-block": UIntCV;
+  "end-block": UIntCV;
+  owner: StandardPrincipalCV;
+  "is-vested": BooleanCV;
+  "is-listed": BooleanCV;
+  "listing-allocation": UIntCV;
+  "campaign-allocation": OptionalCV;
+  "campaign-rewards-sent": UIntCV;
+}
+
+export interface Pool {
+  "block-height": UIntCV;
+  "burn-block-height": UIntCV;
+  "lp-token": StandardPrincipalCV;
+  "protocol-fee": TupleCV<{ den: UIntCV; num: UIntCV }>;
+  reserve0: UIntCV;
+  reserve1: UIntCV;
+  "share-fee": TupleCV<{ den: UIntCV; num: UIntCV }>;
+  "swap-fee": TupleCV<{ den: UIntCV; num: UIntCV }>;
+  symbol: StringUtf8CV;
+  token0: StandardPrincipalCV;
+  token1: StandardPrincipalCV;
+}
+
+export interface PoolInterface {
+  "block-height": UIntCV;
+  "burn-block-height": UIntCV;
+  "lp-token": StandardPrincipalCV;
+  "protocol-fee": TupleCV<{ den: UIntCV; num: UIntCV }>;
+  reserve0: UIntCV;
+  reserve1: UIntCV;
+  "share-fee": TupleCV<{ den: UIntCV; num: UIntCV }>;
+  "swap-fee": TupleCV<{ den: UIntCV; num: UIntCV }>;
+  symbol: StringUtf8CV;
+  token0: StandardPrincipalCV;
+  token1: StandardPrincipalCV;
 }

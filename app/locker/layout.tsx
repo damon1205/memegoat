@@ -23,7 +23,7 @@ const LockerLayout = ({ children }: { children: React.ReactNode }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 1 }}
-          className="relative md:mt-[3rem] max-w-[550px] mx-auto p-4"
+          className="relative md:mt-[3rem] max-w-[900px] mx-auto p-4"
         >
           <LockerRoutes />
           <div className="rounded-sm from-primary-90/5 to-primary-60/20 md:p-6 p-4 border-[1px] border-primary-100 relative bg-gradient-to-r mb-10 overflow-hidden">

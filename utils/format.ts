@@ -8,6 +8,7 @@ export const formatNumber = (num: number | string) => {
 };
 
 export const formatCVTypeNumber = (data: ClarityValue) => {
+  if (!data) return 0;
   return Number((data as unknown as cvValue).value);
 };
 

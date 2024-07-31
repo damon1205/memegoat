@@ -1,15 +1,139 @@
 "use client"
-import React from "react"
+import React, { useEffect, useState } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
-import { Avatar, Button, Divider, Tag } from "antd"
+import { Avatar, Button, Tag } from "antd"
 import { BsClock } from "react-icons/bs"
 import moment from "moment"
 import { BiCopy } from "react-icons/bi"
-import { LaunchpadDataI } from "@/interface"
-import { formatNumber, truncateTokenAddress } from "@/utils/format"
+import { ITokenMetadata, LaunchpadDataI, LaunchpadI, PendingTxnLaunchPad } from "@/interface"
+import { formatCVTypeNumber, formatNumber, truncateTokenAddress } from "@/utils/format"
+import { calculateAllocation, calculateProgress, checkAuth, checkIfClaimed, checkLive, generateClaimTransaction, generateDepositSTXTransaction, getLaunchpadInfo, getStoredPendingTransactions, getSTXRate, getUserDeposits, hardCapReached, presaleEnded, storePendingTxn } from "@/lib/contracts/launchpad"
+import { fetchCurrNoOfBlocks, fetchSTXBalance, getUserPrincipal } from "@/utils/stacks.data"
+import { uintCV } from "@stacks/transactions"
+import { useConnect } from "@stacks/connect-react"
+import toast from "react-hot-toast"
 
 export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
+  const { doContractCall } = useConnect();
+  const [launchpadInfo, setLaunchpadInfo] = useState<LaunchpadI | null>(
+    null,
+  );
+  const [launchpadId, setLaunchpadId] = useState<number>(0);
+  const [STXRate, setSTXRate] = useState<number>(0);
+  const [userDeposits, setUserDeposits] = useState<number>(0);
+  const [stxBalance, setStxBalance] = useState<number>(0);
+  const [amount, setAmount] = useState<number>(0);
+  const [live, setLive] = useState<boolean>(false);
+  const [allocation, setAllocation] = useState<number>(0);
+  const [hasClaimed, setClaimed] = useState<boolean>(false);
+  const [pendingTxns, setPendingTxns] = useState<PendingTxnLaunchPad[]>([]);
+  const [metadata, setMetadata] = useState<ITokenMetadata | null>(null);
+  const [isOwner, setAuth] = useState<boolean>(false);
+  const [hardcapStatus, setHardcapStatus] = useState<boolean>(false);
+  const [presaleClosed, setPresaleClosed] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
+
+  const fetchPendingTxns = async () => {
+    const pendingTxns = await getStoredPendingTransactions();
+    setPendingTxns(pendingTxns)
+  }
+
+  const handleDepositStx = () => {
+    if (!amount) return;
+    try {
+      const user = getUserPrincipal()
+      const txnData = generateDepositSTXTransaction(user, amount, launchpadId)
+      doContractCall({
+        ...txnData,
+        onFinish: async (data) => {
+          storePendingTxn("Buy Presale", data.txId, amount.toString());
+          getStoredPendingTransactions();
+        },
+        onCancel: () => {
+          console.log("onCancel:", "Transaction was canceled");
+        },
+      })
+    } catch (e) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error('An unknown error occurred');
+      }
+    }
+  }
+
+  const handleClaimToken = async () => {
+    if (!data) return;
+    try {
+      const user = getUserPrincipal()
+      const txnData = await generateClaimTransaction(launchpadId, data.token_address, null);
+      doContractCall({
+        ...txnData,
+        onFinish: async (data) => {
+          storePendingTxn(
+            "Claim Presale",
+            data.txId,
+            calculateAllocation(launchpadId).toString(),
+          );
+          getStoredPendingTransactions();
+        },
+        onCancel: () => {
+          console.log("onCancel:", "Transaction was canceled");
+        },
+      })
+    } catch (e) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error('An unknown error occurred');
+      }
+    }
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!data) return
+      const result = await getLaunchpadInfo(data?.token_address);
+      const launchpadId = Number(result.id.toString())
+      setLaunchpadId(launchpadId);
+      setLaunchpadInfo(result.launch)
+
+      const result2 = await getSTXRate(launchpadId);
+      setSTXRate(result2)
+
+      const result3 = await getUserDeposits(launchpadId);
+      setUserDeposits(result3);
+
+      const result5 = await fetchSTXBalance();
+      setStxBalance(result5);
+
+      const result6 = await checkIfClaimed(launchpadId);
+      setClaimed(result6);
+
+      const result7 = await calculateAllocation(launchpadId);
+      setAllocation(result7);
+
+      const result8 = checkAuth(result.launch);
+      setAuth(result8);
+
+      const result9 = hardCapReached(result.launch);
+      setHardcapStatus(result9);
+      const currBlock = await fetchCurrNoOfBlocks();
+
+      const result4 = checkLive(result.launch, currBlock);
+      setLive(result4)
+
+      const result10 = presaleEnded(result.launch, currBlock);
+      setPresaleClosed(result10);
+
+      const result11 = calculateProgress(result.launch);
+      setProgress(result11)
+    }
+
+    fetchData()
+  }, [data])
+
   return (
     <>
       {data &&
@@ -128,27 +252,27 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                 <div className="bg-primary-60/5 backdrop-blur-[5px] text-sm w-full">
                   <div className="p-4 text-silver border-b-[1px] border-primary-20/20 mb-5">
                     <p>
-                      <BsClock className="inline mr-1" /> Total Raised Completed
+                      <BsClock className="inline mr-1" /> {live ? "JOIN PRESALE" : "PRESALE ENDED"}
                     </p>
                   </div>
                   <div className="p-4">
                     <p className="text-center text-silver mb-2">Total Raised</p>
                     <h3 className="text-xl text-center text-primary-40">
-                      $15,000 /
-                      <span className="text-[16px] text-silver"> $15,000</span>
+                      {formatCVTypeNumber(launchpadInfo ? launchpadInfo["pool-amount"] : uintCV(0))}/
+                      <span className="text-[16px] text-silver"> {formatNumber(data.hard_cap)} STX</span>
                     </h3>
                     <div className="mt-7 space-y-3">
                       <div className="flex items-center gap-5 justify-between">
                         <p>Your Balance</p>
-                        <p className="text-primary-40">5,000 GoatSTX</p>
+                        <p className="text-primary-40">{stxBalance}</p>
                       </div>
                       <div className="flex items-center gap-5 justify-between">
                         <p>Your Contribution</p>
-                        <p className="text-primary-40">3,000 GoatSTX</p>
+                        <p className="text-primary-40">{userDeposits}</p>
                       </div>
                       <div className="flex items-center gap-5 justify-between">
                         <p>Final Allocation</p>
-                        <p className="text-primary-40">15,000 GoatSTX</p>
+                        <p className="text-primary-40">{allocation}</p>
                       </div>
                     </div>
                     <Button className="w-full mt-5" type="primary">
