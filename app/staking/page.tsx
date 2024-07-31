@@ -1,7 +1,7 @@
 import Staking from "@/components/staking/Staking"
 import React from "react"
 
-const StakingPage = async () => {
+const StakingPage = () => {
   return (
     <div>
       <Staking />

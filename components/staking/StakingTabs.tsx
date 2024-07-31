@@ -13,7 +13,7 @@ interface TabItem {
   content: ReactNode
 }
 
-export const StakingTabs = ({ stakes }: { stakes: StakeInterface[] }) => {
+export const StakingTabs = () => {
   const [current, setCurrent] = useState(1)
   const [activeStakes, setActiveStakes] = useState<StakeInterface[]>([]);
   const [endedStakes, setEndedStakes] = useState<StakeInterface[]>([]);
@@ -35,6 +35,8 @@ export const StakingTabs = ({ stakes }: { stakes: StakeInterface[] }) => {
 
   useEffect(() => {
     const fetchData = async () => {
+      const stakeIndex = await getStakeNonce();
+      const stakes = await getStakes(stakeIndex);
       const currBlock = await fetchCurrNoOfBlocks();
       const activeStakes = filterActiveStakes(stakes, currBlock);
       setActiveStakes(activeStakes);
@@ -42,7 +44,7 @@ export const StakingTabs = ({ stakes }: { stakes: StakeInterface[] }) => {
       setEndedStakes(endedStakes);
     }
     fetchData()
-  }, [stakes])
+  }, [])
 
   return (
     <div>

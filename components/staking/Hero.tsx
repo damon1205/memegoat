@@ -1,11 +1,11 @@
-"use client"
-import { Avatar, Button } from "antd"
 import Image from "next/image"
 import React from "react"
 import { motion } from "framer-motion"
 import { CreatePool } from "./CreatePool"
+import { getAllUserTokens } from "@/utils/stacks.data"
 
-export const Hero = () => {
+export const Hero = async () => {
+  const tokens = await getAllUserTokens();
   return (
     <>
       <div className="fixed top-0 left-[50%] translate-x-[-50%] w-[430px] h-[340px] blur-[300px] bg-primary-20 hidden md:block" />
@@ -43,7 +43,7 @@ export const Hero = () => {
           community. <span className="text-primary-20">Earn</span> rewards from
           your favourite community.
         </p>
-        <CreatePool />
+        <CreatePool tokens={tokens || []} />
       </motion.div>
     </>
   )
