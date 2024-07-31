@@ -146,3 +146,40 @@ export interface PoolInterface {
   token0: StandardPrincipalCV;
   token1: StandardPrincipalCV;
 }
+
+export interface StakeInterface {
+  id: UIntCV;
+  "stake-token": StandardPrincipalCV;
+  "reward-token": StandardPrincipalCV;
+  "reward-amount": UIntCV;
+  "reward-per-block": UIntCV;
+  "total-staked": UIntCV;
+  "start-block": UIntCV;
+  "end-block": UIntCV;
+  "last-update-block": UIntCV;
+  "reward-per-token-staked": UIntCV;
+  owner: StandardPrincipalCV;
+  participants: UIntCV;
+}
+
+export interface UserStakeInterface {
+  "amount-staked": UIntCV;
+  "stake-rewards": UIntCV;
+  "reward-per-token-staked": UIntCV;
+}
+
+export interface PendingTxnPool {
+  key: string;
+  stakeId: string;
+  tag: string;
+  txID: string;
+  userAddr: string;
+  action: string;
+  amount: string;
+  token: string;
+}
+
+export interface TokenData {
+  address: string;
+  name: string;
+}

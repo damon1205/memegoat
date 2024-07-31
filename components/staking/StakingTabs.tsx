@@ -1,8 +1,11 @@
 "use client"
-import { Dispatch, ReactNode, SetStateAction, useState } from "react"
+import { Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Empty, Switch } from "antd"
 import { StakeCard } from "./StakeCard"
+import { filterActiveStakes, filterEndedStakes, getStakeNonce, getStakes } from "@/lib/contracts/staking"
+import { StakeInterface } from "@/interface"
+import { fetchCurrNoOfBlocks } from "@/utils/stacks.data"
 
 interface TabItem {
   title: ReactNode
@@ -10,25 +13,37 @@ interface TabItem {
   content: ReactNode
 }
 
-export const StakingTabs = () => {
+export const StakingTabs = ({ stakes }: { stakes: StakeInterface[] }) => {
   const [current, setCurrent] = useState(1)
+  const [activeStakes, setActiveStakes] = useState<StakeInterface[]>([]);
+  const [endedStakes, setEndedStakes] = useState<StakeInterface[]>([]);
+  const [stakeOnly, setStakeOnly] = useState<boolean>(false);
+
   const tabItems: TabItem[] = [
     {
       title: "live",
       key: 1,
-      content: <LiveTabContent />,
+      content: <TabContent stakes={activeStakes} stakedOnly={stakeOnly} ended={false} />,
     },
     {
       title: "finished",
       key: 2,
-      content: (
-        <div>
-          <Empty description="Nothing Here" />
-        </div>
-      ),
+      content: <TabContent stakes={endedStakes} stakedOnly={stakeOnly} ended={false} />,
     },
   ]
   const tabHeadProps = { tabItems, current, setCurrent }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const currBlock = await fetchCurrNoOfBlocks();
+      const activeStakes = filterActiveStakes(stakes, currBlock);
+      setActiveStakes(activeStakes);
+      const endedStakes = filterEndedStakes(stakes, currBlock);
+      setEndedStakes(endedStakes);
+    }
+    fetchData()
+  }, [stakes])
+
   return (
     <div>
       <div
@@ -80,50 +95,11 @@ const TabHead = ({
   )
 }
 
-const LiveTabContent = () => {
-  const dummy = [
-    {
-      to_earn: "GoatSTX",
-      to_stake: "STX",
-      to_earn_img: "/logo.svg",
-      to_stake_img: "/images/stx.svg",
-    },
-    {
-      to_earn: "LEO",
-      to_stake: "ODIN",
-      to_earn_img: "/images/leo.jpg",
-      to_stake_img: "/images/odin.jpg",
-    },
-    {
-      to_earn: "NOTHING",
-      to_stake: "WELSH",
-      to_earn_img: "/images/nothing.jpg",
-      to_stake_img: "/images/welsh.jpg",
-    },
-
-    {
-      to_earn: "WELSH",
-      to_stake: "STX",
-      to_earn_img: "/images/welsh.jpg",
-      to_stake_img: "/images/stx.svg",
-    },
-    {
-      to_earn: "GoatSTX",
-      to_stake: "ROO",
-      to_earn_img: "/logo.svg",
-      to_stake_img: "/images/roo.jpg",
-    },
-    {
-      to_earn: "ODIN",
-      to_stake: "LEO",
-      to_earn_img: "/images/odin.jpg",
-      to_stake_img: "/images/leo.jpg",
-    },
-  ]
+const TabContent = ({ stakes, stakedOnly, ended }: { stakes: StakeInterface[], stakedOnly: boolean, ended: boolean }) => {
   return (
     <div className="grid md:grid-cols-3 grid-cols-1 gap-7 content-stretch">
-      {dummy.map((pool, index) => (
-        <StakeCard key={index} {...pool} />
+      {stakes.map((stake, index) => (
+        <StakeCard key={index} stakeInfo={stake} stakedOnly={stakedOnly} ended={ended} />
       ))}
     </div>
   )

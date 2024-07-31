@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { NFTStorage } from 'nft.storage';
 import { getContractLink, getUserPrincipal, network, traitAddress, userSession } from './stacks.data';
-import { callReadOnlyFunction, cvToValue } from '@stacks/transactions';
+import { callReadOnlyFunction, cvToValue, StandardPrincipalCV } from '@stacks/transactions';
 import { StacksNetwork } from '@stacks/network';
 import { cvValue } from '@/interface';
 import { PutFileOptions, Storage } from "@stacks/storage";
@@ -19,6 +19,10 @@ export function isNotNull<T>(input: T | undefined | null): input is T {
 export function assertNever(x: never): never {
   throw new Error("Unexpected object: " + x);
 }
+
+export const getAddress = (address: StandardPrincipalCV) => {
+  return (address as unknown as cvValue).value;
+};
 
 
 export async function uploadToIPFS(data: Blob): Promise<string> {

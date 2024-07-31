@@ -12,6 +12,7 @@ import { cleanIPFS, getTokenURI, splitToken } from "./helpers";
 import { ITokenMetadata } from "@/interface";
 import { dummyMetadata, emptyMetadata } from "@/data/constants";
 import config from "./config";
+import { splitColons } from "./format";
 
 export const pointsAPI =
   "https://memegoat-referral-backend.onrender.com/points";
@@ -295,4 +296,47 @@ export const fetchSTXBalance = async () => {
     console.error(error);
     return 0;
   }
+};
+
+export const getUserTokenBalance = async (stake_token: string) => {
+  if (!stake_token) return 0;
+
+  const data = await fetchUserBalance(networkInstance, getUserPrincipal());
+  if (stake_token[1].toLowerCase() === "stx") {
+    return Number(data.stx.balance) / 1000000;
+  }
+
+  for (const key of Object.keys(data.fungible_tokens)) {
+    if (key.includes(stake_token)) {
+      return Number(data.fungible_tokens[key].balance) / 1000000;
+    }
+  }
+  return 0;
+};
+
+export const getAllUserTokens = async () => {
+  if (!userSession.isUserSignedIn()) return [];
+  const url =
+    networkInstance.getAccountExtendedBalancesApiUrl(getUserPrincipal());
+  const config = {
+    method: "get",
+    maxBodyLength: Infinity,
+    url: url,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+  const response = await axios.request(config);
+  const data = response.data.fungible_tokens;
+  const tokenList = [];
+  for (const ft in data) {
+    if (Number(data[ft].balance) == 0) continue;
+    const ftSplit = splitColons(ft);
+    const token = {
+      address: ftSplit[0],
+      name: ftSplit[1],
+    };
+    tokenList.push(token);
+  }
+  return tokenList;
 };
