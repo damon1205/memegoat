@@ -158,6 +158,7 @@ export const initialData: LaunchpadDataI = {
   soft_cap: "",
   maximum_buy: "",
   minimum_buy: "",
+  is_campaign: false,
   start_date: "",
   end_date: "",
 };

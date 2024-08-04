@@ -56,6 +56,7 @@ export interface LaunchpadDataI {
   soft_cap: string;
   maximum_buy: string;
   minimum_buy: string;
+  is_campaign: boolean;
   start_date: string;
   end_date: string;
 }

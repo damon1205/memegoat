@@ -5,6 +5,7 @@ import { PageContainer } from "@/components/shared/PageContainer"
 import { AntProvider } from "@/components/shared/AntProvider"
 import config from "@/utils/config"
 import StacksProvider from "@/provider/stacks"
+import StoreProvider from "@/provider/Redux"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -43,9 +44,11 @@ export default function RootLayout({
       <body className={`${inter.className} bg-custom-black`}>
         <AntProvider>
           <StacksProvider>
-            <PageContainer>
-              {children}
-            </PageContainer>
+            <StoreProvider>
+              <PageContainer>
+                {children}
+              </PageContainer>
+            </StoreProvider>
           </StacksProvider>
         </AntProvider>
       </body>

@@ -1,14 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Spin } from "antd";
-import { ApiURLS, contractAddress, network, networkInstance, userSession } from "@/utils/stacks.data";
-import axios from "axios";
+import { userSession } from "@/utils/stacks.data";
 import { toast } from "react-toastify";
-import { getTokenSource, splitToken } from "@/utils/helpers";
-import { FungibleConditionCode, createAssetInfo, makeContractFungiblePostCondition, AnchorMode, uintCV, contractPrincipalCV, PostConditionMode } from "@stacks/transactions";
 import { useConnect } from "@stacks/connect-react";
 import { LoadingOutlined } from '@ant-design/icons';
 import { PendingTxnPool } from "@/interface";
-import { fetchTransactionStatus, generateClaimTransaction, getUserEarnings, storeDB } from "@/lib/contracts/staking";
+import { fetchTransactionStatus, generateClaimTransaction, storeDB } from "@/lib/contracts/staking";
 
 interface props {
   stakeId: number;
@@ -79,7 +76,7 @@ export const ClaimBtn = ({ stakeId, reward_token, erpb, pendingTxns, earned }: p
 
   return (
     <button
-      className={`inline-block px-[12px] py-[6px] ${!(earned > 0) || loading ? 'bg-black text-black' : 'bg-primary-50/90 text-gray-200'}  w-[65px]`}
+      className={`inline-block px-[12px] py-[6px] ${!(earned > 0) || loading ? ' bg-gray-500 text-white' : 'bg-primary-50/90 text-gray-200'}  w-[65px]`}
       onClick={() => hanleClaim()}
       disabled={!(earned > 0) || loading}
     >

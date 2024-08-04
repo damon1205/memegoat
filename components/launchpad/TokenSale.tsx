@@ -1,6 +1,7 @@
 "use client"
-import React, { useState } from "react"
-import { Button, DatePicker, Divider, Form, Input } from "antd"
+import React, { useCallback, useEffect, useState } from "react"
+import { Avatar, Button, DatePicker, Divider, Form, Input } from "antd"
+import type { GetProps } from 'antd';
 import { useForm } from "antd/es/form/Form"
 import { Rule } from "antd/es/form"
 import { BiLock } from "react-icons/bi"
@@ -8,6 +9,22 @@ import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
+import { useTokenMinterFields } from "@/hooks/useTokenMinterHooks";
+import Image from "next/image";
+import { convertToBlocks, convertToIso } from "@/utils/format";
+import { getUserPrincipal, networkInstance, contractAddress, fetchCurrNoOfBlocks, ApiURLS, network, getExplorerLink } from "@/utils/stacks.data";
+import { FungibleConditionCode, createAssetInfo, makeStandardFungiblePostCondition, AnchorMode, contractPrincipalCV, uintCV, boolCV, someCV, noneCV, PostConditionMode } from "@stacks/transactions";
+import { splitToken } from "@/utils/helpers";
+import { useConnect } from "@stacks/connect-react";
+import { instance } from "@/utils/api";
+import axios from "axios";
+import toast from "react-hot-toast";
+import Link from "next/link";
+import { FaArrowUpRightFromSquare } from "react-icons/fa6";
+import { initialData } from "@/data/constants";
+import moment from "moment";
+import { LaunchpadDataI } from "@/interface";
+import { uploadCampaign } from "@/lib/contracts/launchpad";
 
 interface PropI {
   current: number
@@ -16,18 +33,183 @@ interface PropI {
 
 dayjs.extend(customParseFormat)
 
+type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
+
 export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
+  const { doContractCall } = useConnect()
   const [showTokenSale, setShowTokenSale] = useState(true)
-  const [form] = useForm()
+  const [form] = useForm<LaunchpadDataI>();
+
   const fieldRule = (name: string): Rule => {
     return { required: true, message: `${name} is required` }
   }
-  const handleRegister = async () => {
-    const formData = form.getFieldsValue()
-    setShowTokenSale(false)
-  }
+  const { tokenMintProgress, setTokenMintProgress } = useTokenMinterFields();
+  const [loading, setLoading] = useState<boolean>(false);
 
   const router = useRouter()
+
+  // eslint-disable-next-line arrow-body-style
+  const disabledDateStart: RangePickerProps['disabledDate'] = (current) => {
+    return current && current < dayjs().endOf('day');
+  };
+
+  // eslint-disable-next-line arrow-body-style
+  const disabledDateEnd: RangePickerProps['disabledDate'] = (current) => {
+    if (form.getFieldsValue().start_date) {
+      return current && current <= dayjs(form.getFieldsValue().start_date).endOf('day');
+    } else {
+      return current && current < dayjs().endOf('day');
+    }
+  };
+
+  const handleReset = () => {
+    form.resetFields()
+  }
+
+  const getCurrent = useCallback(() => {
+    if (tokenMintProgress.step !== "1b") {
+      return true
+    } else if (tokenMintProgress.step === "1b") {
+      return false
+    }
+  }, [tokenMintProgress]);
+
+  const calcMinAllocation = (supply: number, percentage: number) => {
+    return (supply * percentage) / 100;
+  }
+
+
+
+  const fetchTransactionStatus = useCallback(async () => {
+    try {
+      if (tokenMintProgress.tx_status !== "pending") return;
+      setLoading(true);
+      const txn = tokenMintProgress;
+      const config = {
+        method: "get",
+        maxBodyLength: Infinity,
+        url: ApiURLS[network].getTxnInfo + `${txn.tx_id}`,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      const response = await axios.request(config);
+      if (response.data.tx_status !== "pending") {
+        txn.tx_status = response.data.tx_status;
+        if (response.data.tx_status === "success") {
+          toast.success(`${txn.action} Successful`);
+          txn.step = "1b";
+          await uploadCampaign({ ...tokenMintProgress, is_campaign: true })
+        } else {
+          toast.error(`${txn.action} Failed`);
+        }
+        setLoading(false);
+        setTokenMintProgress({ ...txn })
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    }
+  }, [tokenMintProgress, setTokenMintProgress]);
+
+  const handleRegister = async () => {
+    if (!tokenMintProgress) return;
+
+    const formData = form.getFieldsValue();
+    const tokenAddress = splitToken(tokenMintProgress.token_address);
+    const postConditionCode = FungibleConditionCode.LessEqual;
+    const assetAddress = tokenAddress[0];
+    const assetContractName = tokenAddress[1];
+
+    const assetName = tokenMintProgress.token_ticker;
+    const fungibleAssetInfo = createAssetInfo(
+      assetAddress,
+      assetContractName,
+      assetName,
+    );
+    const postConditionAmount = BigInt((Number(tokenMintProgress.campaign_allocation ? tokenMintProgress.campaign_allocation : 0) + Number(formData.listing_allocation) + Number(formData.sale_allocation)));
+    const fungiblePostCondition = makeStandardFungiblePostCondition(
+      getUserPrincipal(),
+      postConditionCode,
+      postConditionAmount * BigInt(10e5),
+      fungibleAssetInfo,
+    );
+
+    const currBlock = await fetchCurrNoOfBlocks()
+    const startBlocks = await convertToBlocks(formData.start_date, currBlock);
+    const endBlocks = await convertToBlocks(formData.end_date, currBlock);
+
+    doContractCall({
+      network: networkInstance,
+      anchorMode: AnchorMode.Any,
+      contractAddress,
+      contractName: "memegoat-launchpad-v1-4",
+      functionName: "register-token-launch",
+      functionArgs: [
+        contractPrincipalCV(tokenAddress[0], tokenAddress[1]),
+        uintCV(Number(formData.sale_allocation) * 1000000),
+        uintCV(Number(formData.hard_cap) * 1000000),
+        uintCV(Number(formData.soft_cap) * 1000000),
+        uintCV(startBlocks),
+        uintCV(endBlocks),
+        uintCV(Number(formData.minimum_buy) * 1000000),
+        uintCV(Number(formData.maximum_buy) * 1000000),
+        boolCV(false),
+        uintCV(Number(formData.listing_allocation) * 1000000),
+        Number(tokenMintProgress.campaign_allocation) > 0 ? someCV(uintCV(Number(tokenMintProgress.campaign_allocation) * 1000000)) : noneCV(),
+        boolCV(true),
+      ],
+      postConditionMode: PostConditionMode.Deny,
+      postConditions: [fungiblePostCondition],
+      onFinish: (data) => {
+        setShowTokenSale(false)
+        setTokenMintProgress(
+          {
+            ...tokenMintProgress,
+            ...form.getFieldsValue(),
+            action: "Create Sale",
+            tx_id: data.txId,
+            start_date: convertToIso(formData.start_date).toString(),
+            end_date: convertToIso(formData.end_date).toString(),
+            tx_status: "pending"
+          }
+        )
+      },
+      onCancel: () => {
+        setLoading(false)
+        console.log("onCancel:", "Transaction was canceled");
+      },
+    });
+  };
+
+  const redirect = useCallback(() => {
+    if (!tokenMintProgress.step) return;
+    if ((tokenMintProgress.step !== current.toString())) {
+      if (tokenMintProgress.step === "1b") {
+        setCurrent(1)
+      } else {
+        setCurrent(Number(tokenMintProgress.step));
+      }
+    }
+  }, [setCurrent, tokenMintProgress, current])
+
+  useEffect(() => {
+    // getTokenMetadata()
+    redirect()
+    const interval = setInterval(() => {
+      if (tokenMintProgress.tx_status !== "pending") return;
+      fetchTransactionStatus();
+    }, 1000);
+
+    //Clearing the interval
+    return () => clearInterval(interval);
+  }, [
+    // getTokenMetadata,
+    tokenMintProgress,
+    fetchTransactionStatus,
+    redirect,
+  ]);
+
 
   return (
     <motion.div
@@ -36,13 +218,23 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
       transition={{ duration: 0.4 }}
       className="bg-[#121d16] p-5 rounded-lg shadow-md shadow-[#161515fd]"
     >
-      <div className="-mb-4 flex justify-between items-center">
+      <div className="mb-4 flex justify-between items-center">
         <h3 className="text-[1.2rem]">
           {!showTokenSale ? "Create Token Locker" : "Create Token Sale"}
         </h3>
       </div>
+      <center>
+        <div className="flex mt-5 gap-3 items-center justify-center">
+          <>
+            <Avatar src={tokenMintProgress.token_image} size={30} />
+            <span className="text-sm">
+              {tokenMintProgress.token_name.toUpperCase()}
+            </span>
+          </>
+        </div>
+      </center>
       <Divider />
-      {showTokenSale ? (
+      {getCurrent() ? (
         <div>
           <p className="text-sm text-center my-4 md:max-w-[60%] max-w-[80%] mx-auto text-slate-300">
             Create a sale and raise liquity for instant listing.
@@ -53,6 +245,11 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
               form={form}
               onFinish={() => {
                 handleRegister()
+              }}
+              initialValues={{
+                ...tokenMintProgress,
+                "start_date": tokenMintProgress.start_date ? moment(tokenMintProgress.start_date) : null,
+                "end_date": tokenMintProgress.end_date ? moment(tokenMintProgress.end_date) : null
               }}
             >
               <div className="mb-3">
@@ -67,6 +264,8 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                     className="bg-primary-20/5 border-primary-60"
                     size="large"
                     type="number"
+                    disabled={loading}
+                    min={(calcMinAllocation(Number(tokenMintProgress.token_supply), 60))}
                   />
                 </Form.Item>
                 <p className="text-[12px] text-accent">
@@ -85,6 +284,8 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                     className="bg-primary-20/5 border-primary-60"
                     size="large"
                     type="number"
+                    disabled={loading}
+                    min={(calcMinAllocation(Number(tokenMintProgress.token_supply), 30))}
                   />
                 </Form.Item>
                 <p className="text-[12px] text-accent">
@@ -162,6 +363,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                 >
                   <DatePicker
                     format="YYYY-MM-DD HH:mm:ss"
+                    disabledDate={disabledDateStart}
                     showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                     size="large"
                     className="w-full bg-primary-20/5 border-primary-60"
@@ -176,6 +378,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                 >
                   <DatePicker
                     format="YYYY-MM-DD HH:mm:ss"
+                    disabledDate={disabledDateEnd}
                     showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                     size="large"
                     className="w-full bg-primary-20/5 border-primary-60"
@@ -189,9 +392,30 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                 type="primary"
                 htmlType="submit"
               >
-                <span>Create launch</span>
+                {loading ? <span>Transaction processing</span> : <span>Create launch</span>}
               </Button>
             </Form>
+            {(loading && tokenMintProgress.tx_id !== "") && (
+              <div className="text-xs flex flex-row items-center justify-center mt-2">
+                <Link
+                  href={getExplorerLink(
+                    network,
+                    tokenMintProgress.tx_id,
+                  )}
+                  target="_blank"
+                  className="flex"
+                >
+                  <h1 className="flex text-primary-60">
+                    View Transaction &nbsp;{" "}
+                    <FaArrowUpRightFromSquare
+                      className="cursor-pointer"
+                      color="white"
+                      size="1em"
+                    />
+                  </h1>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       ) : (
@@ -202,7 +426,8 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
           className="min-h-[50vh]"
         >
           <div className="flex items-center justify-center flex-col">
-            <img src="/logo.svg" className="w-[7rem]" />
+            {/* <img src="/logo.svg" /> */}
+            <Image alt="" src={"/logo.svg"} width={100} height={100} className="w-[7rem]" />
             <h3 className="text-align text-xl mt-2">
               Create Token Lock{" "}
               <BiLock className="text-accent inline font-semibold" />
@@ -225,7 +450,10 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
             <Button
               size="large"
               onClick={() => {
-                router.push(`/launchpad/${1}`)
+                const token = tokenMintProgress.token_address;
+                setTokenMintProgress({ ...initialData })
+                handleReset()
+                router.push(`/launchpad/${token}`)
               }}
               className="bg-primary-20/5 border-primary-60"
             >
@@ -234,6 +462,8 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
             <Button
               size="large"
               onClick={() => {
+                handleReset()
+                setTokenMintProgress({ ...initialData })
                 router.push("/locker")
               }}
               type="primary"

@@ -1,5 +1,6 @@
 "use client"
 import { LaunchpadI } from "@/interface"
+import { checkDate } from "@/lib/contracts/launchpad"
 import { formatDate } from "@/utils/format"
 import { Avatar, Tag } from "antd"
 import Link from "next/link"
@@ -27,7 +28,7 @@ export const LaunchpadCard = ({ ...props }: LaunchpadI) => {
               icon={<BsClock />}
               className="mdin-w-[4rem] flex items-center gap-2 bg-primary-80"
             >
-              Closed
+              {checkDate(props.start_date) ? checkDate(props.end_date) ? "Ended" : "Started" : "Upcoming"}
             </Tag>
           </div>
           <div className="mt-5 h-[100px]">
@@ -42,10 +43,17 @@ export const LaunchpadCard = ({ ...props }: LaunchpadI) => {
               <p className="text-xs mt-2 text-custom-white/60">Target raise</p>
               <p className="text-sm">{props.hard_cap} STX</p>
             </div>
-            <div>
+            {checkDate(props.start_date) ? checkDate(props.end_date) ?
+              <div>
+                <p className="text-xs mt-2 text-custom-white/60">Ended In</p>
+                <p className="text-sm">{formatDate(props.end_date)}</p>
+              </div> : <div>
+                <p className="text-xs mt-2 text-custom-white/60">Ends In</p>
+                <p className="text-sm">{formatDate(props.end_date)}</p>
+              </div> : <div>
               <p className="text-xs mt-2 text-custom-white/60">Starts In</p>
-              <p className="text-sm">{formatDate(props.start_date)}</p>
-            </div>
+              <p className="text-sm">{formatDate(props.end_date)}</p>
+            </div>}
           </div>
         </div>
       </div>

@@ -36,7 +36,7 @@ export const MinterPage = () => {
             <GiToken />
           </div>
         </div>
-        <Minter minter={true} current={1} setCurrent={() => { }} />
+        <Minter minter={true} current={0} setCurrent={() => { }} />
       </motion.div>
     </>
   )

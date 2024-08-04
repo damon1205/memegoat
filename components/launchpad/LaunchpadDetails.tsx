@@ -170,7 +170,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                   icon={<BsClock />}
                   className="mdin-w-[4rem] flex items-center gap-2 bg-primary-80"
                 >
-                  Closed
+                  {live ? presaleClosed ? "Active" : "Closed" : "Not Started"}
                 </Tag>
               </div>
               <div className="md:grid md:grid-cols-3 gap-10 mt-10 space-y-10 md:space-y-0">
@@ -239,12 +239,28 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                           </p>
                           <p className="text-sm">{formatNumber(data.sale_allocation)} {data.token_ticker}</p>
                         </div>
-                        <div>
-                          <p className="text-xs mt-2 text-custom-white/60 text-end">
-                            Starts In
-                          </p>
-                          <p className="text-sm">{moment(data.start_date).format("LL LT")}</p>
-                        </div>
+                        {live ? presaleClosed ?
+                          <div>
+                            <p className="text-xs mt-2 text-custom-white/60 text-end">
+                              Ended In
+                            </p>
+                            <p className="text-sm">{moment(data.end_date).format("LL LT")}</p>
+                          </div>
+                          :
+                          <div>
+                            <p className="text-xs mt-2 text-custom-white/60 text-end">
+                              Ends In
+                            </p>
+                            <p className="text-sm">{moment(data.end_date).format("LL LT")}</p>
+                          </div>
+                          :
+                          <div>
+                            <p className="text-xs mt-2 text-custom-white/60 text-end">
+                              Starts In
+                            </p>
+                            <p className="text-sm">{moment(data.start_date).format("LL LT")}</p>
+                          </div>
+                        }
                       </div>
                     </div>
                   </div>
@@ -252,13 +268,13 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                 <div className="bg-primary-60/5 backdrop-blur-[5px] text-sm w-full">
                   <div className="p-4 text-silver border-b-[1px] border-primary-20/20 mb-5">
                     <p>
-                      <BsClock className="inline mr-1" /> {live ? "JOIN PRESALE" : "PRESALE ENDED"}
+                      <BsClock className="inline mr-1" /> {live ? presaleClosed ? "JOIN PRESALE" : "PRESALE ENDED" : "UPCOMING PRESALE"}
                     </p>
                   </div>
                   <div className="p-4">
                     <p className="text-center text-silver mb-2">Total Raised</p>
                     <h3 className="text-xl text-center text-primary-40">
-                      {formatCVTypeNumber(launchpadInfo ? launchpadInfo["pool-amount"] : uintCV(0))}/
+                      {formatCVTypeNumber(launchpadInfo ? launchpadInfo["total-stx-deposited"] : uintCV(0))}/
                       <span className="text-[16px] text-silver"> {formatNumber(data.hard_cap)} STX</span>
                     </h3>
                     <div className="mt-7 space-y-3">

@@ -132,6 +132,18 @@ export const getEndDate = async (stakeInfo: StakeInterface | null) => {
   return (date);
 };
 
+export const getStartDate = async (stakeInfo: StakeInterface | null) => {
+  if (!stakeInfo) return "";
+  const endBlock = formatCVTypeNumber(stakeInfo["start-block"]);
+  const now = Date.now();
+  const currBlock = await fetchCurrNoOfBlocks();
+  const dist = endBlock - currBlock;
+  const distInSecs = dist * 600 * 1000;
+  const timeNow = now + distInSecs;
+  const date = new Date(timeNow).toUTCString();
+  return (date);
+};
+
 export const storeDB = (
   action: string,
   txID: string,
@@ -364,17 +376,12 @@ export const calculateRewardPerBlockAtCreation = async (rewardAmount: string, st
   return reward
 }
 
-
-export const generateCreatePoolTxn = async (rewardToken: string, stakeToken: string, rewardAmount: string, startDate: string, endDate: string) => {
+export const generateCreatePoolTxn = async (reward: string, stake: string, rewardAmount: string, startDate: string, endDate: string) => {
   const postConditionCode = FungibleConditionCode.LessEqual;
+  const rewardToken = splitToken(reward);
+  const stakeToken = splitToken(stake);
   const assetContractName = rewardToken[1];
-  let assetName: string;
-  if (network === 'devnet') {
-    assetName = "mewstx";
-  } else {
-    assetName = await getTokenSource(rewardToken[0], rewardToken[1]);
-  }
-  console.log(assetName)
+  const assetName = await getTokenSource(rewardToken[0], rewardToken[1]);
   if (assetName === "") {
     throw new Error("Error with token contract")
   }
@@ -390,7 +397,6 @@ export const generateCreatePoolTxn = async (rewardToken: string, stakeToken: str
     postConditionAmount,
     fungibleAssetInfo,
   );
-
   const postConditionCodeSTX = FungibleConditionCode.LessEqual;
   const postConditionAmountSTX = BigInt(2000000);
   const standardSTXPostCondition = makeStandardSTXPostCondition(
@@ -398,12 +404,10 @@ export const generateCreatePoolTxn = async (rewardToken: string, stakeToken: str
     postConditionCodeSTX,
     postConditionAmountSTX,
   );
-
   const currBlock = await fetchCurrNoOfBlocks();
   const startBlocks = await convertToBlocks(startDate, currBlock);
   const endBlocks = await convertToBlocks(endDate, currBlock);
   const rewards = await calculateRewardPerBlockAtCreation(rewardAmount, startDate, endDate);
-
   return {
     network: networkInstance,
     anchorMode: AnchorMode.Any,

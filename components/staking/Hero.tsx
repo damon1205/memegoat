@@ -1,11 +1,22 @@
+"use client"
 import Image from "next/image"
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { CreatePool } from "./CreatePool"
 import { getAllUserTokens } from "@/utils/stacks.data"
+import { TokenData } from "@/interface"
 
-export const Hero = async () => {
-  const tokens = await getAllUserTokens();
+export const Hero = () => {
+  const [tokens, setTokens] = useState<TokenData[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const tokens = await getAllUserTokens();
+      setTokens(tokens)
+    }
+
+    fetchData()
+  }, [])
   return (
     <>
       <div className="fixed top-0 left-[50%] translate-x-[-50%] w-[430px] h-[340px] blur-[300px] bg-primary-20 hidden md:block" />
