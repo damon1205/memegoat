@@ -28,7 +28,7 @@ export const DexChart = () => {
             return (
               <p
                 key={index}
-                className={`py-1 px-3 cursor-pointer rounded-md ${active ? "bg-[#0FFF674D] border-[1px] border-[#0FFF6714]" : ""}`}
+                className={`py-1 px-3 cursor-pointer text-sm rounded-md ${active ? "bg-[#0FFF674D] border-[1px] border-[#0FFF6714]" : ""}`}
                 onClick={() => setActivePeriod(period)}
               >
                 {period}

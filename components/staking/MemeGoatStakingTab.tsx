@@ -9,7 +9,7 @@ export const MemeGoatStakingTab = () => {
   const periods: periodT[] = ["30", "90", "180", "270"]
   const [activePeriod, setActivePeriod] = useState<periodT>("30")
   return (
-    <div className="w-full rounded-sm md:w-[550px] p-4  from-primary-100/25 to-primary-100/30 bg-gradient-to-r relative border-[1px] border-primary-100">
+    <div className="w-full rounded-sm md:w-[500px] p-4  from-primary-100/25 to-primary-100/30 bg-gradient-to-r relative border-[1px] border-primary-100">
       <p>Stake GoatSTX</p>
 
       <div className="from-primary-60/5 to-primary-60/20 bg-gradient-to-r  mt-3 px-4 py-4 text-sm rounded-sm">
