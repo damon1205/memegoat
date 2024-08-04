@@ -16,6 +16,7 @@ import Link from "next/link"
 import { BiCheckCircle, BiLinkExternal, BiSearch } from "react-icons/bi"
 import { AiOutlineLoading3Quarters } from "react-icons/ai"
 import { BsDot } from "react-icons/bs"
+import { IoIosSearch } from "react-icons/io"
 
 interface DataType {
   key: string
@@ -228,6 +229,15 @@ const data: DataType[] = [
 export const TransactionTable: React.FC = () => {
   return (
     <div className="mt-5">
+      <div className="mb-4">
+        <Input
+          className="h-[44px] md:w-[360px] rounded-md bg-[#FFFFFF0D]"
+          placeholder="Search address"
+          size="large"
+          prefix={<IoIosSearch size={20} color="#FFFFFF4D" />}
+          allowClear
+        />
+      </div>
       <Table
         columns={columns}
         dataSource={data}
