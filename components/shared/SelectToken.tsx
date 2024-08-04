@@ -82,6 +82,7 @@ export const SelectToken = ({ tokens, defaultTokenID }: propsI) => {
             size="large"
             prefix={<IoIosSearch size={20} color="#FFFFFF4D" />}
             onChange={searchToken}
+            allowClear
           />
         </div>
 

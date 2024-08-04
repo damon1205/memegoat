@@ -5,6 +5,7 @@ import { Avatar, Button, Divider, Select } from "antd"
 import { CgArrowsExchangeAltV } from "react-icons/cg"
 import { Slippage } from "./Slippage"
 import { SelectToken } from "../shared/SelectToken"
+import { MdKeyboardArrowDown } from "react-icons/md"
 
 const tokens = [
   {
@@ -53,16 +54,13 @@ export const Swap = () => {
     openSlippageModal,
     setOpenSlippageModal,
   }
+  const [viewRouteDetails, setViewRouteDetails] = useState(false)
+  const toggleViewRouteDetails = () => setViewRouteDetails(!viewRouteDetails)
   return (
     <React.Fragment>
       <Slippage {...{ ...slippageProps }} />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 1 }}
-        className="relative md:mt-[3rem]"
-      >
-        <div className="max-w-[450px] mx-auto p-4  from-primary-100/25 to-primary-100/40 bg-gradient-to-r relative border-[1px] border-primary-100">
+      <motion.div className="relative md:w-[450px] w-full mx-auto">
+        <div className="w-full p-4  from-primary-100/25 to-primary-100/40 bg-gradient-to-r relative border-[1px] border-primary-100">
           <div className="flex items-center justify-between">
             <p className="text-lg">Swap</p>
             <div className=" text-xs flex">
@@ -109,7 +107,7 @@ export const Swap = () => {
             <div className="flex gap-3 items-center justify-between p-4 px-4 mb-1">
               <p>Balance</p>
               <div className="flex gap-2 items-center">
-                <p className="text-sm">{balance.toLocaleString()}</p>
+                <p className="text-sm text-white">{balance.toLocaleString()}</p>
                 <button
                   className="text-primary-40 text-sm font-semibold"
                   onClick={setMax}
@@ -156,23 +154,40 @@ export const Swap = () => {
             <div className="flex gap-3 items-center justify-between p-4 px-4 mb-1">
               <p>Balance</p>
               <div className="flex gap-2 items-center">
-                <p className="text-sm">0</p>
+                <p className="text-sm text-white">0</p>
               </div>
             </div>
           </div>
-          <Button className="w-full my-3 h-[43px]" size="large" type="primary">
-            Confirm Swap
-          </Button>
-
-          <div className="from-primary-60/5 to-primary-60/40 bg-gradient-to-r  mt-3 text-custom-white/60 px-4 p-2 text-sm">
-            <p className="py-2">
+          <div className="my-3">
+            <Button className="w-full h-[43px]" size="large" type="primary">
+              Confirm Swap
+            </Button>
+            <p className="py-1 text-sm">
               1 {from.token} ≈ 24520.0005 {to.token}
             </p>
-            <div className="border-t-[1px] border-t-primary-100 mt-2">
+            <motion.div
+              className="text-primary-40 inline-flex gap-1 items-center cursor-pointer"
+              onClick={toggleViewRouteDetails}
+            >
+              <p className="">
+                {viewRouteDetails ? "hide details" : "view details"}
+              </p>
+              <MdKeyboardArrowDown size={20} />
+            </motion.div>
+          </div>
+
+          {viewRouteDetails && (
+            <div className="from-primary-60/5 to-primary-60/40 bg-gradient-to-r  mt-3 text-custom-white/60 px-4 p-2 text-sm">
+              <p>Route Details</p>
+            </div>
+          )}
+
+          <div className="from-primary-60/5 to-primary-60/40 bg-gradient-to-r  mt-3 text-custom-white/60 px-4 p-2 text-sm">
+            <div className="mt-2">
               <div className="flex gap-3 items-center justify-between py-1">
                 <p>Minimum Output</p>
                 <div className="flex gap-2 items-center">
-                  <p className="text-sm">254.56 {to.token}</p>
+                  <p className="text-sm text-white">254.56 {to.token}</p>
                 </div>
               </div>
 
@@ -186,14 +201,14 @@ export const Swap = () => {
               <div className="flex gap-3 items-center justify-between py-1">
                 <p>Liquidity Provider Fee</p>
                 <div className="flex gap-2 items-center">
-                  <p className="text-sm">0.090075656 {from.token}</p>
+                  <p className="text-sm text-white">0.090075656 {from.token}</p>
                 </div>
               </div>
 
               <div className="flex gap-3 items-center justify-between py-1">
                 <p>Route</p>
                 <div className="flex gap-2 items-center">
-                  <p className="text-sm">
+                  <p className="text-sm text-white">
                     {from.token} {">"} {to.token}
                   </p>
                 </div>
