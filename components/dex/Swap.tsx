@@ -4,19 +4,29 @@ import { motion } from "framer-motion"
 import { Avatar, Button, Divider, Select } from "antd"
 import { CgArrowsExchangeAltV } from "react-icons/cg"
 import { Slippage } from "./Slippage"
+import { SelectToken } from "../shared/SelectToken"
 
 const tokens = [
   {
     icon: "/logo.svg",
     name: "GoatSTX",
+    id: "1",
+    balance: 200000000,
+    domain: "memegoat.io",
   },
   {
     icon: "/images/stx.svg",
     name: "STX",
+    id: "2",
+    balance: 0,
+    domain: "stacks network",
   },
   {
     icon: "/images/nothing.jpg",
     name: "Nothing",
+    id: "3",
+    balance: 0,
+    domain: "nothing realm",
   },
 ]
 
@@ -72,25 +82,7 @@ export const Swap = () => {
             <div className="flex gap-3 items-center justify-between p-2 px-4">
               <p>From</p>
               <div>
-                <Select
-                  className="min-w-[120px]"
-                  variant="borderless"
-                  defaultValue={"GoatSTX"}
-                  onChange={(value) =>
-                    setFrom((prev) => ({ ...prev, token: value }))
-                  }
-                >
-                  {tokens.map((token, index) => {
-                    return (
-                      <Select.Option key={index} value={token.name}>
-                        <div className="flex gap-1 items-center">
-                          <Avatar src={token.icon} size={35} />
-                          <p>{token.name}</p>
-                        </div>
-                      </Select.Option>
-                    )
-                  })}
-                </Select>
+                <SelectToken tokens={tokens} />
               </div>
             </div>
             <Divider className="my-0" />
@@ -139,25 +131,7 @@ export const Swap = () => {
             <div className="flex gap-3 items-center justify-between p-2 px-4">
               <p>To</p>
               <div>
-                <Select
-                  className="min-w-[120px]"
-                  variant="borderless"
-                  defaultValue={"STX"}
-                  onChange={(value) =>
-                    setTo((prev) => ({ ...prev, token: value }))
-                  }
-                >
-                  {tokens.map((token, index) => {
-                    return (
-                      <Select.Option key={index} value={token.name}>
-                        <div className="flex gap-1 items-center">
-                          <Avatar src={token.icon} size={35} />
-                          <p>{token.name}</p>
-                        </div>
-                      </Select.Option>
-                    )
-                  })}
-                </Select>
+                <SelectToken defaultTokenID="2" tokens={tokens} />
               </div>
             </div>
             <Divider className="my-0" />
