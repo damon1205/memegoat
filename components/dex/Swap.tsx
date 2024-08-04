@@ -1,11 +1,12 @@
 "use client"
 import React, { useRef, useState } from "react"
 import { motion } from "framer-motion"
-import { Avatar, Button, Divider, Select } from "antd"
+import { Avatar, Button, Divider } from "antd"
 import { CgArrowsExchangeAltV } from "react-icons/cg"
 import { Slippage } from "./Slippage"
 import { SelectToken } from "../shared/SelectToken"
 import { MdKeyboardArrowDown } from "react-icons/md"
+import { useNotificationConfig } from "@/hooks/useNotification"
 
 const tokens = [
   {
@@ -56,6 +57,17 @@ export const Swap = () => {
   }
   const [viewRouteDetails, setViewRouteDetails] = useState(false)
   const toggleViewRouteDetails = () => setViewRouteDetails(!viewRouteDetails)
+
+  const { config } = useNotificationConfig()
+  const confirmSwap = () => {
+    config({
+      message:
+        "Your swap is currently being processed and should be confirmed within 3-5 minutes. Please be patient as we complete the transaction.",
+      title: "Swap request successfully received!",
+      type: "success",
+      details_link: "/",
+    })
+  }
   return (
     <React.Fragment>
       <Slippage {...{ ...slippageProps }} />
@@ -159,7 +171,12 @@ export const Swap = () => {
             </div>
           </div>
           <div className="my-3">
-            <Button className="w-full h-[43px]" size="large" type="primary">
+            <Button
+              className="w-full h-[43px]"
+              size="large"
+              type="primary"
+              onClick={confirmSwap}
+            >
               Confirm Swap
             </Button>
             <p className="py-1 text-sm">
