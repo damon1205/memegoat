@@ -309,7 +309,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                         {live ? "JOIN PRESALE" : "PRESALE ENDED"}
                       </p>
                     </div>
-                    {!live ? (
+                    {live ? (
                       <div>
                         <div className="p-4">
                           <p className="text-center text-silver mb-2">
@@ -389,6 +389,24 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                             {formatNumber(data.hard_cap)} STX
                           </span>
                         </h3>
+                        <div>
+                          {(() => {
+                            const percent =
+                              formatCVTypeNumber(
+                                launchpadInfo
+                                  ? launchpadInfo["pool-amount"]
+                                  : uintCV(0)
+                              ) / Number(data.hard_cap)
+                            return (
+                              <Progress
+                                strokeColor="#29ab4a"
+                                percent={Number(
+                                  Number(percent * 100).toFixed(2)
+                                )}
+                              />
+                            )
+                          })()}
+                        </div>
                         <div className="mt-7 space-y-3">
                           <div className="flex items-center gap-5 justify-between">
                             <p>Your Balance</p>
