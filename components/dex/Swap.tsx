@@ -7,28 +7,20 @@ import { Slippage } from "./Slippage"
 import { SelectToken } from "../shared/SelectToken"
 import { MdKeyboardArrowDown } from "react-icons/md"
 import { useNotificationConfig } from "@/hooks/useNotification"
+import { TokenData } from "@/interface"
 
 const tokens = [
   {
-    icon: "/logo.svg",
     name: "GoatSTX",
-    id: "1",
-    balance: 200000000,
-    domain: "memegoat.io",
+    address: ""
   },
   {
-    icon: "/images/stx.svg",
-    name: "STX",
-    id: "2",
-    balance: 0,
-    domain: "stacks network",
-  },
-  {
-    icon: "/images/nothing.jpg",
     name: "Nothing",
-    id: "3",
-    balance: 0,
-    domain: "nothing realm",
+    address: ""
+  },
+  {
+    name: "STX",
+    address: ""
   },
 ]
 
@@ -37,6 +29,8 @@ export const Swap = () => {
   const tokenRate = 0.030005
   const [from, setFrom] = useState({ token: "GoatSTX", amount: 0 })
   const [to, setTo] = useState({ token: "STX", amount: 0 })
+  const [fromToken, setFromToken] = useState<TokenData | null>()
+  const [toToken, setToToken] = useState<TokenData | null>()
   const balance = 20000000000
   const fromRef = useRef(null) as any
   const toRef = useRef(null) as any
@@ -67,6 +61,15 @@ export const Swap = () => {
       details_link: "/",
     })
   }
+
+  const handleSetToToken = (token: TokenData) => {
+    setToToken(token)
+  };
+
+  const handleSetFromToken = (token: TokenData) => {
+    setFromToken(token)
+  };
+
   return (
     <React.Fragment>
       <motion.div className="relative md:w-[450px] w-full mx-auto transition-all">
@@ -126,7 +129,7 @@ export const Swap = () => {
                 ref={fromRef}
               />
               <div className="px-2 py-2 rounded-lg bg-[#00000033] border-[1px] border-[#FFFFFF1A]">
-                <SelectToken defaultTokenID="1" tokens={tokens} />
+                <SelectToken tokens={tokens} action={setFromToken} />
               </div>
             </div>
 
@@ -176,7 +179,7 @@ export const Swap = () => {
                 ref={toRef}
               />
               <div className="px-2 py-2 rounded-lg bg-[#00000033] border-[1px] border-[#FFFFFF1A]">
-                <SelectToken defaultTokenID="2" tokens={tokens} />
+                <SelectToken tokens={tokens} action={handleSetToToken} />
               </div>
             </div>
 

@@ -16,6 +16,7 @@ import { convertToIso } from "@/utils/format";
 import { PendingTxnsI, TokenData } from "@/interface";
 import { pendingInitial } from "@/data/constants";
 import { useNotificationConfig } from "@/hooks/useNotification";
+import { SelectToken } from "../shared/SelectToken";
 type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
 
 dayjs.extend(customParseFormat);
@@ -90,6 +91,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
     }
   }
 
+
   const updateRate = async () => {
     const formData = form.getFieldsValue();
     const token = formData.reward_token;
@@ -147,6 +149,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
           },
           header: { background: "transparent" },
         }}
+        className="z-20"
         closeIcon={
           <IoCloseCircleOutline className="text-2xl text-primary-50" />
         }
@@ -170,42 +173,10 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
               }}
             >
               <Form.Item name={"stake_token"} label="Select Stake Token">
-                <Select className="w-full">
-                  {tokens.map((token, index) => (
-                    <Select.Option
-                      key={index}
-                      value={token.address}
-                    >
-                      <div className="flex gap-3 items-center">
-                        <Avatar
-                          src={`https://assets.hiro.so/api/mainnet/token-metadata-api/${token.address}/1.png`}
-                          size={25}
-                          className="rounded-none"
-                        />
-                        <span className="text-sm">{token.name}</span>
-                      </div>
-                    </Select.Option>
-                  ))}
-                </Select>
+                <SelectToken tokens={tokens} action={() => { }} />
               </Form.Item>
               <Form.Item name={"reward_token"} label="Select Reward Token">
-                <Select className="w-full" >
-                  {tokens.map((token, index) => (
-                    <Select.Option
-                      key={index}
-                      value={token.address}
-                    >
-                      <div className="flex gap-3 items-center">
-                        <Avatar
-                          src={`https://assets.hiro.so/api/mainnet/token-metadata-api/${token.address}/1.png`}
-                          size={25}
-                          className="rounded-none"
-                        />
-                        <span className="text-sm">{token.name}</span>
-                      </div>
-                    </Select.Option>
-                  ))}
-                </Select>
+                <SelectToken tokens={tokens} action={() => { }} />
               </Form.Item>
               <Form.Item
                 name={"reward_amount"}

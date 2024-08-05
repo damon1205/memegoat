@@ -7,6 +7,7 @@ import { Avatar, Button, Select } from "antd"
 import Link from "next/link"
 import React, { useEffect, useState } from "react"
 import { BsDot, BsLockFill } from "react-icons/bs"
+import { SelectToken } from "../shared/SelectToken"
 
 export const Locker = () => {
   const [tokens, setTokens] = useState<TokenData[]>([]);
@@ -14,8 +15,7 @@ export const Locker = () => {
 
   const dispatch = useAppDispatch();
 
-  const handleChange = async (value: string | number) => {
-    const token = tokens[Number(value)];
+  const handleChange = async (token: TokenData) => {
     const metadata = await fetchTokenMetadata(token.address);
     setMetadata(metadata)
     if (metadata) {
@@ -71,31 +71,11 @@ export const Locker = () => {
 
           <div className="my-5">
             <p className="text-custom-white/60 mb-3">Select Token</p>
-            {/* / <select className="w-full bg-transparent border-[1px] outline-none h-[40px] border-primary-90" /> */}
+            {/* <SelectToken tokens={tokens} action={handleChange} /> */}
 
-            <Select
-              size="large"
-              className="w-full bg-transparent border-[1px] outline-none h-[40px] border-primary-90"
-              onChange={(value) => {
-                handleChange(value);
-              }}
-            >
-              {tokens.map((token, index) => (
-                <Select.Option
-                  className="w-full text-white"
-                  key={index}
-                  value={index}
-                >
-                  <div className="flex gap-2 items-center">
-                    <Avatar
-                      className="w-[1.5rem] h-[1.5rem]"
-                      src={`https://assets.hiro.so/api/mainnet/token-metadata-api/${token.address}/1.png`}
-                    />
-                    <span className="text-sm">{token.name}</span>
-                  </div>
-                </Select.Option>
-              ))}
-            </Select>
+            <div className="px-2 py-2 rounded-lg bg-[#00000033] border-[1px] border-[#FFFFFF1A] w-100">
+              <SelectToken tokens={tokens} action={handleChange} />
+            </div>
           </div>
           <Link href={"/locker/setup"}>
             <Button className="w-full" type="primary" disabled={!metadata}>

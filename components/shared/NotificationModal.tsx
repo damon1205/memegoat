@@ -38,7 +38,9 @@ export const NotificationModal = () => {
               borderRadius: 8,
             },
             header: { background: "transparent" },
+
           }}
+          className=" z-50"
         >
           <div className="my-3 text-[16px]">
             <div className="flex items-center justify-center mb-5">

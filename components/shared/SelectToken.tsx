@@ -4,31 +4,26 @@ import { Avatar, Input, Modal } from "antd"
 import { MdKeyboardArrowDown } from "react-icons/md"
 import { CgClose } from "react-icons/cg"
 import { IoIosSearch } from "react-icons/io"
-
-type tokenT = {
-  name: string
-  icon: string
-  id: string
-  balance: number
-  domain: string
-}
+import { TokenData } from "@/interface"
+import Token from "./Token"
 
 interface propsI {
-  tokens: tokenT[]
+  tokens: TokenData[]
   defaultTokenID?: string
+  action: (value: any) => void
 }
 
-export const SelectToken = ({ tokens, defaultTokenID }: propsI) => {
-  const [selectedToken, setSelectedToken] = useState({
+export const SelectToken = ({ tokens, defaultTokenID, action }: propsI) => {
+  const [selectedToken, setSelectedToken] = useState<TokenData>({
     name: "",
-    icon: "",
-    id: "",
+    address: "",
   })
   const [openModal, setOpenModal] = useState(false)
   const toggleModal = () => setOpenModal(!openModal)
-  const [tokenState, setTokenState] = useState<tokenT[]>([])
-  const selectToken = (token: tokenT) => {
+  const [tokenState, setTokenState] = useState<TokenData[]>([])
+  const selectToken = (token: TokenData) => {
     setSelectedToken(token)
+    action(token)
     toggleModal()
   }
 
@@ -46,15 +41,14 @@ export const SelectToken = ({ tokens, defaultTokenID }: propsI) => {
     }
     if (defaultTokenID) {
       setSelectedToken(
-        tokens.find((token) => token.id === defaultTokenID) as tokenT
+        tokens.find((token) => token.address === defaultTokenID) as TokenData
       )
     } else if (tokens.length > 1) {
-      setSelectedToken(tokens[0] as tokenT)
+      setSelectedToken(tokens[0] as TokenData)
     } else
       setSelectedToken({
         name: "",
-        icon: "",
-        id: "",
+        address: "",
       })
   }, [tokens, defaultTokenID])
   return (
@@ -93,30 +87,7 @@ export const SelectToken = ({ tokens, defaultTokenID }: propsI) => {
             <>
               {tokenState.map((token, index) => {
                 return (
-                  <div
-                    key={index}
-                    className="flex gap-3 items-center justify-between cursor-pointer px-2 py-2 hover:bg-white/5 rounded-md"
-                    onClick={() => selectToken(token)}
-                  >
-                    <div className="flex gap-3 items-center">
-                      <Avatar
-                        src={token.icon}
-                        size={40}
-                        className="rounded-md"
-                      />
-                      <div>
-                        <p className="text-white font-medium text-[14px]">
-                          {token.name}
-                        </p>
-                        <p className="text-[12px] text-white/50">
-                          {token.domain}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-white font-medium text-sm">
-                      {Number(token.balance).toLocaleString()}
-                    </p>
-                  </div>
+                  <Token key={index} token={token} action={selectToken} />
                 )
               })}
             </>
@@ -125,13 +96,17 @@ export const SelectToken = ({ tokens, defaultTokenID }: propsI) => {
       </Modal>
 
       <div
-        className="flex gap-1 items-center cursor-pointer"
+        className="flex gap-1 items-center justify-between cursor-pointer"
         onClick={toggleModal}
       >
-        <Avatar src={selectedToken.icon} size={35} />
-        <p className="font-semibold text-[15px] text-white">
-          {selectedToken.name}
-        </p>
+        <div className="flex items-center gap-2">
+          <Avatar src={`https://assets.hiro.so/api/mainnet/token-metadata-api/${selectedToken.address}/1.png`} size={35} />
+          <p className="font-semibold text-[15px] text-white">
+            {selectedToken.name}
+          </p>
+        </div>
+
+
         <MdKeyboardArrowDown size={20} color="#fff" />
       </div>
     </>
