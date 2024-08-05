@@ -1,42 +1,46 @@
 "use client"
-import { Avatar, Button, DatePicker, Drawer, Form, Input, Select } from "antd"
+import { Avatar, Button, DatePicker, Modal, Form, Input, Select } from "antd"
 import React, { useCallback, useEffect, useState } from "react"
 import { IoCloseCircleOutline } from "react-icons/io5"
-import moment from "moment";
-import type { FormInstance, GetProps } from "antd";
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import { useForm } from "antd/es/form/Form";
-import { getUserPrincipal, userSession } from "@/utils/stacks.data";
-import { calculateRewardPerBlockAtCreation, fetchTransactionStatus, generateCreatePoolTxn } from "@/lib/contracts/staking";
-import { splitToken } from "@/utils/helpers";
-import { useConnect } from "@stacks/connect-react";
-import { usePendingTxnFields } from "@/hooks/useTokenMinterHooks";
-import { convertToIso } from "@/utils/format";
-import { PendingTxnsI, TokenData } from "@/interface";
-import { pendingInitial } from "@/data/constants";
-import { useNotificationConfig } from "@/hooks/useNotification";
-import { SelectToken } from "../shared/SelectToken";
-type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
+import moment from "moment"
+import type { FormInstance, GetProps } from "antd"
+import dayjs from "dayjs"
+import customParseFormat from "dayjs/plugin/customParseFormat"
+import { useForm } from "antd/es/form/Form"
+import { getUserPrincipal, userSession } from "@/utils/stacks.data"
+import {
+  calculateRewardPerBlockAtCreation,
+  fetchTransactionStatus,
+  generateCreatePoolTxn,
+} from "@/lib/contracts/staking"
+import { splitToken } from "@/utils/helpers"
+import { useConnect } from "@stacks/connect-react"
+import { usePendingTxnFields } from "@/hooks/useTokenMinterHooks"
+import { convertToIso } from "@/utils/format"
+import { PendingTxnsI, TokenData } from "@/interface"
+import { pendingInitial } from "@/data/constants"
+import { useNotificationConfig } from "@/hooks/useNotification"
+import { SelectToken } from "../shared/SelectToken"
+type RangePickerProps = GetProps<typeof DatePicker.RangePicker>
 
-dayjs.extend(customParseFormat);
+dayjs.extend(customParseFormat)
 
 export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
-  const { config } = useNotificationConfig();
+  const { config } = useNotificationConfig()
   const { doContractCall } = useConnect()
   const [open, setOpen] = useState(false)
-  const toggleDrawer = useCallback(() => setOpen(!open), [open]);
-  const [rewardPerBlock, setRewardPerBlock] = useState<number>(0);
-  const [rewardToken, setRewardToken] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [form] = useForm<PendingTxnsI>();
+  const toggleModal = useCallback(() => setOpen(!open), [open])
+  const [rewardPerBlock, setRewardPerBlock] = useState<number>(0)
+  const [rewardToken, setRewardToken] = useState<string>("")
+  const [loading, setLoading] = useState<boolean>(false)
+  const [form] = useForm<PendingTxnsI>()
 
-  const { pendingTxnProgress, setPendingTxnProgress } = usePendingTxnFields();
+  const { pendingTxnProgress, setPendingTxnProgress } = usePendingTxnFields()
 
   // eslint-disable-next-line arrow-body-style
   const disabledDateStart: RangePickerProps["disabledDate"] = (current) => {
-    return current && current < dayjs().endOf("day");
-  };
+    return current && current < dayjs().endOf("day")
+  }
 
   // eslint-disable-next-line arrow-body-style
   const disabledDateEnd: RangePickerProps["disabledDate"] = (current) => {
@@ -44,23 +48,29 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
       return (
         current &&
         current <= dayjs(form.getFieldsValue().start_date).endOf("day")
-      );
+      )
     } else {
-      return current && current < dayjs().endOf("day");
+      return current && current < dayjs().endOf("day")
     }
-  };
+  }
 
   const handleForm = async () => {
-    if (!userSession.isUserSignedIn) return;
+    if (!userSession.isUserSignedIn) return
     try {
       setLoading(true)
-      const formData = form.getFieldsValue();
-      const rewardToken = formData.reward_token;
-      const stakeToken = formData.stake_token;
-      const rewardAmount = formData.reward_amount;
-      const startDate = formData.start_date;
-      const endDate = formData.end_date;
-      const txn = await generateCreatePoolTxn(rewardToken, stakeToken, rewardAmount, startDate, endDate)
+      const formData = form.getFieldsValue()
+      const rewardToken = formData.reward_token
+      const stakeToken = formData.stake_token
+      const rewardAmount = formData.reward_amount
+      const startDate = formData.start_date
+      const endDate = formData.end_date
+      const txn = await generateCreatePoolTxn(
+        rewardToken,
+        stakeToken,
+        rewardAmount,
+        startDate,
+        endDate
+      )
       doContractCall({
         ...txn,
         onFinish: (data) => {
@@ -75,57 +85,77 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
             reward_token: formData.reward_token,
             start_date: convertToIso(formData.start_date),
             end_date: convertToIso(formData.end_date),
-            token_image: 's',
+            token_image: "s",
           })
         },
         onCancel: () => {
-          setLoading(false);
-          console.log("onCancel:", "Transaction was canceled");
-          config({ message: "User canceled transaction", title: 'Staking', type: 'error' })
+          setLoading(false)
+          console.log("onCancel:", "Transaction was canceled")
+          config({
+            message: "User canceled transaction",
+            title: "Staking",
+            type: "error",
+          })
         },
       })
     } catch (e) {
       if (e instanceof Error) {
-        config({ message: e.message, title: 'Staking', type: 'error' })
+        config({ message: e.message, title: "Staking", type: "error" })
       } else {
-        config({ message: "An unknown error occurred", title: 'Staking', type: 'error' })
+        config({
+          message: "An unknown error occurred",
+          title: "Staking",
+          type: "error",
+        })
       }
     }
   }
 
   const setStakeToken = (token: TokenData) => {
-    form.setFieldValue('stake_token', token.address);
+    form.setFieldValue("stake_token", token.address)
   }
 
   const setRewarddToken = (token: TokenData) => {
-    form.setFieldValue('reward_token', token.address);
+    form.setFieldValue("reward_token", token.address)
   }
 
   const updateRate = async () => {
-    const formData = form.getFieldsValue();
-    const token = formData.reward_token;
-    setRewardToken(splitToken(token)[1]);
-    const rewardAmount = formData.reward_amount;
-    const startDate = formData.start_date;
-    const endDate = formData.end_date;
-    const result = await calculateRewardPerBlockAtCreation(rewardAmount, startDate, endDate);
-    setRewardPerBlock(result);
+    const formData = form.getFieldsValue()
+    const token = formData.reward_token
+    setRewardToken(splitToken(token)[1])
+    const rewardAmount = formData.reward_amount
+    const startDate = formData.start_date
+    const endDate = formData.end_date
+    const result = await calculateRewardPerBlockAtCreation(
+      rewardAmount,
+      startDate,
+      endDate
+    )
+    setRewardPerBlock(result)
   }
 
   useEffect(() => {
-    if (pendingTxnProgress.txStatus !== "pending") return;
+    if (pendingTxnProgress.txStatus !== "pending") return
     const handleTransactionStatus = async () => {
       try {
-        const txn = pendingTxnProgress;
-        const result = await fetchTransactionStatus(txn);
+        const txn = pendingTxnProgress
+        const result = await fetchTransactionStatus(txn)
         if (result !== "pending") {
           if (result === "success") {
-            config({ message: `${txn.action} Successful`, title: 'Staking', type: 'success' })
+            config({
+              message: `${txn.action} Successful`,
+              title: "Staking",
+              type: "success",
+            })
             form.resetFields()
             setPendingTxnProgress({ ...pendingInitial })
-            toggleDrawer()
+            toggleModal()
           } else {
-            config({ message: `${txn.action} Failed`, title: 'Staking', type: 'error' })
+            config({
+              message: `${txn.action} Failed`,
+              title: "Staking",
+              type: "error",
+            })
             setPendingTxnProgress({ ...txn })
           }
         }
@@ -135,106 +165,126 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
     }
 
     const interval = setInterval(() => {
-      if (pendingTxnProgress.txStatus !== "pending") return;
-      handleTransactionStatus();
-    }, 1000);
+      if (pendingTxnProgress.txStatus !== "pending") return
+      handleTransactionStatus()
+    }, 1000)
 
     //Clearing the interval
-    return () => clearInterval(interval);
-  }, [form, pendingTxnProgress, setPendingTxnProgress, toggleDrawer, config])
+    return () => clearInterval(interval)
+  }, [form, pendingTxnProgress, setPendingTxnProgress, toggleModal, config])
 
   return (
     <div>
-      <Drawer
+      <Modal
         open={open}
-        onClose={toggleDrawer}
-        placement="left"
+        onClose={toggleModal}
+        footer={null}
         title={"Create Staking Pool"}
         styles={{
           mask: { backdropFilter: "blur(12px)" },
           content: {
-            background: "rgba(16,69,29,0.1)",
-            border: "1px solid rgba(16,69,29,0.85)",
+            background: "#191B19",
+            borderRadius: "8px",
+            border: "1px solid #242624",
           },
           header: { background: "transparent" },
         }}
         className="z-20"
-        closeIcon={
-          <IoCloseCircleOutline className="text-2xl text-primary-50" />
-        }
+        closeIcon={<IoCloseCircleOutline className="text-2xl text-white" />}
       >
-        <div className="flex flex-col justify-center h-full">
+        <div className="flex flex-col justify-center h-full mt-7">
           <div>
             <Form
               form={form}
               layout="vertical"
               onFinish={() => {
                 handleForm()
-                console.log(form.getFieldsValue());
+                console.log(form.getFieldsValue())
               }}
               initialValues={{
                 ...pendingTxnProgress,
-                "start_date": pendingTxnProgress.start_date ? moment(pendingTxnProgress.start_date) : null,
-                "end_date": pendingTxnProgress.end_date ? moment(pendingTxnProgress.end_date) : null
+                start_date: pendingTxnProgress.start_date
+                  ? moment(pendingTxnProgress.start_date)
+                  : null,
+                end_date: pendingTxnProgress.end_date
+                  ? moment(pendingTxnProgress.end_date)
+                  : null,
               }}
             >
               <Form.Item name={"stake_token"} label="Select Stake Token">
-                <SelectToken tokens={tokens} action={setStakeToken} />
+                <div className="px-2 py-1 bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px]">
+                  <SelectToken tokens={tokens} action={setStakeToken} />
+                </div>
               </Form.Item>
               <Form.Item name={"reward_token"} label="Select Reward Token">
-                <SelectToken tokens={tokens} action={setRewarddToken} />
+                <div className="px-2 py-1 bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px]">
+                  <SelectToken tokens={tokens} action={setRewarddToken} />
+                </div>
               </Form.Item>
               <Form.Item
                 name={"reward_amount"}
-                label="Enter Reward Amount"
+                label="Reward Amount"
                 rules={[{ required: true }]}
               >
-                <Input className="w-full bg-transparent" type="number" onChange={() => updateRate()} />
-              </Form.Item>
-              <Form.Item
-                name={"start_date"}
-                label="Start Date"
-                rules={[{ required: true }]}
-              >
-                <DatePicker
-                  format="YYYY-MM-DD HH:mm:ss"
-                  use12Hours={true}
-                  disabledDate={disabledDateStart}
-                  showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
-                  className="w-full bg-transparent"
+                <Input
+                  className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
+                  type="number"
                   onChange={() => updateRate()}
-                // onChange={calculateDifference}
+                  placeholder="Enter the reward ammount"
                 />
               </Form.Item>
-              <Form.Item
-                name={"end_date"}
-                label="End Date"
-                rules={[{ required: true }]}
-              >
-                <DatePicker
-                  // disabled={loading}
-                  format="YYYY-MM-DD HH:mm:ss"
-                  use12Hours={true}
-                  disabledDate={disabledDateEnd}
-                  showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
-                  className="w-full bg-transparent"
-                  onChange={() => updateRate()}
-                />
-              </Form.Item>
+              <div className="grid grid-cols-2 gap-4">
+                <Form.Item
+                  name={"start_date"}
+                  label="Start Date"
+                  rules={[{ required: true }]}
+                >
+                  <DatePicker
+                    format="YYYY-MM-DD HH:mm:ss"
+                    use12Hours={true}
+                    disabledDate={disabledDateStart}
+                    showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
+                    className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
+                    onChange={() => updateRate()}
+                    // onChange={calculateDifference}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name={"end_date"}
+                  label="End Date"
+                  rules={[{ required: true }]}
+                >
+                  <DatePicker
+                    // disabled={loading}
+                    format="YYYY-MM-DD HH:mm:ss"
+                    use12Hours={true}
+                    disabledDate={disabledDateEnd}
+                    showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
+                    className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
+                    onChange={() => updateRate()}
+                  />
+                </Form.Item>
+              </div>
               <span className=" py-3">
-                Reward Per Block is {rewardPerBlock > 0 ? rewardPerBlock.toFixed(4) : 0} {rewardToken}
+                Reward Per Block is{" "}
+                {rewardPerBlock > 0 ? rewardPerBlock.toFixed(4) : 0}{" "}
+                {rewardToken}
               </span>
-              <Button className="w-full" type="primary" htmlType="submit">
+              <Button
+                className="w-full rounded-lg"
+                type="primary"
+                htmlType="submit"
+              >
                 Create
               </Button>
             </Form>
           </div>
         </div>
-      </Drawer>
+      </Modal>
       <div>
         <Button
           className="md:px-10 mt-7 border-primary-90"
-          onClick={toggleDrawer}
+          onClick={toggleModal}
           type="primary"
         >
           Create Staking Pool
