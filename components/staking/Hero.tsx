@@ -7,10 +7,16 @@ import { getAllUserTokens } from "@/utils/stacks.data"
 import { TokenData } from "@/interface"
 
 export const Hero = () => {
-  const [tokens, setTokens] = useState<TokenData[]>([]);
+  const [tokens, setTokens] = useState<TokenData[]>([])
 
-export const Hero = async () => {
-  const tokens = await getAllUserTokens()
+  useEffect(() => {
+    const fetchData = async () => {
+      const tokens = await getAllUserTokens()
+      setTokens(tokens)
+    }
+
+    fetchData()
+  }, [])
   return (
     <>
       <div className="fixed top-0 left-[50%] translate-x-[-50%] w-[430px] h-[340px] blur-[300px] bg-primary-20 hidden md:block" />
