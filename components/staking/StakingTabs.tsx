@@ -32,7 +32,7 @@ export const StakingTabs = () => {
       content: <MemeGoatStakingTab />,
     },
     {
-      title: "live",
+      title: "live pools",
       key: 2,
       content: (
         <TabContent
