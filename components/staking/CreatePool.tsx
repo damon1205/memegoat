@@ -166,9 +166,6 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
             <Form
               form={form}
               layout="vertical"
-              // onChange={() => {
-              //   calculateRewardPerBlockAtCreation()
-              // }}
               onFinish={() => {
                 handleForm()
                 console.log(form.getFieldsValue());
@@ -199,6 +196,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
               >
                 <DatePicker
                   format="YYYY-MM-DD HH:mm:ss"
+                  use12Hours={true}
                   disabledDate={disabledDateStart}
                   showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                   className="w-full bg-transparent"
@@ -214,12 +212,11 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                 <DatePicker
                   // disabled={loading}
                   format="YYYY-MM-DD HH:mm:ss"
+                  use12Hours={true}
                   disabledDate={disabledDateEnd}
                   showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                   className="w-full bg-transparent"
                   onChange={() => updateRate()}
-                // className="w-full outline-none border-[1px] border-[#4e4040] bg-[#1a1918] py-2 px-2 rounded-[3px]"
-                // onChange={calculateDifference}
                 />
               </Form.Item>
               <span className=" py-3">

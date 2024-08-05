@@ -361,6 +361,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                 >
                   <DatePicker
                     format="YYYY-MM-DD HH:mm:ss"
+                    use12Hours={true}
                     disabledDate={disabledDateStart}
                     showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                     size="large"
@@ -375,6 +376,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                   required
                 >
                   <DatePicker
+                    use12Hours={true}
                     format="YYYY-MM-DD HH:mm:ss"
                     disabledDate={disabledDateEnd}
                     showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}

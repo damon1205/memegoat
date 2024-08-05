@@ -4,8 +4,9 @@ import { Avatar, Input, Modal } from "antd"
 import { MdKeyboardArrowDown } from "react-icons/md"
 import { CgClose } from "react-icons/cg"
 import { IoIosSearch } from "react-icons/io"
-import { TokenData } from "@/interface"
+import { ITokenMetadata, TokenData } from "@/interface"
 import Token from "./Token"
+import { fetchTokenMetadata } from "@/utils/stacks.data"
 
 interface propsI {
   tokens: TokenData[]
@@ -14,10 +15,9 @@ interface propsI {
 }
 
 export const SelectToken = ({ tokens, defaultTokenID, action }: propsI) => {
-  const [selectedToken, setSelectedToken] = useState<TokenData>({
-    name: "",
-    address: "",
-  })
+  const [selectedToken, setSelectedToken] = useState<TokenData | null>()
+  const [tokenMetadata, setTokenMetadata] = useState<ITokenMetadata | null>(null);
+
   const [openModal, setOpenModal] = useState(false)
   const toggleModal = () => setOpenModal(!openModal)
   const [tokenState, setTokenState] = useState<TokenData[]>([])
@@ -51,6 +51,17 @@ export const SelectToken = ({ tokens, defaultTokenID, action }: propsI) => {
         address: "",
       })
   }, [tokens, defaultTokenID])
+
+  useEffect(() => {
+    if (selectedToken) {
+      const fetchMeta = async () => {
+        const tokenMetadata = await fetchTokenMetadata(selectedToken.address);
+        setTokenMetadata(tokenMetadata);
+      }
+
+      fetchMeta()
+    }
+  }, [selectedToken])
   return (
     <>
       <Modal
@@ -100,9 +111,9 @@ export const SelectToken = ({ tokens, defaultTokenID, action }: propsI) => {
         onClick={toggleModal}
       >
         <div className="flex items-center gap-2">
-          <Avatar src={`https://assets.hiro.so/api/mainnet/token-metadata-api/${selectedToken.address}/1.png`} size={35} />
+          <Avatar src={tokenMetadata?.image_uri} size={35} />
           <p className="font-semibold text-[15px] text-white">
-            {selectedToken.name}
+            {selectedToken && selectedToken.name}
           </p>
         </div>
 

@@ -208,6 +208,7 @@ function CSVReader({
                   <td key={key}>
                     {key === "height" ? (
                       <DatePicker
+                        use12Hours={true}
                         showTime
                         onChange={(_value, dateString) => {
                           handleDateChange(dateString as string, index, key);

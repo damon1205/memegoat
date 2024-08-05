@@ -2,14 +2,38 @@ import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import type { Action, ThunkAction } from "@reduxjs/toolkit";
 import { tokenPairSlice } from "./features/pairs/pairsSlice";
 import { tokenMetadataSlice } from "./features/pairs/tokenSlice";
+import storage from "./noOpStore";
+import {
+  persistReducer,
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from "redux-persist";
+
+const persistConfig = {
+  key: "root",
+  storage,
+};
 
 const rootReducer = combineSlices(tokenPairSlice, tokenMetadataSlice);
 
-export type RootState = ReturnType<typeof rootReducer>;
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+export type RootState = ReturnType<typeof persistedReducer>;
 
 export const makeStore = () => {
   return configureStore({
-    reducer: rootReducer,
+    reducer: persistedReducer,
+    middleware: (getDefaultMiddleware) => {
+      return getDefaultMiddleware({
+        serializableCheck: {
+          ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        },
+      });
+    },
   });
 };
 

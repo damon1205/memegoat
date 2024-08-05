@@ -1,15 +1,18 @@
-import { TokenData } from '@/interface'
-import { getUserTokenBalance } from '@/utils/stacks.data'
+import { ITokenMetadata, TokenData } from '@/interface'
+import { fetchTokenMetadata, getUserTokenBalance } from '@/utils/stacks.data'
 import { Avatar } from 'antd'
 import React, { useEffect, useState } from 'react'
 
 const Token = ({ token, action }: { token: TokenData, action: (token: TokenData) => void }) => {
   const [tokenBalance, setTokenBalance] = useState<number>(0);
+  const [tokenMetadata, setTokenMetadata] = useState<ITokenMetadata | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
       const balance = await getUserTokenBalance(token.address);
       setTokenBalance(balance)
+      const tokenMetadata = await fetchTokenMetadata(token.address)
+      setTokenMetadata(tokenMetadata)
     }
     fetchData()
   }, [token])
@@ -21,7 +24,7 @@ const Token = ({ token, action }: { token: TokenData, action: (token: TokenData)
     >
       <div className="flex gap-3 items-center">
         <Avatar
-          src={`https://assets.hiro.so/api/mainnet/token-metadata-api/${token.address}/1.png`}
+          src={tokenMetadata?.image_uri}
           size={40}
           className="rounded-md"
         />
