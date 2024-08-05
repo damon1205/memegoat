@@ -56,3 +56,7 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+.ant-form-item-label > label.ant-form-item-required:before {
+  content: unset !important;
+}

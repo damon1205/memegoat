@@ -12,11 +12,19 @@ import { motion } from "framer-motion"
 import { BsDot } from "react-icons/bs"
 import { LaunchpadDataI } from "@/interface"
 import { useTokenMinterFields } from "@/hooks/useTokenMinterHooks"
-import { ApiURLS, appDetails, getExplorerLink, getUserPrincipal, network, networkInstance, userSession } from "@/utils/stacks.data"
+import {
+  ApiURLS,
+  appDetails,
+  getExplorerLink,
+  getUserPrincipal,
+  network,
+  networkInstance,
+  userSession,
+} from "@/utils/stacks.data"
 import { uploadToGaia, generateContract } from "@/utils/helpers"
 import { AnchorMode } from "@stacks/transactions"
-import { showConnect, useConnect } from "@stacks/connect-react";
-import axios from "axios";
+import { showConnect, useConnect } from "@stacks/connect-react"
+import axios from "axios"
 import { initialData } from "@/data/constants"
 import { uploadCampaign } from "@/lib/contracts/launchpad"
 import { useNotificationConfig } from "@/hooks/useNotification"
@@ -28,37 +36,37 @@ interface PropI {
 }
 
 export const Minter = ({ current, setCurrent, minter }: PropI) => {
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [hasCheckedSession, setHasCheckedSession] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false)
+  const [hasCheckedSession, setHasCheckedSession] = useState(false)
   const { config } = useNotificationConfig()
 
-  const { doContractDeploy } = useConnect();
+  const { doContractDeploy } = useConnect()
   const [form] = useForm<LaunchpadDataI>()
-  const { tokenMintProgress, setTokenMintProgress } = useTokenMinterFields();
+  const { tokenMintProgress, setTokenMintProgress } = useTokenMinterFields()
   const resetForm = () => form.resetFields()
   const fieldRule = (name: string): Rule => {
     return { required: true, message: `${name} is required` }
   }
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false)
 
   const onConnectWallet = useCallback(() => {
     showConnect({
       appDetails,
       onFinish: () => {
-        window.location.reload();
+        window.location.reload()
       },
       userSession,
-    });
-  }, []);
+    })
+  }, [])
 
   const nextStep = useCallback(() => {
-    if (minter) return;
-    if (!tokenMintProgress.step) return;
-    if ((tokenMintProgress.step !== current.toString())) {
+    if (minter) return
+    if (!tokenMintProgress.step) return
+    if (tokenMintProgress.step !== current.toString()) {
       if (tokenMintProgress.step === "1b") {
         setCurrent(1)
       } else {
-        setCurrent(Number(tokenMintProgress.step));
+        setCurrent(Number(tokenMintProgress.step))
       }
     }
   }, [setCurrent, tokenMintProgress, current, minter])
@@ -66,64 +74,66 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
   const handleForm = async () => {
     try {
       if (!userSession.isUserSignedIn()) {
-        return;
+        return
       }
-      setLoading(true);
-      const formData = form.getFieldsValue();
+      setLoading(true)
+      const formData = form.getFieldsValue()
       const metadata = {
         name: formData.token_name,
         description: formData.token_desc,
         image: formData.token_image,
-      };
-      const data = JSON.stringify(metadata);
-      const filename = `${metadata.name.replace(/ /g, '-')}.json`
-      const token_uri = await uploadToGaia(filename, data, 'application/json');
+      }
+      const data = JSON.stringify(metadata)
+      const filename = `${metadata.name.replace(/ /g, "-")}.json`
+      const token_uri = await uploadToGaia(filename, data, "application/json")
       if (token_uri === "") {
-        config({ message: "Please connect Wallet", title: 'Staking', type: 'error' })
-        return;
+        config({
+          message: "Please connect Wallet",
+          title: "Staking",
+          type: "error",
+        })
+        return
       }
       const contract = generateContract(
         formData.token_name,
         token_uri,
         formData.token_ticker,
-        formData.token_supply,
-      );
-      const contractName = `${formData.token_ticker}`;
-      const tokenAddress = `${getUserPrincipal()}.${contractName}`;
+        formData.token_supply
+      )
+      const contractName = `${formData.token_ticker}`
+      const tokenAddress = `${getUserPrincipal()}.${contractName}`
       await doContractDeploy({
         network: networkInstance,
         anchorMode: AnchorMode.Any,
         codeBody: contract,
         contractName,
         onFinish: (data) => {
-          setTokenMintProgress(
-            {
-              ...tokenMintProgress,
-              ...form.getFieldsValue(),
-              tx_id: data.txId,
-              token_address: tokenAddress,
-              user_addr: getUserPrincipal(),
-              action: "Token Mint",
-              tx_status: "pending"
-            }
-          );
+          setTokenMintProgress({
+            ...tokenMintProgress,
+            ...form.getFieldsValue(),
+            tx_id: data.txId,
+            token_address: tokenAddress,
+            user_addr: getUserPrincipal(),
+            action: "Token Mint",
+            tx_status: "pending",
+          })
         },
         onCancel: () => {
           setLoading(false)
-          console.log("onCancel:", "Transaction was canceled");
+          console.log("onCancel:", "Transaction was canceled")
         },
-      });
+      })
     } catch (e) {
-      setLoading(false);
-      console.log(e);
+      setLoading(false)
+      console.log(e)
     }
-  };
+  }
 
   const fetchTransactionStatus = useCallback(async () => {
     try {
-      if (tokenMintProgress.tx_status !== "pending") return;
-      setLoading(true);
-      const txn = tokenMintProgress;
+      if (tokenMintProgress.tx_status !== "pending") return
+      setLoading(true)
+      const txn = tokenMintProgress
       const axiosConfig = {
         method: "get",
         maxBodyLength: Infinity,
@@ -131,12 +141,16 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
         headers: {
           "Content-Type": "application/json",
         },
-      };
-      const response = await axios.request(axiosConfig);
+      }
+      const response = await axios.request(axiosConfig)
       if (response.data.tx_status !== "pending") {
-        txn.tx_status = response.data.tx_status;
+        txn.tx_status = response.data.tx_status
         if (response.data.tx_status === "success") {
-          config({ message: `${txn.action} Successful`, title: 'Staking', type: 'success' })
+          config({
+            message: `${txn.action} Successful`,
+            title: "Staking",
+            type: "success",
+          })
           if (!minter) {
             txn.step = "2"
           }
@@ -148,59 +162,59 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
             setTokenMintProgress({ ...txn })
           }
         } else {
-          config({ message: `${txn.action} Failed`, title: 'Staking', type: 'error' })
+          config({
+            message: `${txn.action} Failed`,
+            title: "Staking",
+            type: "error",
+          })
           setTokenMintProgress({ ...txn })
         }
-        setLoading(false);
+        setLoading(false)
       }
     } catch (error) {
-      setLoading(false);
-      console.error(error);
+      setLoading(false)
+      console.error(error)
     }
-  }, [tokenMintProgress, setTokenMintProgress, minter, form, config]);
+  }, [tokenMintProgress, setTokenMintProgress, minter, form, config])
 
   useEffect(() => {
     nextStep()
     const interval = setInterval(() => {
-      if (tokenMintProgress.tx_status !== "pending") return;
-      fetchTransactionStatus();
-    }, 1000);
+      if (tokenMintProgress.tx_status !== "pending") return
+      fetchTransactionStatus()
+    }, 1000)
     //Clearing the interval
-    return () => clearInterval(interval);
-  }, [
-    tokenMintProgress,
-    fetchTransactionStatus,
-    nextStep
-  ]);
+    return () => clearInterval(interval)
+  }, [tokenMintProgress, fetchTransactionStatus, nextStep])
 
   useEffect(() => {
     if (userSession.isUserSignedIn()) {
-      setIsSignedIn(true);
+      setIsSignedIn(true)
     }
-    setHasCheckedSession(true);
-  }, []);
-
+    setHasCheckedSession(true)
+  }, [])
 
   if (!hasCheckedSession) {
-    return null;
+    return null
   }
 
   return (
     <>
-      <motion.div className="max-w-[450px] mx-auto p-4 bg-[#121d16] relative border-[1px] border-primary-60">
-        <div className="-mb-4 flex justify-between items-center">
-          <h3 className="text-[1.2rem]">
-            Token Minter
-            <BsDot className="inline text-2xl text-primary-50" />
-          </h3>
+      <motion.div className="max-w-[485px] mx-auto p-4 md:p-6 mb-7 bg-primary-100/35 rounded-lg  mt-3  py-4 border-[1px] border-primary-100/60">
+        <div className="mb-4 flex justify-between items-center">
+          <h3 className="text-[1.2rem] font-medium mb-5">Token Minter</h3>
         </div>
-        <Divider />
 
         <div>
           <>
-            <Form layout="vertical" form={form} onFinish={handleForm} initialValues={tokenMintProgress}>
+            <Form
+              layout="vertical"
+              form={form}
+              onFinish={handleForm}
+              initialValues={tokenMintProgress}
+            >
               <Form.Item
-                label="Token Image"
+                label="Attach token image"
                 name={"token_image"}
                 rules={[fieldRule("Token Image")]}
                 required
@@ -211,7 +225,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
                   initialValue={tokenMintProgress.token_image}
                 />
               </Form.Item>
-              <div className="mb-3 p-3 text-custom-white/60">
+              <div className="mb-3 text-custom-white/60">
                 <Form.Item
                   label="Token name"
                   name={"token_name"}
@@ -219,10 +233,48 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
                   required
                 >
                   <Input
-                    className="bg-primary-20/5 border-primary-60 h-[40px]"
+                    className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px]"
                     size="large"
                   />
                 </Form.Item>
+                <div className="grid grid-cols-2 gap-4">
+                  <Form.Item
+                    label="Ticker"
+                    name={"token_ticker"}
+                    rules={[fieldRule("Ticker")]}
+                    required
+                  >
+                    <div>
+                      <Input
+                        className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px]"
+                        size="large"
+                      />
+                      <p className="text-white/60 text-[12px] tracking-tight leading-snug">
+                        Enter a short symbol for your token, typically 3-4
+                        characters
+                      </p>
+                    </div>
+                  </Form.Item>
+
+                  <Form.Item
+                    label="Supply"
+                    name={"token_supply"}
+                    rules={[fieldRule("Token Supply")]}
+                    required
+                  >
+                    <div>
+                      <Input
+                        className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px]"
+                        size="large"
+                        type="number"
+                      />
+                      <p className="text-white/60 text-[12px] tracking-tight leading-snug">
+                        Specify the total number of tokens. This number cannot
+                        be changed.
+                      </p>
+                    </div>
+                  </Form.Item>
+                </div>
                 <Form.Item
                   label="Description"
                   name={"token_desc"}
@@ -230,33 +282,9 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
                   required
                 >
                   <Input.TextArea
-                    className="bg-primary-20/5 border-primary-60"
+                    className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px]"
                     size="large"
                     style={{ minHeight: "6rem" }}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Ticker"
-                  name={"token_ticker"}
-                  rules={[fieldRule("Ticker")]}
-                  required
-                >
-                  <Input
-                    className="bg-primary-20/5 border-primary-60 h-[40px]"
-                    size="large"
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label="Supply"
-                  name={"token_supply"}
-                  rules={[fieldRule("Token Supply")]}
-                  required
-                >
-                  <Input
-                    className="bg-primary-20/5 border-primary-60 h-[40px]"
-                    size="large"
-                    type="number"
                   />
                 </Form.Item>
               </div>
@@ -276,7 +304,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
                     required
                   >
                     <Input
-                      className="bg-primary-20/5 border-primary-60 h-[40px]"
+                      className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px]"
                       size="large"
                       type="text"
                       prefix={<FaGlobe />}
@@ -290,7 +318,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
                       required
                     >
                       <Input
-                        className="bg-primary-20/5 border-primary-60 h-[40px]"
+                        className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px]"
                         size="large"
                         type="text"
                         prefix={<FaXTwitter />}
@@ -303,7 +331,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
                       required
                     >
                       <Input
-                        className="bg-primary-20/5 border-primary-60 h-[40px]"
+                        className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px]"
                         size="large"
                         type="text"
                         prefix={<FaDiscord />}
@@ -315,7 +343,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
               {isSignedIn ? (
                 <div>
                   <Button
-                    className="bg-primary-50 w-full relative h-[45px]"
+                    className="bg-primary-50 rounded-lg w-full relative h-[45px]"
                     size="large"
                     type="primary"
                     htmlType="submit"
@@ -327,13 +355,10 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
                       <span>Minting In Progess</span>
                     )}
                   </Button>
-                  {(loading && tokenMintProgress.tx_id !== "") && (
+                  {loading && tokenMintProgress.tx_id !== "" && (
                     <div className="text-xs flex flex-row items-center justify-center mt-2">
                       <Link
-                        href={getExplorerLink(
-                          network,
-                          tokenMintProgress.tx_id,
-                        )}
+                        href={getExplorerLink(network, tokenMintProgress.tx_id)}
                         target="_blank"
                         className="flex"
                       >
@@ -349,7 +374,6 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
                     </div>
                   )}
                 </div>
-
               ) : (
                 <Button
                   className="bg-primary-50 w-full relative h-[45px]"
