@@ -91,6 +91,13 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
     }
   }
 
+  const setStakeToken = (token: TokenData) => {
+    form.setFieldValue('stake_token', token.address);
+  }
+
+  const setRewarddToken = (token: TokenData) => {
+    form.setFieldValue('reward_token', token.address);
+  }
 
   const updateRate = async () => {
     const formData = form.getFieldsValue();
@@ -173,10 +180,10 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
               }}
             >
               <Form.Item name={"stake_token"} label="Select Stake Token">
-                <SelectToken tokens={tokens} action={() => { }} />
+                <SelectToken tokens={tokens} action={setStakeToken} />
               </Form.Item>
               <Form.Item name={"reward_token"} label="Select Reward Token">
-                <SelectToken tokens={tokens} action={() => { }} />
+                <SelectToken tokens={tokens} action={setRewarddToken} />
               </Form.Item>
               <Form.Item
                 name={"reward_amount"}
