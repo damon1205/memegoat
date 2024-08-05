@@ -7,11 +7,11 @@ import { getAllUserTokens } from "@/utils/stacks.data"
 import { TokenData } from "@/interface"
 
 export const Hero = () => {
-  const [tokens, setTokens] = useState<TokenData[]>([]);
+  const [tokens, setTokens] = useState<TokenData[]>([])
 
   useEffect(() => {
     const fetchData = async () => {
-      const tokens = await getAllUserTokens();
+      const tokens = await getAllUserTokens()
       setTokens(tokens)
     }
 
@@ -42,7 +42,7 @@ export const Hero = () => {
         </div>
         <div className="">
           <h3 className="md:text-8xl hidden md:block font-medium text-center neonText special-text">
-            Stake with GoatSTX
+            Stake & deploy a pool.
           </h3>
           <h3 className="md:hidden block text-4xl">Stake with GoatSTX</h3>
         </div>
