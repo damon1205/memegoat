@@ -13,9 +13,9 @@ import { formatBal, formatNumber } from "@/utils/format"
 import { CsvObject } from "@/interface"
 import { tupleCV, uintCV, standardPrincipalCV, createAssetInfo, FungibleConditionCode, makeStandardFungiblePostCondition, makeStandardSTXPostCondition, AnchorMode, boolCV, contractPrincipalCV, listCV, PostConditionMode } from "@stacks/transactions"
 import { getTokenSource, splitToken } from "@/utils/helpers"
-import toast from "react-hot-toast"
 import { storeDB } from "@/lib/contracts/locker"
 import { useRouter } from "next/navigation"
+import { useNotificationConfig } from "@/hooks/useNotification"
 
 type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
 
@@ -28,6 +28,7 @@ const disabledDate: RangePickerProps['disabledDate'] = (current) => {
 
 export const LockerSetup = () => {
   const router = useRouter()
+  const { config } = useNotificationConfig()
   const { doContractCall } = useConnect();
   const [amount, setAmount] = useState(0)
   const [percent, setPercent] = useState(0);
@@ -124,7 +125,7 @@ export const LockerSetup = () => {
     const assetName = await getTokenSource(tokenAddress[0], tokenAddress[1]);
 
     if (assetName === "") {
-      toast.error("Error with token contract")
+      config({ message: 'Error with token contract', title: 'Locker', type: 'error' })
       return
     }
     const fungibleAssetInfo = createAssetInfo(
@@ -133,7 +134,6 @@ export const LockerSetup = () => {
       assetName,
     );
     const postConditionAmount = BigInt(amount)
-
 
     const fungiblePostConditionToken = makeStandardFungiblePostCondition(
       getUserPrincipal(),

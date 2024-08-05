@@ -40,11 +40,12 @@ import {
 } from "@/utils/stacks.data"
 import { uintCV } from "@stacks/transactions"
 import { useConnect } from "@stacks/connect-react"
-import toast from "react-hot-toast"
 import { PendingTransactions } from "../shared/PendingTransactions"
+import { useNotificationConfig } from "@/hooks/useNotification"
 
 export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
   const { doContractCall } = useConnect()
+  const { config } = useNotificationConfig()
   const [launchpadInfo, setLaunchpadInfo] = useState<LaunchpadI | null>(null)
   const [launchpadId, setLaunchpadId] = useState<number>(0)
   const [STXRate, setSTXRate] = useState<number>(0)
@@ -83,9 +84,9 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
       })
     } catch (e) {
       if (e instanceof Error) {
-        toast.error(e.message)
+        config({ message: e.message, title: 'Launchpad', type: 'error' })
       } else {
-        toast.error("An unknown error occurred")
+        config({ message: "An unknown error occurred", title: 'Launchpad', type: 'error' })
       }
     }
   }
@@ -115,9 +116,9 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
       })
     } catch (e) {
       if (e instanceof Error) {
-        toast.error(e.message)
+        config({ message: e.message, title: 'Launchpad', type: 'error' })
       } else {
-        toast.error("An unknown error occurred")
+        config({ message: "An unknown error occurred", title: 'Launchpad', type: 'error' })
       }
     }
   }
@@ -320,7 +321,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                     <div className="p-4 text-silver border-b-[1px] border-primary-20/20 mb-5">
                       <p>
                         <BsClock className="inline mr-1" />{" "}
-                       {live ? presaleClosed ? "JOIN PRESALE" : "PRESALE ENDED" : "UPCOMING PRESALE"}
+                        {live ? presaleClosed ? "JOIN PRESALE" : "PRESALE ENDED" : "UPCOMING PRESALE"}
                       </p>
                     </div>
                     {live ? (

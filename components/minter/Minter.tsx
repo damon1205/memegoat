@@ -17,9 +17,9 @@ import { uploadToGaia, generateContract } from "@/utils/helpers"
 import { AnchorMode } from "@stacks/transactions"
 import { showConnect, useConnect } from "@stacks/connect-react";
 import axios from "axios";
-import { toast } from "react-hot-toast";
 import { initialData } from "@/data/constants"
 import { uploadCampaign } from "@/lib/contracts/launchpad"
+import { useNotificationConfig } from "@/hooks/useNotification"
 
 interface PropI {
   current: number
@@ -30,6 +30,7 @@ interface PropI {
 export const Minter = ({ current, setCurrent, minter }: PropI) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [hasCheckedSession, setHasCheckedSession] = useState(false);
+  const { config } = useNotificationConfig()
 
   const { doContractDeploy } = useConnect();
   const [form] = useForm<LaunchpadDataI>()
@@ -78,7 +79,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
       const filename = `${metadata.name.replace(/ /g, '-')}.json`
       const token_uri = await uploadToGaia(filename, data, 'application/json');
       if (token_uri === "") {
-        toast.error("Please connect Wallet")
+        config({ message: "Please connect Wallet", title: 'Staking', type: 'error' })
         return;
       }
       const contract = generateContract(
@@ -123,7 +124,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
       if (tokenMintProgress.tx_status !== "pending") return;
       setLoading(true);
       const txn = tokenMintProgress;
-      const config = {
+      const axiosConfig = {
         method: "get",
         maxBodyLength: Infinity,
         url: ApiURLS[network].getTxnInfo + `${txn.tx_id} `,
@@ -131,11 +132,11 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
           "Content-Type": "application/json",
         },
       };
-      const response = await axios.request(config);
+      const response = await axios.request(axiosConfig);
       if (response.data.tx_status !== "pending") {
         txn.tx_status = response.data.tx_status;
         if (response.data.tx_status === "success") {
-          toast.success(`${txn.action} Successful`);
+          config({ message: `${txn.action} Successful`, title: 'Staking', type: 'success' })
           if (!minter) {
             txn.step = "2"
           }
@@ -147,7 +148,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
             setTokenMintProgress({ ...txn })
           }
         } else {
-          toast.error(`${txn.action} Failed`);
+          config({ message: `${txn.action} Failed`, title: 'Staking', type: 'error' })
           setTokenMintProgress({ ...txn })
         }
         setLoading(false);
@@ -156,7 +157,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
       setLoading(false);
       console.error(error);
     }
-  }, [tokenMintProgress, setTokenMintProgress, minter, form]);
+  }, [tokenMintProgress, setTokenMintProgress, minter, form, config]);
 
   useEffect(() => {
     nextStep()

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Spin } from "antd";
 import { userSession } from "@/utils/stacks.data";
-import { toast } from "react-toastify";
 import { useConnect } from "@stacks/connect-react";
 import { LoadingOutlined } from '@ant-design/icons';
 import { PendingTxnPool } from "@/interface";
 import { fetchTransactionStatus, generateClaimTransaction, storeDB } from "@/lib/contracts/staking";
+import { useNotificationConfig } from "@/hooks/useNotification";
 
 interface props {
   stakeId: number;
@@ -19,6 +19,7 @@ interface props {
 export const ClaimBtn = ({ stakeId, reward_token, erpb, pendingTxns, earned }: props) => {
   const [txStatus, setTxStatus] = useState<string>("notactive");
   const [loading, setLoading] = useState<boolean>(false);
+  const { config } = useNotificationConfig()
   const { doContractCall } = useConnect();
 
   const hanleClaim = async () => {
@@ -37,9 +38,9 @@ export const ClaimBtn = ({ stakeId, reward_token, erpb, pendingTxns, earned }: p
       })
     } catch (e) {
       if (e instanceof Error) {
-        toast.error(e.message);
+        config({ message: e.message, title: 'Staking', type: 'error' })
       } else {
-        toast.error('An unknown error occurred');
+        config({ message: "An unknown error occurred", title: 'Staking', type: 'error' })
       }
     }
   }
@@ -54,9 +55,9 @@ export const ClaimBtn = ({ stakeId, reward_token, erpb, pendingTxns, earned }: p
         if (result !== "pending") {
           localStorage.removeItem(txn.key);
           if (result === "success") {
-            toast.success(`${txn.action} Successful`);
+            config({ message: `${txn.action} Successful`, title: 'Staking', type: 'success' })
           } else {
-            toast.error(`${txn.action} Failed`);
+            config({ message: `${txn.action} Failed`, title: 'Staking', type: 'error' })
           }
           // update()
         }
@@ -72,7 +73,7 @@ export const ClaimBtn = ({ stakeId, reward_token, erpb, pendingTxns, earned }: p
 
     //Clearing the interval
     return () => clearInterval(interval);
-  }, [pendingTxns, txStatus])
+  }, [pendingTxns, txStatus, config])
 
   return (
     <button

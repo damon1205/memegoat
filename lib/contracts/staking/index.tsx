@@ -4,7 +4,6 @@ import { getAddress, getTokenSource, splitToken } from "@/utils/helpers";
 import { ApiURLS, contractAddress, fetchCurrNoOfBlocks, fetchTokenMetadata, getUserPrincipal, network, networkInstance, userSession } from "@/utils/stacks.data";
 import { AnchorMode, boolCV, BooleanCV, callReadOnlyFunction, contractPrincipalCV, createAssetInfo, cvToValue, FungibleConditionCode, makeContractFungiblePostCondition, makeStandardFungiblePostCondition, makeStandardSTXPostCondition, PostConditionMode, standardPrincipalCV, UIntCV, uintCV } from "@stacks/transactions";
 import axios from "axios";
-import toast from "react-hot-toast";
 
 export const getStakeNonce = async () => {
   const user = getUserPrincipal() !== "" ? getUserPrincipal() : contractAddress;

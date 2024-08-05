@@ -34,10 +34,7 @@ import {
   uintCV,
   UIntCV,
 } from "@stacks/transactions";
-import form from "antd/es/form";
 import axios from "axios";
-import { error } from "console";
-import toast from "react-hot-toast";
 
 export const storePendingTxn = (
   action: string,
@@ -320,8 +317,7 @@ export async function listToken(
   }
 
   if (assetName === "") {
-    toast.error("Error with token contract");
-    return;
+    throw new Error("Error with token contract");
   }
   const fungibleAssetInfo = createAssetInfo(
     assetAddress,
@@ -336,8 +332,7 @@ export async function listToken(
     launchpadInfo["total-stx-deposited"]
   );
   if (!postConditionAmount) {
-    toast.error("Invalid amount");
-    return;
+    throw new Error("Invalid amount");
   }
   const contractFungiblePostCondition = makeContractFungiblePostCondition(
     contractAddress,
@@ -354,8 +349,7 @@ export async function listToken(
   );
   const lp = await getTokenLP(token);
   if (lp.length == 0) {
-    toast.error("No token address found");
-    return;
+    throw new Error("Not token address found");
   }
   return {
     network: networkInstance,

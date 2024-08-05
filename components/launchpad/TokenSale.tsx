@@ -17,13 +17,13 @@ import { FungibleConditionCode, createAssetInfo, makeStandardFungiblePostConditi
 import { splitToken } from "@/utils/helpers";
 import { useConnect } from "@stacks/connect-react";
 import axios from "axios";
-import toast from "react-hot-toast";
 import Link from "next/link";
 import { FaArrowUpRightFromSquare } from "react-icons/fa6";
 import { initialData } from "@/data/constants";
 import moment from "moment";
 import { LaunchpadDataI } from "@/interface";
 import { uploadCampaign } from "@/lib/contracts/launchpad";
+import { useNotificationConfig } from "@/hooks/useNotification";
 
 interface PropI {
   current: number
@@ -36,6 +36,7 @@ type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
 
 export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
   const { doContractCall } = useConnect()
+  const { config } = useNotificationConfig()
   const [showTokenSale, setShowTokenSale] = useState(true)
   const [form] = useForm<LaunchpadDataI>();
 
@@ -82,7 +83,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
       if (tokenMintProgress.tx_status !== "pending") return;
       setLoading(true);
       const txn = tokenMintProgress;
-      const config = {
+      const axiosConfig = {
         method: "get",
         maxBodyLength: Infinity,
         url: ApiURLS[network].getTxnInfo + `${txn.tx_id}`,
@@ -90,15 +91,15 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
           "Content-Type": "application/json",
         },
       };
-      const response = await axios.request(config);
+      const response = await axios.request(axiosConfig);
       if (response.data.tx_status !== "pending") {
         txn.tx_status = response.data.tx_status;
         if (response.data.tx_status === "success") {
-          toast.success(`${txn.action} Successful`);
+          config({ message: `${txn.action} Successful`, title: 'Launchpad', type: 'success' })
           txn.step = "1b";
           await uploadCampaign({ ...tokenMintProgress, is_campaign: true })
         } else {
-          toast.error(`${txn.action} Failed`);
+          config({ message: `${txn.action} Failed`, title: 'Launchpad', type: 'error' })
         }
         setLoading(false);
         setTokenMintProgress({ ...txn })
@@ -107,7 +108,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
       setLoading(false);
       console.error(error);
     }
-  }, [tokenMintProgress, setTokenMintProgress]);
+  }, [tokenMintProgress, setTokenMintProgress, config]);
 
   const handleRegister = async () => {
     if (!tokenMintProgress) return;

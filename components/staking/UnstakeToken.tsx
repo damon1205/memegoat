@@ -1,4 +1,5 @@
 "use client"
+import { useNotificationConfig } from "@/hooks/useNotification";
 import { PendingTxnPool } from "@/interface";
 import { fetchTransactionStatus, generateUnstakeTransaction, storeDB } from "@/lib/contracts/staking";
 import { truncateTokenAddress } from "@/utils/format";
@@ -7,7 +8,6 @@ import { userSession } from "@/utils/stacks.data";
 import { useConnect } from "@stacks/connect-react";
 import { Avatar, Button, Checkbox, Input, Modal } from "antd"
 import { useEffect, useState } from "react"
-import toast from "react-hot-toast";
 import { SlClose } from "react-icons/sl"
 
 interface props {
@@ -22,11 +22,11 @@ interface props {
 
 export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendingTxns, staked_amount }: props) => {
   const { doContractCall } = useConnect()
+  const { config } = useNotificationConfig()
   const [open, setOpen] = useState(false)
   const toggleOpen = () => setOpen(!open)
   const [amount, setAmount] = useState<number>(0)
-  const available = 986565646454.89
-  const setMax = () => setAmount(available)
+  const setMax = () => setAmount(staked_amount)
   const [checked, setChecked] = useState<boolean>(false)
   const [txStatus, setTxStatus] = useState<string>("notactive");
   const hasStake = () => staked_amount > 0;
@@ -47,9 +47,9 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
       })
     } catch (e) {
       if (e instanceof Error) {
-        toast.error(e.message);
+        config({ message: e.message, title: 'Staking', type: 'error' })
       } else {
-        toast.error('An unknown error occurred');
+        config({ message: "An unknown error occurred", title: 'Staking', type: 'error' })
       }
     }
   }
@@ -64,9 +64,9 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
         if (result !== "pending") {
           localStorage.removeItem(txn.key);
           if (result === "success") {
-            toast.success(`${txn.action} Successful`);
+            config({ message: `${txn.action} Successful`, title: 'Staking', type: 'success' })
           } else {
-            toast.error(`${txn.action} Failed`);
+            config({ message: `${txn.action} Failed`, title: 'Staking', type: 'error' })
           }
           // update()
         }
@@ -82,7 +82,7 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
 
     //Clearing the interval
     return () => clearInterval(interval);
-  }, [pendingTxns, txStatus])
+  }, [pendingTxns, txStatus, config])
 
   return (
     <>
@@ -104,7 +104,7 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
         <div className="flex justify-end items-center gap-2">
           <p>
             <span className="text-[#7ff39c]">Available</span>{" "}
-            <span>{`${available} ${truncateTokenAddress(stake_token)}`}</span>
+            <span>{`${staked_amount} ${truncateTokenAddress(stake_token)}`}</span>
           </p>
           <Avatar src={token_icon} size={30} />
           <p className="border-[1px] border-accent/40 text-accent  p-[1px] px-[4px]">

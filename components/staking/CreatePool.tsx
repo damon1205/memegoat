@@ -13,14 +13,15 @@ import { splitToken } from "@/utils/helpers";
 import { useConnect } from "@stacks/connect-react";
 import { usePendingTxnFields } from "@/hooks/useTokenMinterHooks";
 import { convertToIso } from "@/utils/format";
-import toast from "react-hot-toast";
 import { PendingTxnsI, TokenData } from "@/interface";
 import { pendingInitial } from "@/data/constants";
+import { useNotificationConfig } from "@/hooks/useNotification";
 type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
 
 dayjs.extend(customParseFormat);
 
 export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
+  const { config } = useNotificationConfig();
   const { doContractCall } = useConnect()
   const [open, setOpen] = useState(false)
   const toggleDrawer = useCallback(() => setOpen(!open), [open]);
@@ -77,14 +78,14 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
         onCancel: () => {
           // setLoading(false);
           console.log("onCancel:", "Transaction was canceled");
-          toast.error('User canceled transaction')
+          config({ message: "User canceled transaction", title: 'Staking', type: 'error' })
         },
       })
     } catch (e) {
       if (e instanceof Error) {
-        toast.error(e.message);
+        config({ message: e.message, title: 'Staking', type: 'error' })
       } else {
-        toast.error('An unknown error occurred');
+        config({ message: "An unknown error occurred", title: 'Staking', type: 'error' })
       }
     }
   }
@@ -108,12 +109,12 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
         const result = await fetchTransactionStatus(txn);
         if (result !== "pending") {
           if (result === "success") {
-            toast.success(`${txn.action} Successful`);
+            config({ message: `${txn.action} Successful`, title: 'Staking', type: 'success' })
             form.resetFields()
             setPendingTxnProgress({ ...pendingInitial })
             toggleDrawer()
           } else {
-            toast.error(`${txn.action} Failed`);
+            config({ message: `${txn.action} Failed`, title: 'Staking', type: 'error' })
             setPendingTxnProgress({ ...txn })
           }
         }
@@ -129,7 +130,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
 
     //Clearing the interval
     return () => clearInterval(interval);
-  }, [form, pendingTxnProgress, setPendingTxnProgress, toggleDrawer])
+  }, [form, pendingTxnProgress, setPendingTxnProgress, toggleDrawer, config])
 
   return (
     <div>

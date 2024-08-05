@@ -6,7 +6,7 @@ import React, { useState } from "react"
 import { BiUpload } from "react-icons/bi"
 import { FaCloudUploadAlt } from "react-icons/fa"
 import { Oval } from "react-loading-icons"
-import { toast } from "react-hot-toast"
+import { useNotificationConfig } from "@/hooks/useNotification"
 
 export const UploadImage = ({
   setFieldValue,
@@ -19,6 +19,7 @@ export const UploadImage = ({
   hideRecommendation?: boolean
   initialValue: string | null
 }) => {
+  const { config } = useNotificationConfig()
   const [image_, setImage_] = useState<string | null>(initialValue)
   const [isLoading, setIsLoading] = useState(false)
   const onChangeImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,9 +32,8 @@ export const UploadImage = ({
       const fileUrl = await uploadToGaia(filename.replace(/ /g, '-'), file, mimeType);
       console.log(fileUrl)
       if (fileUrl === "") {
-        console.log('sjd,fj')
         setIsLoading(false)
-        toast.error("Please connect Wallet")
+        config({ message: "Please connect Wallet", title: 'Minter', type: 'error' })
         return;
       }
       setFieldValue(field_name || "token_image", fileUrl);
@@ -42,9 +42,9 @@ export const UploadImage = ({
     } catch (e) {
       setIsLoading(false)
       if (e instanceof Error) {
-        toast.error(e.message);
+        config({ message: e.message, title: 'Minter', type: 'error' })
       } else {
-        toast.error('An unknown error occurred');
+        config({ message: "An unknown error occurred", title: 'Minter', type: 'error' })
       }
     }
   };
