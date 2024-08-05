@@ -1,5 +1,5 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { createAppSlice } from "../../store";
+import { createAppSlice } from "@/lib/createAppSlice";
 import { ITokenMetadata } from "@/interface";
 
 type actionType = ITokenMetadata;

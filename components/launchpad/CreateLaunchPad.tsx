@@ -12,8 +12,7 @@ export const CreateLaunchPad = () => {
   const [current, setCurrent] = useState(0)
   const stepsNodes: ReactNode[] = [
     <Minter {...{ current, setCurrent, minter: false }} key={0} />,
-    // <CampaignAllocation {...{ current, setCurrent }} key={1} />,
-    <CreateTokenSale {...{ current, setCurrent }} key={2} />,
+    <CreateTokenSale {...{ current, setCurrent }} key={1} />,
   ]
   const onChange = (value: number) => {
     setCurrent(value)
@@ -49,13 +48,6 @@ export const CreateLaunchPad = () => {
               ),
               disabled: true,
             },
-            // {
-            //   title: <p className="md:text-lg text-[14px]">Allocation</p>,
-            //   description: (
-            //     <p className="text-zinc-400 text-xs">Campaign Allocation</p>
-            //   ),
-            //   disabled: true,
-            // },
             {
               title: <p className="md:text-lg text-[14px]">Token Sale</p>,
               description: (

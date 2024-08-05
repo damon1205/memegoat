@@ -22,22 +22,31 @@ export const UploadImage = ({
   const [image_, setImage_] = useState<string | null>(initialValue)
   const [isLoading, setIsLoading] = useState(false)
   const onChangeImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsLoading(true);
-    const file = e.target.files![0];
-    const filename = file.name;
-    const mimeType = file.type;
-    const value = URL.createObjectURL(file as never);
-    const fileUrl = await uploadToGaia(filename.replace(/ /g, '-'), file, mimeType);
-    console.log(fileUrl)
-    if (fileUrl === "") {
-      console.log('sjd,fj')
+    try {
+      setIsLoading(true);
+      const file = e.target.files![0];
+      const filename = file.name;
+      const mimeType = file.type;
+      const value = URL.createObjectURL(file as never);
+      const fileUrl = await uploadToGaia(filename.replace(/ /g, '-'), file, mimeType);
+      console.log(fileUrl)
+      if (fileUrl === "") {
+        console.log('sjd,fj')
+        setIsLoading(false)
+        toast.error("Please connect Wallet")
+        return;
+      }
+      setFieldValue(field_name || "token_image", fileUrl);
+      setImage_(value);
+      setIsLoading(false);
+    } catch (e) {
       setIsLoading(false)
-      toast.error("Please connect Wallet")
-      return;
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error('An unknown error occurred');
+      }
     }
-    setFieldValue(field_name || "token_image", fileUrl);
-    setImage_(value);
-    setIsLoading(false);
   };
 
   return (

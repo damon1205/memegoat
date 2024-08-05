@@ -3,7 +3,7 @@ import { Avatar, Button, DatePicker, Drawer, Form, Input, Select } from "antd"
 import React, { useCallback, useEffect, useState } from "react"
 import { IoCloseCircleOutline } from "react-icons/io5"
 import moment from "moment";
-import type { GetProps } from "antd";
+import type { FormInstance, GetProps } from "antd";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { useForm } from "antd/es/form/Form";
@@ -71,12 +71,13 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
             reward_token: formData.reward_token,
             start_date: convertToIso(formData.start_date),
             end_date: convertToIso(formData.end_date),
-            token_image: '',
+            token_image: 's',
           })
         },
         onCancel: () => {
           // setLoading(false);
           console.log("onCancel:", "Transaction was canceled");
+          toast.error('User canceled transaction')
         },
       })
     } catch (e) {
@@ -88,20 +89,16 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
     }
   }
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const formData = form.getFieldsValue();
-      const token = formData.reward_token;
-      setRewardToken(splitToken(token)[1]);
-      const rewardAmount = formData.reward_amount;
-      const startDate = formData.start_date;
-      const endDate = formData.end_date;
-      const result = await calculateRewardPerBlockAtCreation(rewardAmount, startDate, endDate);
-      setRewardPerBlock(result);
-    }
-
-    fetchData()
-  }, [form])
+  const updateRate = async () => {
+    const formData = form.getFieldsValue();
+    const token = formData.reward_token;
+    setRewardToken(splitToken(token)[1]);
+    const rewardAmount = formData.reward_amount;
+    const startDate = formData.start_date;
+    const endDate = formData.end_date;
+    const result = await calculateRewardPerBlockAtCreation(rewardAmount, startDate, endDate);
+    setRewardPerBlock(result);
+  }
 
   useEffect(() => {
     if (pendingTxnProgress.txStatus !== "pending") return;
@@ -171,8 +168,8 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                 "end_date": pendingTxnProgress.end_date ? moment(pendingTxnProgress.end_date) : null
               }}
             >
-              <Form.Item name={"token"} label="Select Token">
-                <Select className="w-full" defaultValue={"STX"}>
+              <Form.Item name={"stake_token"} label="Select Stake Token">
+                <Select className="w-full">
                   {tokens.map((token, index) => (
                     <Select.Option
                       key={index}
@@ -191,7 +188,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                 </Select>
               </Form.Item>
               <Form.Item name={"reward_token"} label="Select Reward Token">
-                <Select className="w-full" defaultValue={"BTC"}>
+                <Select className="w-full" >
                   {tokens.map((token, index) => (
                     <Select.Option
                       key={index}
@@ -214,7 +211,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                 label="Enter Reward Amount"
                 rules={[{ required: true }]}
               >
-                <Input className="w-full bg-transparent" type="number" />
+                <Input className="w-full bg-transparent" type="number" onChange={() => updateRate()} />
               </Form.Item>
               <Form.Item
                 name={"start_date"}
@@ -226,6 +223,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                   disabledDate={disabledDateStart}
                   showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                   className="w-full bg-transparent"
+                  onChange={() => updateRate()}
                 // onChange={calculateDifference}
                 />
               </Form.Item>
@@ -240,6 +238,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                   disabledDate={disabledDateEnd}
                   showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                   className="w-full bg-transparent"
+                  onChange={() => updateRate()}
                 // className="w-full outline-none border-[1px] border-[#4e4040] bg-[#1a1918] py-2 px-2 rounded-[3px]"
                 // onChange={calculateDifference}
                 />
@@ -247,7 +246,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
               <span className=" py-3">
                 Reward Per Block is {rewardPerBlock > 0 ? rewardPerBlock.toFixed(4) : 0} {rewardToken}
               </span>
-              <Button className="w-full" type="primary">
+              <Button className="w-full" type="primary" htmlType="submit">
                 Create
               </Button>
             </Form>

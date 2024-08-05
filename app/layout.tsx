@@ -5,6 +5,7 @@ import { PageContainer } from "@/components/shared/PageContainer"
 import { AntProvider } from "@/components/shared/AntProvider"
 import config from "@/utils/config"
 import StacksProvider from "@/provider/stacks"
+import StoreProvider from "@/provider/Redux"
 import { NotificationModal } from "@/components/shared/NotificationModal"
 import { NotificationProvider } from "@/provider/notification"
 const inter = Inter({ subsets: ["latin"] })
@@ -44,12 +45,14 @@ export default function RootLayout({
       <body className={`${inter.className} bg-custom-black`}>
         <AntProvider>
           <StacksProvider>
-            <PageContainer>
-              <NotificationProvider>
-                {children}
-                <NotificationModal />
-              </NotificationProvider>
-            </PageContainer>
+            <StoreProvider>
+              <PageContainer>
+                <NotificationProvider>
+                  {children}
+                  <NotificationModal />
+                </NotificationProvider>
+              </PageContainer>
+            </StoreProvider>
           </StacksProvider>
         </AntProvider>
       </body>

@@ -1,13 +1,13 @@
 "use client"
 import React, { useCallback, useEffect, useState } from "react"
-import { Avatar, Button, Divider, Form, Input } from "antd"
-import { FaCoins, FaDiscord, FaGlobe } from "react-icons/fa"
+import { Button, Divider, Form, Input } from "antd"
+import { FaDiscord, FaGlobe } from "react-icons/fa"
 import { FaArrowUpRightFromSquare, FaXTwitter } from "react-icons/fa6"
 import { useForm } from "antd/es/form/Form"
 import { UploadImage } from "@/components/shared/UploadImage"
 import { Rule } from "antd/es/form"
 import Link from "next/link"
-import { FiArrowUpRight } from "react-icons/fi"
+// import { FiArrowUpRight } from "react-icons/fi"
 import { motion } from "framer-motion"
 import { BsDot } from "react-icons/bs"
 import { LaunchpadDataI } from "@/interface"
@@ -19,6 +19,7 @@ import { showConnect, useConnect } from "@stacks/connect-react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { initialData } from "@/data/constants"
+import { uploadCampaign } from "@/lib/contracts/launchpad"
 
 interface PropI {
   current: number
@@ -39,16 +40,6 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
   }
   const [loading, setLoading] = useState<boolean>(false);
 
-  const getCurrent = useCallback(() => {
-    if (minter) return true
-    if (tokenMintProgress.step !== "1b") {
-      return true
-    } else if (tokenMintProgress.step === "1b") {
-      return false
-    }
-    return false
-  }, [tokenMintProgress, minter]);
-
   const onConnectWallet = useCallback(() => {
     showConnect({
       appDetails,
@@ -62,18 +53,14 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
   const nextStep = useCallback(() => {
     if (minter) return;
     if (!tokenMintProgress.step) return;
-    if ((tokenMintProgress.step !== current.toString()) && (tokenMintProgress.step !== "1b")) {
-      if (tokenMintProgress.step === "2b") {
-        setCurrent(2)
+    if ((tokenMintProgress.step !== current.toString())) {
+      if (tokenMintProgress.step === "1b") {
+        setCurrent(1)
       } else {
         setCurrent(Number(tokenMintProgress.step));
       }
     }
   }, [setCurrent, tokenMintProgress, current, minter])
-
-  const updateTokenMintStep = (step: string) => {
-    setTokenMintProgress({ ...tokenMintProgress, step: step })
-  };
 
   const handleForm = async () => {
     try {
@@ -150,9 +137,10 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
         if (response.data.tx_status === "success") {
           toast.success(`${txn.action} Successful`);
           if (!minter) {
-            txn.step = "1b"
+            txn.step = "2"
           }
           if (minter) {
+            await uploadCampaign({ ...tokenMintProgress, is_campaign: false })
             setTokenMintProgress({ ...initialData })
             form.resetFields()
           } else {
@@ -201,236 +189,178 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
       <motion.div className="max-w-[450px] mx-auto p-4 bg-[#121d16] relative border-[1px] border-primary-60">
         <div className="-mb-4 flex justify-between items-center">
           <h3 className="text-[1.2rem]">
-            {getCurrent() ? "Token Minter" : "SocialFi"}
+            Token Minter
             <BsDot className="inline text-2xl text-primary-50" />
           </h3>
         </div>
         <Divider />
 
         <div>
-          {getCurrent() ? (
-            <>
-              <Form layout="vertical" form={form} onFinish={handleForm} initialValues={tokenMintProgress}>
+          <>
+            <Form layout="vertical" form={form} onFinish={handleForm} initialValues={tokenMintProgress}>
+              <Form.Item
+                label="Token Image"
+                name={"token_image"}
+                rules={[fieldRule("Token Image")]}
+                required
+              >
+                <UploadImage
+                  field_name="token_image"
+                  setFieldValue={form.setFieldValue}
+                  initialValue={tokenMintProgress.token_image}
+                />
+              </Form.Item>
+              <div className="mb-3 p-3 text-custom-white/60">
                 <Form.Item
-                  label="Token Image"
-                  name={"token_image"}
-                  rules={[fieldRule("Token Image")]}
+                  label="Token name"
+                  name={"token_name"}
+                  rules={[fieldRule("Token Name")]}
                   required
                 >
-                  <UploadImage
-                    field_name="token_image"
-                    setFieldValue={form.setFieldValue}
-                    initialValue={tokenMintProgress.token_image}
+                  <Input
+                    className="bg-primary-20/5 border-primary-60 h-[40px]"
+                    size="large"
                   />
                 </Form.Item>
-                <div className="mb-3 p-3 text-custom-white/60">
-                  <Form.Item
-                    label="Token name"
-                    name={"token_name"}
-                    rules={[fieldRule("Token Name")]}
-                    required
-                  >
-                    <Input
-                      className="bg-primary-20/5 border-primary-60 h-[40px]"
-                      size="large"
-                    />
-                  </Form.Item>
-                  <Form.Item
-                    label="Description"
-                    name={"token_desc"}
-                    rules={[fieldRule("Description")]}
-                    required
-                  >
-                    <Input.TextArea
-                      className="bg-primary-20/5 border-primary-60"
-                      size="large"
-                      style={{ minHeight: "6rem" }}
-                    />
-                  </Form.Item>
-                  <Form.Item
-                    label="Ticker"
-                    name={"token_ticker"}
-                    rules={[fieldRule("Ticker")]}
-                    required
-                  >
-                    <Input
-                      className="bg-primary-20/5 border-primary-60 h-[40px]"
-                      size="large"
-                    />
-                  </Form.Item>
+                <Form.Item
+                  label="Description"
+                  name={"token_desc"}
+                  rules={[fieldRule("Description")]}
+                  required
+                >
+                  <Input.TextArea
+                    className="bg-primary-20/5 border-primary-60"
+                    size="large"
+                    style={{ minHeight: "6rem" }}
+                  />
+                </Form.Item>
+                <Form.Item
+                  label="Ticker"
+                  name={"token_ticker"}
+                  rules={[fieldRule("Ticker")]}
+                  required
+                >
+                  <Input
+                    className="bg-primary-20/5 border-primary-60 h-[40px]"
+                    size="large"
+                  />
+                </Form.Item>
 
+                <Form.Item
+                  label="Supply"
+                  name={"token_supply"}
+                  rules={[fieldRule("Token Supply")]}
+                  required
+                >
+                  <Input
+                    className="bg-primary-20/5 border-primary-60 h-[40px]"
+                    size="large"
+                    type="number"
+                  />
+                </Form.Item>
+              </div>
+              {!minter && (
+                <>
+                  <Divider>Socials</Divider>
                   <Form.Item
-                    label="Supply"
-                    name={"token_supply"}
-                    rules={[fieldRule("Token Supply")]}
+                    label="Website"
+                    name={"token_website"}
+                    rules={[
+                      {
+                        ...fieldRule("Website"),
+                        type: "url",
+                        message: "Invalid url",
+                      },
+                    ]}
                     required
                   >
                     <Input
                       className="bg-primary-20/5 border-primary-60 h-[40px]"
                       size="large"
-                      type="number"
+                      type="text"
+                      prefix={<FaGlobe />}
                     />
                   </Form.Item>
-                </div>
-                {!minter && (
-                  <>
-                    <Divider>Socials</Divider>
+                  <div className="grid grid-cols-2 gap-4">
                     <Form.Item
-                      label="Website"
-                      name={"token_website"}
-                      rules={[
-                        {
-                          ...fieldRule("Website"),
-                          type: "url",
-                          message: "Invalid url",
-                        },
-                      ]}
+                      label="Twitter"
+                      name={"twitter"}
+                      rules={[fieldRule("Twitter")]}
                       required
                     >
                       <Input
                         className="bg-primary-20/5 border-primary-60 h-[40px]"
                         size="large"
                         type="text"
-                        prefix={<FaGlobe />}
+                        prefix={<FaXTwitter />}
                       />
                     </Form.Item>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Form.Item
-                        label="Twitter"
-                        name={"twitter"}
-                        rules={[fieldRule("Twitter")]}
-                        required
-                      >
-                        <Input
-                          className="bg-primary-20/5 border-primary-60 h-[40px]"
-                          size="large"
-                          type="text"
-                          prefix={<FaXTwitter />}
-                        />
-                      </Form.Item>
-                      <Form.Item
-                        label="Discord/Telegram Invite"
-                        name={"discord"}
-                        rules={[fieldRule("Discord/Telegram Invite")]}
-                        required
-                      >
-                        <Input
-                          className="bg-primary-20/5 border-primary-60 h-[40px]"
-                          size="large"
-                          type="text"
-                          prefix={<FaDiscord />}
-                        />
-                      </Form.Item>
-                    </div>
-                  </>
-                )}
-                {isSignedIn ? (
-                  <div>
-                    <Button
-                      className="bg-primary-50 w-full relative h-[45px]"
-                      size="large"
-                      type="primary"
-                      htmlType="submit"
-                      disabled={loading}
+                    <Form.Item
+                      label="Discord/Telegram Invite"
+                      name={"discord"}
+                      rules={[fieldRule("Discord/Telegram Invite")]}
+                      required
                     >
-                      {!loading ? (
-                        <span>Continue</span>
-                      ) : (
-                        <span>Minting In Progess</span>
-                      )}
-                    </Button>
-                    {(loading && tokenMintProgress.tx_id !== "") && (
-                      <div className="text-xs flex flex-row items-center justify-center mt-2">
-                        <Link
-                          href={getExplorerLink(
-                            network,
-                            tokenMintProgress.tx_id,
-                          )}
-                          target="_blank"
-                          className="flex"
-                        >
-                          <h1 className="flex">
-                            View Transaction &nbsp;{" "}
-                            <FaArrowUpRightFromSquare
-                              className="cursor-pointer"
-                              color="white"
-                              size="1em"
-                            />
-                          </h1>
-                        </Link>
-                      </div>
-                    )}
+                      <Input
+                        className="bg-primary-20/5 border-primary-60 h-[40px]"
+                        size="large"
+                        type="text"
+                        prefix={<FaDiscord />}
+                      />
+                    </Form.Item>
                   </div>
-
-                ) : (
+                </>
+              )}
+              {isSignedIn ? (
+                <div>
                   <Button
                     className="bg-primary-50 w-full relative h-[45px]"
                     size="large"
                     type="primary"
-                    onClick={onConnectWallet}
+                    htmlType="submit"
+                    disabled={loading}
                   >
-                    <span>Connect Wallet</span>
+                    {!loading ? (
+                      <span>Continue</span>
+                    ) : (
+                      <span>Minting In Progess</span>
+                    )}
                   </Button>
-                )}
-              </Form>
-            </>
-          ) : (
-            <div className="min-h-[50vh]">
-              <div className="flex items-center justify-center flex-col">
-                <Avatar src="/logo.svg" size={100} />
-                <h3 className="text-align text-xl">
-                  Memegoat Earn <FaCoins className="inline text-orange-300" />
-                </h3>
-              </div>
-              <p className="text-sm py-2 px-3 text-center text-custom-white/70">
-                Will you like to utilize the meme goat earn socialFi platform to
-                promote your token?
-              </p>
-              <p className="text-center mb-5">
-                <Link
-                  href={"/https://socialfi.memegoat.io/"}
-                  target="_blank"
-                  className="text-sm underline text-primary-50 text-center"
-                >
-                  Go to SocialFi
-                  <FiArrowUpRight className="inline text-[16px]" />
-                </Link>
-              </p>
-              <div className="text-sm my-4">
-                <p>Benefits</p>
-                <ul className="block list-disc px-7 mt-3 space-y-3 text-custom-white/70">
-                  <li>Increased token sale participation.</li>
-                  <li>Drive twitter engagements.</li>
-                  <li>Reward for crypto content creators.</li>
-                  <li>Build loyal community members.</li>
-                  <li>Increase Twitter followers.</li>
-                </ul>
-              </div>
-              <div className="grid grid-cols-2 gap-3 mt-10">
+                  {(loading && tokenMintProgress.tx_id !== "") && (
+                    <div className="text-xs flex flex-row items-center justify-center mt-2">
+                      <Link
+                        href={getExplorerLink(
+                          network,
+                          tokenMintProgress.tx_id,
+                        )}
+                        target="_blank"
+                        className="flex"
+                      >
+                        <h1 className="flex">
+                          View Transaction &nbsp;{" "}
+                          <FaArrowUpRightFromSquare
+                            className="cursor-pointer"
+                            color="white"
+                            size="1em"
+                          />
+                        </h1>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+              ) : (
                 <Button
+                  className="bg-primary-50 w-full relative h-[45px]"
                   size="large"
-                  onClick={() => {
-                    updateTokenMintStep("2");
-                    setCurrent(2);
-                  }}
-                  className="h-[45px] bg-primary-20/5 border-primary-50 text-primary-50"
-                >
-                  No
-                </Button>
-                <Button
-                  size="large"
-                  onClick={() => {
-                    updateTokenMintStep("1");
-                    setCurrent(1);
-                  }}
                   type="primary"
-                  className="h-[45px]"
+                  onClick={onConnectWallet}
                 >
-                  Yes
+                  <span>Connect Wallet</span>
                 </Button>
-              </div>
-            </div>
-          )}
+              )}
+            </Form>
+          </>
         </div>
       </motion.div>
     </>

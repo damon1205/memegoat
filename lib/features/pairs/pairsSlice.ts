@@ -1,5 +1,5 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { createAppSlice } from "../../store";
+import { createAppSlice } from "@/lib/createAppSlice";
 import { TokenInfo } from "alex-sdk";
 import { dummyToken } from "@/data/constants";
 

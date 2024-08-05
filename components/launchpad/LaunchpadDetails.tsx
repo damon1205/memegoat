@@ -206,7 +206,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                   icon={<BsClock />}
                   className={`mdin-w-[4rem] flex items-center gap-2 ${live ? "bg-primary-80" : "bg-red-500"}`}
                 >
-                  {live ? "Live" : "Closed"}
+                  {live ? presaleClosed ? "Active" : "Closed" : "Not Started"}
                 </Tag>
               </div>
               <div className="md:grid md:grid-cols-3 gap-10 mt-10 space-y-10 md:space-y-0">
@@ -285,14 +285,28 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                             {data.token_ticker}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-xs mt-2 text-custom-white/60 md:text-end">
-                            Starts In
-                          </p>
-                          <p className="text-sm">
-                            {moment(data.start_date).format("LL LT")}
-                          </p>
-                        </div>
+                        {live ? presaleClosed ?
+                          <div>
+                            <p className="text-xs mt-2 text-custom-white/60 text-end">
+                              Ended In
+                            </p>
+                            <p className="text-sm">{moment(data.end_date).format("LL LT")}</p>
+                          </div>
+                          :
+                          <div>
+                            <p className="text-xs mt-2 text-custom-white/60 text-end">
+                              Ends In
+                            </p>
+                            <p className="text-sm">{moment(data.end_date).format("LL LT")}</p>
+                          </div>
+                          :
+                          <div>
+                            <p className="text-xs mt-2 text-custom-white/60 text-end">
+                              Starts In
+                            </p>
+                            <p className="text-sm">{moment(data.start_date).format("LL LT")}</p>
+                          </div>
+                        }
                       </div>
                     </div>
                   </div>
@@ -306,7 +320,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                     <div className="p-4 text-silver border-b-[1px] border-primary-20/20 mb-5">
                       <p>
                         <BsClock className="inline mr-1" />{" "}
-                        {live ? "JOIN PRESALE" : "PRESALE ENDED"}
+                       {live ? presaleClosed ? "JOIN PRESALE" : "PRESALE ENDED" : "UPCOMING PRESALE"}
                       </p>
                     </div>
                     {live ? (
