@@ -8,7 +8,7 @@ import Image from "next/image"
 export const MinterPage = () => {
   return (
     <>
-      <div className="fixed bottom-0 left-[50%] translate-x-[-50%] w-[430px] h-[340px] blur-[300px] bg-primary-20 hidden md:block" />
+      <div className="fixed bottom-0 left-[50%] translate-x-[-50%] w-[430px] h-[340px] blur-[300px] bg-primary-70 pb-4 hidden md:block" />
 
       <div className="fixed top-[10vh] right-[50%] translate-x-[50%]  z-[0] minter-foreground">
         <motion.div
