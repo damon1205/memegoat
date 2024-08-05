@@ -5,11 +5,17 @@ import moment from "moment"
 import React, { useEffect, useRef, useState } from "react"
 import { BsLockFill } from "react-icons/bs"
 import customParseFormat from 'dayjs/plugin/customParseFormat'
-import { useConnect } from "@stacks/connect-react"
-import { contractAddress, fetchSTXBalance, getUserTokenBalance } from "@/utils/stacks.data"
+import { FinishedTxData, useConnect } from "@stacks/connect-react"
+import { contractAddress, fetchCurrNoOfBlocks, fetchSTXBalance, getUserPrincipal, getUserTokenBalance, network, networkInstance } from "@/utils/stacks.data"
 import { getTokenMetadata } from "@/lib/features/pairs/tokenSlice"
 import { useAppSelector } from "@/lib/hooks"
 import { formatBal, formatNumber } from "@/utils/format"
+import { CsvObject } from "@/interface"
+import { tupleCV, uintCV, standardPrincipalCV, createAssetInfo, FungibleConditionCode, makeStandardFungiblePostCondition, makeStandardSTXPostCondition, AnchorMode, boolCV, contractPrincipalCV, listCV, PostConditionMode } from "@stacks/transactions"
+import { getTokenSource, splitToken } from "@/utils/helpers"
+import toast from "react-hot-toast"
+import { storeDB } from "@/lib/contracts/locker"
+import { useRouter } from "next/navigation"
 
 type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
 
@@ -20,20 +26,29 @@ const disabledDate: RangePickerProps['disabledDate'] = (current) => {
   return current && current < dayjs().endOf('day');
 };
 
-
 export const LockerSetup = () => {
+  const router = useRouter()
   const { doContractCall } = useConnect();
   const [amount, setAmount] = useState(0)
   const [percent, setPercent] = useState(0);
   const [balance, setBalance] = useState<number>(0);
   const [stxBalance, setStxBalance] = useState<number>(0);
+  const [canWithdraw, setCanWithdraw] = useState(false);
+  const [withdrawerAddress, setWithdrawerAddress] = useState("");
   const [memegoatBalance, setMemegoatBalance] = useState<number>(0);
+  const [isSelectedOption, setIsSelectedOption] = useState<number | null>(null);
   const [date, setDate] = useState(new Date());
   const [noOfBlocks, setNoOfBlocks] = useState<number>(0);
   const defaultPercent = [25, 50, 75, 100]
   const amountRef = useRef(null) as any
-  const [vestToken, setVestToken] = useState<"yes" | "no">("no");
+  const [vesting, setVestToken] = useState<boolean>(false);
   const tokenMetadata = useAppSelector(getTokenMetadata);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [unvestBlocks, setVestingBlocks] = useState<CsvObject[] | null>(null);
+  const [addressInfo, setAddressInfo] = useState<CsvObject[] | null>(
+    null,
+  );
+  const [txData, setTxData] = useState<FinishedTxData | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,24 +56,18 @@ export const LockerSetup = () => {
       setStxBalance(stxBalance);
 
       const memegoatBalance = await getUserTokenBalance(`${contractAddress}.memegoatstx`);
+      console.log(memegoatBalance)
       setMemegoatBalance(memegoatBalance);
 
       if (tokenMetadata) {
         console.log(tokenMetadata)
         const balance = await getUserTokenBalance(tokenMetadata.tokenAddress)
-        console.log(balance)
         setBalance(balance)
       }
     }
 
     fetchData()
   }, [tokenMetadata])
-
-  const handleDateChange = (dateStr: string) => {
-    const date = new Date(dateStr)
-    setDate(date);
-    getDifferenceInBlocks(dateStr);
-  };
 
   const getDifferenceInBlocks = (dateStr: string) => {
     const date = new Date(dateStr)
@@ -73,6 +82,12 @@ export const LockerSetup = () => {
     return diffInBlocks.toFixed(0)
   };
 
+  const handleDateChange = (dateStr: string) => {
+    const date = new Date(dateStr)
+    setDate(date);
+    getDifferenceInBlocks(dateStr);
+  };
+
   const convertTime = (dateObj: Date) => {
     return moment(dateObj).format("LLLL");
   };
@@ -80,6 +95,123 @@ export const LockerSetup = () => {
   const getDuration = (date: Date) => {
     return moment(date).fromNow(false);
   };
+
+  const feeIsSTx = () => isSelectedOption === 1;
+
+  const feeIsGoatSTX = () => isSelectedOption === 2;
+
+
+  const handleOptionClick = (index: number) => {
+    setIsSelectedOption(index);
+  };
+
+
+  const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCanWithdraw(event.target.value === "yes");
+  };
+
+  const handleLock = async () => {
+    if (!tokenMetadata) return;
+    setIsProcessing(true);
+
+    const toWithdrawerAddress = canWithdraw
+      ? withdrawerAddress
+      : getUserPrincipal();
+
+    const tokenAddress = splitToken(tokenMetadata.tokenAddress);
+    const postConditionCode = FungibleConditionCode.LessEqual;
+    const assetContractName = tokenAddress[1];
+    const assetName = await getTokenSource(tokenAddress[0], tokenAddress[1]);
+
+    if (assetName === "") {
+      toast.error("Error with token contract")
+      return
+    }
+    const fungibleAssetInfo = createAssetInfo(
+      tokenAddress[0],
+      assetContractName,
+      assetName,
+    );
+    const postConditionAmount = BigInt(amount)
+
+
+    const fungiblePostConditionToken = makeStandardFungiblePostCondition(
+      getUserPrincipal(),
+      postConditionCode,
+      postConditionAmount,
+      fungibleAssetInfo,
+    );
+
+    const postConditionAmountFee = BigInt(1000000000);
+
+    const fungibleAssetInfoGoat = createAssetInfo(
+      contractAddress,
+      'memegoatstx',
+      'memegoatstx',
+    );
+
+    const fungiblePostConditionGOATSTX = makeStandardFungiblePostCondition(
+      getUserPrincipal(),
+      postConditionCode,
+      postConditionAmountFee,
+      fungibleAssetInfoGoat,
+    );
+
+    const postConditionAddress = getUserPrincipal();
+    const postConditionCodeSTX = FungibleConditionCode.LessEqual;
+    const postConditionAmountSTX = BigInt(1000000);
+
+    const standardSTXPostCondition = makeStandardSTXPostCondition(
+      postConditionAddress,
+      postConditionCodeSTX,
+      postConditionAmountSTX,
+    );
+
+    const blockheight = await fetchCurrNoOfBlocks();
+
+    const unlockBlocksCv = unvestBlocks && vesting ? unvestBlocks.map(data => (tupleCV({
+      height: uintCV(Number(getDifferenceInBlocks(data.height)) + blockheight),
+      percentage: uintCV(data.percentage),
+    }))) : [tupleCV({ height: uintCV(noOfBlocks + blockheight), percentage: uintCV(100) })];
+
+    const addressInfoCv = addressInfo && vesting ? addressInfo.map(data => tupleCV({
+      address: standardPrincipalCV(data.address),
+      amount: uintCV(Number(data.amount) * 1000000),
+      "withdrawal-address": standardPrincipalCV(data.address)
+    })) : [tupleCV({ address: standardPrincipalCV(getUserPrincipal()), amount: uintCV(amount), "withdrawal-address": standardPrincipalCV(toWithdrawerAddress) })]
+
+    doContractCall({
+      network: networkInstance,
+      anchorMode: AnchorMode.Any,
+      contractAddress,
+      contractName: "memegoat-token-locker-v1-1",
+      functionName: "lock-token",
+      functionArgs: [
+        uintCV(amount),
+        boolCV(feeIsSTx()),
+        contractPrincipalCV(tokenAddress[0], tokenAddress[1]),
+        contractPrincipalCV(
+          contractAddress,
+          "memegoatstx",
+        ),
+        boolCV(vesting),
+        listCV(unlockBlocksCv),
+        listCV(addressInfoCv)
+      ],
+      postConditionMode: PostConditionMode.Deny,
+      postConditions: feeIsSTx() ? [fungiblePostConditionToken, standardSTXPostCondition] : [fungiblePostConditionToken, fungiblePostConditionGOATSTX],
+      onFinish: (data) => {
+        setTxData(data);
+        setIsProcessing(false);
+        storeDB(data.txId, amount, noOfBlocks, tokenMetadata);
+        router.push("/locker/userlocks");
+      },
+      onCancel: () => {
+        setIsProcessing(false)
+        console.log("onCancel:", "Transaction was canceled");
+      },
+    });
+  }
 
   return (
     <>
@@ -122,7 +254,8 @@ export const LockerSetup = () => {
                             className={`${activeCls} p-2 flex items-center justify-center cursor-pointer`}
                             onClick={() => {
                               setPercent(value)
-                              amountRef.current.value = value * balance
+                              amountRef.current.value = (value * balance / 100)
+                              setAmount(value * balance / 100 * 1e6)
                             }}
                           >
                             {value}%
@@ -135,11 +268,12 @@ export const LockerSetup = () => {
                         className="outline-none bg-primary-60/10 w-full h-full px-2 border-[1px] border-primary-100/85 placeholder:text-sm"
                         type="number"
                         ref={amountRef}
+                        max={balance}
                         placeholder="custom"
                         onChange={(e) => {
                           const value = Number(e.target.value)
                           const percent = (value * 100) / balance
-                          setAmount(value)
+                          setAmount(value * 1e6)
                           setPercent(percent)
                         }}
                       />
@@ -152,21 +286,22 @@ export const LockerSetup = () => {
                 <div className="mb-3">
                   <p className="text-primary-50 mb-3">Vest Tokens</p>
                   <Radio.Group
-                    defaultValue={"no"}
+                    defaultValue={false}
                     onChange={(e) => setVestToken(e.target.value)}
                   >
-                    <Radio value={"yes"}>Yes</Radio>
-                    <Radio value={"no"}>No</Radio>
+                    <Radio value={true}>Yes</Radio>
+                    <Radio value={false}>No</Radio>
                   </Radio.Group>
                 </div>
-                {vestToken === "no" ? (
+                {!vesting ? (
                   <div>
                     <p className="text-custom-white/60">Unlock Date</p>
                     <div className="from-primary-90/20 to-transparent bg-gradient-to-r  mt-3 text-custom-white/80 p-4 text-sm">
                       <p className="text-primary-20 ">{convertTime(date)}</p>
                       <p className="my-2">{getDuration(date)} - {noOfBlocks}&nbsp;block(s))</p>
                       <DatePicker
-                        format="YYYY-MM-DD HH:mm:ss"
+                        format="YYYY-MM-DD HH:mm"
+                        use12Hours={true}
                         disabledDate={disabledDate}
                         showTime={{ defaultValue: dayjs('00:00:00', 'HH:mm:ss') }}
                         className="bg-transparent border-primary-80/85 text-primary-30 w-[50%]"
@@ -174,6 +309,26 @@ export const LockerSetup = () => {
                           handleDateChange(dateString as string)
                         }}
                       />
+                    </div>
+                    <div className="my-5">
+                      <p className="my-3">Who can withdraw the tokens?</p>
+                      <Radio.Group
+                        onChange={(e) => handleRadioChange(e as never)}
+                        defaultValue={"no"}
+                      >
+                        <Radio value={"yes"}>Someone Else</Radio>
+                        <Radio value={"no"}>Me</Radio>
+                      </Radio.Group>
+
+                      {canWithdraw && (
+                        <Input
+                          placeholder="Unlocker Address"
+                          className="mt-3"
+                          onChange={(e) =>
+                            setWithdrawerAddress(e.target.value)
+                          }
+                        />
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -221,13 +376,13 @@ export const LockerSetup = () => {
                 <p className="text-primary-50 mb-3">Fee Option</p>
                 <div className="grid grid-cols-2 gap-4 text-custom-white/60">
                   <div>
-                    <Button className="w-full bg-transparent border-primary-80 text-primary-50 mb-1">
-                      GoatSTX
+                    <Button className={`w-full bg-transparent ${feeIsGoatSTX() && 'border-primary-80'} text-primary-50 mb-1`} onClick={() => handleOptionClick(2)}>
+                      GOATSTX
                     </Button>
-                    <p>Balance: {formatNumber(Number(formatBal(memegoatBalance).toFixed(2)))}</p>
+                    <p>Balance: {formatNumber(memegoatBalance.toFixed(2))}</p>
                   </div>
                   <div>
-                    <Button className="w-full bg-transparent border-primary-80 text-primary-50 mb-1">
+                    <Button className={`w-full bg-transparent ${feeIsSTx() && 'border-primary-80'} text-primary-50 mb-1`} onClick={() => handleOptionClick(1)}>
                       STX
                     </Button>
                     <p>Balance: {formatBal(stxBalance)}</p>
@@ -238,6 +393,22 @@ export const LockerSetup = () => {
                   circumstances until the timer has expired. Please ensure the
                   parameters are correct, as they are final.
                 </p>
+              </div>
+
+              <div className="flex my-4 gap-3 items-center">
+                <button
+                  className="py-3 border border-primary-80 text-primary-50 hover:border-primary-80 w-full rounded-md"
+                  onClick={() => handleLock()}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    "Awaiting Confirmation"
+                  ) : txData ? (
+                    "Transaction Submitted"
+                  ) : (
+                    "Lock"
+                  )}
+                </button>
               </div>
             </div>
           </div>

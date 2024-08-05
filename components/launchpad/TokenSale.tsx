@@ -16,7 +16,6 @@ import { getUserPrincipal, networkInstance, contractAddress, fetchCurrNoOfBlocks
 import { FungibleConditionCode, createAssetInfo, makeStandardFungiblePostCondition, AnchorMode, contractPrincipalCV, uintCV, boolCV, someCV, noneCV, PostConditionMode } from "@stacks/transactions";
 import { splitToken } from "@/utils/helpers";
 import { useConnect } from "@stacks/connect-react";
-import { instance } from "@/utils/api";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
@@ -77,8 +76,6 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
   const calcMinAllocation = (supply: number, percentage: number) => {
     return (supply * percentage) / 100;
   }
-
-
 
   const fetchTransactionStatus = useCallback(async () => {
     try {

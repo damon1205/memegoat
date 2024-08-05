@@ -37,6 +37,7 @@ export async function uploadToGaia(filename: string, data: string | Uint8Array |
   const putFileOptions: PutFileOptions = {
     contentType: type,
     encrypt: false,
+    dangerouslyIgnoreEtag: true,
   }
   const storage = new Storage({ userSession });
   const fileUrl = await storage.putFile(filename, data, putFileOptions);

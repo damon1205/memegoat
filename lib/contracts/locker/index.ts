@@ -5,7 +5,7 @@ export const storeDB = (
   txID: string,
   amount: number,
   blockTime: number,
-  tokenMetadata: ITokenMetadata | null,
+  tokenMetadata: ITokenMetadata | null
 ) => {
   const pendingTxns = localStorage.getItem("pendingTxns");
   let newTxnIndex = "";

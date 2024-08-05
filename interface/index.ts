@@ -7,6 +7,8 @@ import {
   TupleCV,
 } from "@stacks/transactions";
 
+export type CsvObject = { [key: string]: string };
+
 export interface ITokenMetadata {
   name: string;
   symbol: string;
