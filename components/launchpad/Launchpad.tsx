@@ -30,7 +30,8 @@ export const Launchpad = ({ data }: { data: LaunchpadI[] }) => {
         <div className="rounded-sm from-primary-90/5 to-primary-60/20 md:p-6 p-4 border-[1px] border-primary-100 relative bg-gradient-to-r">
           <h3 className="text-lg md:text-2xl">Launchpad Projects</h3>
           <p className="text-custom-white/55 text-sm md:text-[16px] mt-1">
-            Creating and investing in the best memecoins just became easier.
+            Create and invest in a fair token sale in just few clicks with
+            in-built tokenomics and anti-rug mechanism.
           </p>
           <CreateLaunchPad />
 

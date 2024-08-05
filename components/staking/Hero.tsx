@@ -5,7 +5,7 @@ import { CreatePool } from "./CreatePool"
 import { getAllUserTokens } from "@/utils/stacks.data"
 
 export const Hero = async () => {
-  const tokens = await getAllUserTokens();
+  const tokens = await getAllUserTokens()
   return (
     <>
       <div className="fixed top-0 left-[50%] translate-x-[-50%] w-[430px] h-[340px] blur-[300px] bg-primary-20 hidden md:block" />
@@ -31,7 +31,7 @@ export const Hero = async () => {
         </div>
         <div className="">
           <h3 className="md:text-8xl hidden md:block font-medium text-center neonText special-text">
-            Stake with GoatSTX
+            Stake & deploy a pool.
           </h3>
           <h3 className="md:hidden block text-4xl">Stake with GoatSTX</h3>
         </div>
