@@ -9,6 +9,18 @@ import {
 
 export type CsvObject = { [key: string]: string };
 
+export interface TxType {
+  key: string;
+  id: string;
+  txId: string;
+  txStatus: "pending" | "confirmed";
+  amount: number;
+  tag: string;
+  txSender: string;
+  action: string;
+  createdAt: string;
+}
+
 export interface ITokenMetadata {
   name: string;
   symbol: string;

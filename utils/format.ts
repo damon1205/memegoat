@@ -24,6 +24,10 @@ export const truncateTokenAddress = (address: string) => {
   return `${splits[0].slice(0, 10)}...${splits[1]}`;
 };
 
+export const truncateAddress = (address: string) => {
+  return `${address.slice(0, 10)}...${address[address.length - 10]}`;
+};
+
 export const convertToIso = (dateStr: string) => {
   const date = new Date(dateStr);
   return date.toISOString();

@@ -28,6 +28,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
   const toggleDrawer = useCallback(() => setOpen(!open), [open]);
   const [rewardPerBlock, setRewardPerBlock] = useState<number>(0);
   const [rewardToken, setRewardToken] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   const [form] = useForm<PendingTxnsI>();
 
   const { pendingTxnProgress, setPendingTxnProgress } = usePendingTxnFields();
@@ -52,6 +53,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
   const handleForm = async () => {
     if (!userSession.isUserSignedIn) return;
     try {
+      setLoading(true)
       const formData = form.getFieldsValue();
       const rewardToken = formData.reward_token;
       const stakeToken = formData.stake_token;
@@ -77,7 +79,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
           })
         },
         onCancel: () => {
-          // setLoading(false);
+          setLoading(false);
           console.log("onCancel:", "Transaction was canceled");
           config({ message: "User canceled transaction", title: 'Staking', type: 'error' })
         },
