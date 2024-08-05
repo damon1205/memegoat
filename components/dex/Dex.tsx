@@ -1,12 +1,16 @@
 "use client"
-import React from "react"
+import React, { useState } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { Swap } from "./Swap"
 import { DexChart } from "./DexChart"
 import { PendingTransactions } from "../shared/PendingTransactions"
+import { Avatar, Tooltip } from "antd"
+import { BiBarChartAlt } from "react-icons/bi"
 
 export const Dex = () => {
+  const [showChart, setShowChart] = useState(true)
+  const toggleChart = () => setShowChart(!showChart)
   return (
     <>
       <div className="fixed top-[10vh] right-[50%] translate-x-[50%]  z-[0]">
@@ -25,11 +29,19 @@ export const Dex = () => {
         transition={{ duration: 0.5, delay: 1 }}
         className="md:mt-[3rem] py-4"
       >
-        <div className="flex items-end justify-end mb-2">
+        <div className="flex items-center justify-end mb-2 gap-2">
           <PendingTransactions />
+          <Tooltip title="Toggle Chart" arrow={false}>
+            <Avatar
+              className="bg-[#FFFFFF14] rounded-md cursor-pointer"
+              onClick={toggleChart}
+            >
+              <BiBarChartAlt size={25} color="#1AC057" />
+            </Avatar>
+          </Tooltip>
         </div>
-        <motion.div className="flex lg:flex-row flex-col-reverse justify-center gap-4">
-          <DexChart />
+        <motion.div className="flex lg:flex-row flex-col-reverse justify-center gap-4 transition-all">
+          {showChart && <DexChart />}
           <Swap />
         </motion.div>
       </motion.div>

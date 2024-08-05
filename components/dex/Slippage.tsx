@@ -1,16 +1,15 @@
 "use client"
 import { Modal } from "antd"
-import React, { useRef } from "react"
+import React, { useRef, useState } from "react"
 interface props {
-  openSlippageModal: boolean
-  setOpenSlippageModal: React.Dispatch<React.SetStateAction<boolean>>
   slippage: number
   setSlippage: React.Dispatch<React.SetStateAction<number>>
 }
+import { CiSettings } from "react-icons/ci"
 
 export const Slippage = ({ ...props }: props) => {
   const defaultSlippageValues = [1, 2, 3, 4, 5]
-  const { openSlippageModal, setOpenSlippageModal } = props
+  const [openSlippageModal, setOpenSlippageModal] = useState(false)
   const { slippage, setSlippage } = props
   const toggleSlippageModal = () => setOpenSlippageModal(!openSlippageModal)
   const slippageRef = useRef(null) as any
@@ -72,6 +71,16 @@ export const Slippage = ({ ...props }: props) => {
           <p className="text-primary-30 font-bold">{slippage}%</p>
         </div>
       </Modal>
+      <div className=" text-xs flex gap-1 items-center">
+        <p className="p-[6px] px-3 text-custom-white/60 bg-[#0FFF671A] rounded-full border-[1px] border-[#0FFF6714]">
+          Slippage <span className="text-white">{slippage}%</span>
+        </p>
+        <CiSettings
+          size={25}
+          onClick={toggleSlippageModal}
+          className="cursor-pointer text-white"
+        />
+      </div>
     </div>
   )
 }

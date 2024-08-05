@@ -2,7 +2,7 @@
 import React, { useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Avatar, Button, Divider } from "antd"
-import { CgArrowsExchangeAltV } from "react-icons/cg"
+import { MdOutlineSwapVert } from "react-icons/md"
 import { Slippage } from "./Slippage"
 import { SelectToken } from "../shared/SelectToken"
 import { MdKeyboardArrowDown } from "react-icons/md"
@@ -37,7 +37,7 @@ export const Swap = () => {
   const tokenRate = 0.030005
   const [from, setFrom] = useState({ token: "GoatSTX", amount: 0 })
   const [to, setTo] = useState({ token: "STX", amount: 0 })
-  const balance = 20000000000000
+  const balance = 20000000000
   const fromRef = useRef(null) as any
   const toRef = useRef(null) as any
   const setMax = () => {
@@ -46,15 +46,14 @@ export const Swap = () => {
     setFrom((prev) => ({ ...prev, amount: balance }))
     setTo((prev) => ({ ...prev, amount: balance * tokenRate }))
   }
-  const [slippage, setSlippage] = useState<number>(3)
-  const [openSlippageModal, setOpenSlippageModal] = useState<boolean>(false)
-  const toggleSlippageModal = () => setOpenSlippageModal(!openSlippageModal)
-  const slippageProps = {
-    slippage,
-    setSlippage,
-    openSlippageModal,
-    setOpenSlippageModal,
+  const setHalf = () => {
+    fromRef.current.value = balance / 2
+    toRef.current.value = (balance / 2) * tokenRate
+    setFrom((prev) => ({ ...prev, amount: balance / 2 }))
+    setTo((prev) => ({ ...prev, amount: (balance / 2) * tokenRate }))
   }
+  const [slippage, setSlippage] = useState<number>(3)
+
   const [viewRouteDetails, setViewRouteDetails] = useState(false)
   const toggleViewRouteDetails = () => setViewRouteDetails(!viewRouteDetails)
 
@@ -70,116 +69,138 @@ export const Swap = () => {
   }
   return (
     <React.Fragment>
-      <Slippage {...{ ...slippageProps }} />
-      <motion.div className="relative md:w-[450px] w-full mx-auto">
-        <div className="w-full p-4  from-primary-100/25 to-primary-100/40 bg-gradient-to-r relative border-[1px] border-primary-100">
+      <motion.div className="relative md:w-[450px] w-full mx-auto transition-all">
+        <div className="w-full p-4  from-primary-100/25 to-primary-100/40 bg-gradient-to-r relative border-[1px] border-primary-100 rounded-lg">
           <div className="flex items-center justify-between">
             <p className="text-lg">Swap</p>
-            <div className=" text-xs flex">
-              <p className="p-1 px-3 text-custom-white/60 bg-[#080e06]">
-                Slippage {slippage}%
-              </p>
-              <button
-                className="px-2 p-1 bg-primary-80"
-                onClick={toggleSlippageModal}
-              >
-                Edit
-              </button>
-            </div>
+            <Slippage
+              {...{
+                ...{
+                  slippage,
+                  setSlippage,
+                },
+              }}
+            />
           </div>
 
-          <div className="from-primary-60/5 to-primary-60/40 bg-gradient-to-r  mt-3 text-custom-white/60">
-            <div className="flex gap-3 items-center justify-between p-2 px-4">
-              <p>From</p>
-              <div>
-                <SelectToken tokens={tokens} />
+          <div className="from-[#03DE5305] to-[#00FF1A29] bg-gradient-to-r rounded-lg  mt-3 text-custom-white/80 py-4 border-[1px] border-primary-100/60">
+            <div className="flex gap-3 items-center justify-between px-4">
+              <p className="text-xs">You pay</p>
+              <div className="flex items-center gap-2">
+                <button
+                  className="text-white text-sm bg-[#0FFF671A] rounded-xl border-[1px] border-[#0FFF6714] py-1 px-3"
+                  onClick={setHalf}
+                >
+                  50%
+                </button>
+                <button
+                  className="text-white text-sm bg-[#0FFF671A] rounded-xl border-[1px] border-[#0FFF6714] py-1 px-3"
+                  onClick={setMax}
+                >
+                  Max
+                </button>
               </div>
             </div>
-            <Divider className="my-0" />
+
             <div className="flex gap-3 items-center justify-between p-2 px-4">
               <input
-                className="w-[150px] bg-transparent border-0 outline-none text-xl text-white font-semibold"
+                className="w-[170px] bg-transparent border-0 outline-none text-[36px] text-white font-semibold placeholder:text-white"
                 type="number"
                 inputMode="decimal"
                 maxLength={5}
                 pattern="^[0-9]*[.]?[0-9]*$"
                 step=".01"
                 placeholder="0.00"
-                onChange={(e) =>
+                onChange={(e) => {
                   setFrom((prev) => ({
                     ...prev,
                     amount: Number(e.target.value),
                   }))
-                }
+                  setTo((prev) => ({
+                    ...prev,
+                    amount: Number(e.target.value) * tokenRate,
+                  }))
+
+                  toRef.current.value = Number(e.target.value) * tokenRate
+                }}
                 ref={fromRef}
               />
-              <p className="text-sm">$ {from.amount * dollarRate}</p>
+              <div className="px-2 py-2 rounded-lg bg-[#00000033] border-[1px] border-[#FFFFFF1A]">
+                <SelectToken defaultTokenID="1" tokens={tokens} />
+              </div>
             </div>
-            <Divider className="my-0" />
-            <div className="flex gap-3 items-center justify-between p-4 px-4 mb-1">
-              <p>Balance</p>
+
+            <div className="flex gap-3 items-center justify-between px-4 mb-1">
+              <p className="text-xs">
+                ~ ${Number(from.amount * dollarRate).toLocaleString()}
+              </p>
               <div className="flex gap-2 items-center">
-                <p className="text-sm text-white">{balance.toLocaleString()}</p>
-                <button
-                  className="text-primary-40 text-sm font-semibold"
-                  onClick={setMax}
-                >
-                  Use Max
-                </button>
+                <p className="text-sm text-white">
+                  <span className="text-sm mr-2 text-white/50">Balance:</span>
+                  {balance.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
-          <div className="flex justify-center items-center -mt-4">
+          <div className="flex justify-center items-center -mt-3">
             <Avatar
-              className="bg-primary-90 rounded-md border-1 border-custom-black/70 shadow-xl cursor-pointer"
-              size={35}
+              className="bg-[#1AC05799] border-1 border-[#1AC057CC] shadow-xl cursor-pointer"
+              size={40}
             >
-              <CgArrowsExchangeAltV className="text-4xl text-custom-white/20" />
+              <MdOutlineSwapVert className="text-4xl text-custom-white" />
             </Avatar>
           </div>
-          <div className="from-primary-60/5 to-primary-60/40 bg-gradient-to-r  -mt-4 text-custom-white/60">
-            <div className="flex gap-3 items-center justify-between p-2 px-4">
-              <p>To</p>
-              <div>
-                <SelectToken defaultTokenID="2" tokens={tokens} />
-              </div>
+          <div className="from-[#03DE5305] to-[#00FF1A29] bg-gradient-to-r rounded-lg  -mt-3 text-custom-white/60 py-4 border-[1px] border-primary-100/60">
+            <div className="flex gap-3 items-center justify-between px-4">
+              <p className="text-xs">You get</p>
+              <div></div>
             </div>
-            <Divider className="my-0" />
-            <Divider className="my-0" />
+
             <div className="flex gap-3 items-center justify-between p-2 px-4">
               <input
-                className="w-[150px] bg-transparent border-0 outline-none text-xl text-white font-semibold"
+                className="w-[170px] bg-transparent border-0 outline-none text-[36px] text-white font-semibold placeholder:text-white"
                 type="number"
                 inputMode="decimal"
                 maxLength={5}
                 pattern="^[0-9]*[.]?[0-9]*$"
                 step=".01"
                 placeholder="0.00"
-                onChange={(e) =>
+                onChange={(e) => {
                   setTo((prev) => ({ ...prev, amount: Number(e.target.value) }))
-                }
+                  setFrom((prev) => ({
+                    ...prev,
+                    amount: Number(e.target.value) / tokenRate,
+                  }))
+                  fromRef.current.value = Number(e.target.value) / tokenRate
+                }}
                 ref={toRef}
               />
-              <p className="text-sm">$ {to.amount * dollarRate}</p>
+              <div className="px-2 py-2 rounded-lg bg-[#00000033] border-[1px] border-[#FFFFFF1A]">
+                <SelectToken defaultTokenID="2" tokens={tokens} />
+              </div>
             </div>
-            <Divider className="my-0" />
-            <div className="flex gap-3 items-center justify-between p-4 px-4 mb-1">
-              <p>Balance</p>
+
+            <div className="flex gap-3 items-center justify-between px-4 mb-1">
+              <p className="text-xs">
+                ~ ${Number(to.amount * dollarRate).toLocaleString()}
+              </p>
               <div className="flex gap-2 items-center">
-                <p className="text-sm text-white">0</p>
+                <p className="text-sm text-white">
+                  <span className="text-sm mr-2 text-white/50">Balance:</span>0
+                </p>
               </div>
             </div>
           </div>
           <div className="my-3">
             <Button
-              className="w-full h-[43px]"
+              className="w-full h-[43px] rounded-lg"
               size="large"
               type="primary"
               onClick={confirmSwap}
             >
               Confirm Swap
             </Button>
-            <p className="py-1 text-sm">
+            <p className="py-2 text-sm">
               1 {from.token} ≈ 24520.0005 {to.token}
             </p>
             <motion.div
@@ -194,12 +215,12 @@ export const Swap = () => {
           </div>
 
           {viewRouteDetails && (
-            <div className="from-primary-60/5 to-primary-60/40 bg-gradient-to-r  mt-3 text-custom-white/60 px-4 p-2 text-sm">
+            <div className="from-primary-60/5 to-primary-60/40 bg-gradient-to-r rounded-lg  mt-3 text-custom-white/60 px-4 p-2 text-sm">
               <p>Route Details</p>
             </div>
           )}
 
-          <div className="from-primary-60/5 to-primary-60/40 bg-gradient-to-r  mt-3 text-custom-white/60 px-4 p-2 text-sm">
+          <div className="mt-3 text-custom-white/60 text-sm">
             <div className="mt-2">
               <div className="flex gap-3 items-center justify-between py-1">
                 <p>Minimum Output</p>
