@@ -8,6 +8,7 @@ import { SelectToken } from "../shared/SelectToken"
 import { MdKeyboardArrowDown } from "react-icons/md"
 import { useNotificationConfig } from "@/hooks/useNotification"
 import { TokenData } from "@/interface"
+import { Currency, TokenInfo } from "alex-sdk"
 
 const tokens = [
   {
@@ -24,16 +25,42 @@ const tokens = [
   },
 ]
 
+type Tokens = { [key: string]: string }
+
 export const Swap = () => {
   const dollarRate = 0.007
   const tokenRate = 0.030005
-  const [from, setFrom] = useState({ token: "GoatSTX", amount: 0 })
-  const [to, setTo] = useState({ token: "STX", amount: 0 })
-  const [fromToken, setFromToken] = useState<TokenData | null>()
-  const [toToken, setToToken] = useState<TokenData | null>()
-  const balance = 20000000000
+  // const [from, setFrom] = useState({ token: "GoatSTX", amount: 0 })
+  // const [to, setTo] = useState({ token: "STX", amount: 0 })
+  const [velarTokens, setVelarTokens] = useState<Tokens | null>(null);
+  const [alexTokens, setAlexTokens] = useState<TokenInfo[] | null>(null);
+  const [tokens, setTokens] = useState<Tokens | null>(null);
+  const [toTokens, setToTokens] = useState<Tokens | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [toToken, setToToken] = useState<string | null>(null);
+  const [balance, setBalance] = useState<number>(0);
+  const [amount, setAmount] = useState<number>(0);
+  const [amountOut, setAmountOut] = useState<number>(0);
+
+  const [constraint, setConstraint] = useState<number>(0);
+  const [velarRoute, setVelarRoutes] = useState<string[][]>([]);
+  const [velarRates, setVelarRates] = useState<number[]>([]);
+  const [velarMaxIndex, setVelarMaxIndex] = useState<number>(0);
+  const [alexRoute, setAlexRoute] = useState<Currency[]>([]);
+  const [alexRates, setAlexRates] = useState<number[]>([]);
+  const [velarIndex, setVelarIndex] = useState<number>(0);
+  const [alexIndex, setAlexIndex] = useState<number>(0);
+  const [mode, setMode] = useState<number>(0); // 0 for straight velar swap, 1 for straight alex swap; 2 for velar-alex swap; 3 for alex-velar swap
+
+
+
+
+
+
+  // const balance = 20000000000
   const fromRef = useRef(null) as any
   const toRef = useRef(null) as any
+
   const setMax = () => {
     fromRef.current.value = balance
     toRef.current.value = balance * tokenRate
@@ -63,11 +90,17 @@ export const Swap = () => {
   }
 
   const handleSetToToken = (token: TokenData) => {
-    setToToken(token)
+    setToken(token.name);
+    setAmountOut(0);
+    setVelarRates([]);
+    setAlexRates([]);
+    const edittokens = { ...tokens };
+    delete edittokens[token.name];
+    setToTokens(edittokens);
   };
 
   const handleSetFromToken = (token: TokenData) => {
-    setFromToken(token)
+    setToToken(token.name)
   };
 
   return (
