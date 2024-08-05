@@ -177,7 +177,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
     <div>
       <Modal
         open={open}
-        onClose={toggleModal}
+        onCancel={toggleModal}
         footer={null}
         title={"Create Staking Pool"}
         styles={{

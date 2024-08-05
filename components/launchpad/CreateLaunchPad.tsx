@@ -28,6 +28,7 @@ export const CreateLaunchPad = () => {
           mask: { backdropFilter: "blur(7px)" },
           content: {
             background: "rgba(16,69,29,0.2)",
+            borderRadius: "8px",
             border: "1px solid rgba(16,69,29,0.25)",
           },
           header: { background: "transparent" },
