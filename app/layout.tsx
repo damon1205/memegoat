@@ -6,6 +6,8 @@ import { AntProvider } from "@/components/shared/AntProvider"
 import config from "@/utils/config"
 import StacksProvider from "@/provider/stacks"
 import StoreProvider from "@/provider/Redux"
+import { NotificationModal } from "@/components/shared/NotificationModal"
+import { NotificationProvider } from "@/provider/notification"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -29,9 +31,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: "MemeGoat",
     siteName: "MemeGoat",
-    images: '/og-image.png'
+    images: "/og-image.png",
   },
-
 }
 
 export default function RootLayout({
@@ -46,7 +47,10 @@ export default function RootLayout({
           <StacksProvider>
             <StoreProvider>
               <PageContainer>
-                {children}
+                <NotificationProvider>
+                  {children}
+                  <NotificationModal />
+                </NotificationProvider>
               </PageContainer>
             </StoreProvider>
           </StacksProvider>
