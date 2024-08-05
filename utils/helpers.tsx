@@ -6,6 +6,7 @@ import { StacksNetwork } from '@stacks/network';
 import { cvValue } from '@/interface';
 import { PutFileOptions, Storage } from "@stacks/storage";
 import config from './config';
+import moment from 'moment';
 
 export interface MetadataI {
   name: string,
@@ -36,6 +37,7 @@ export async function uploadToGaia(filename: string, data: string | Uint8Array |
   const putFileOptions: PutFileOptions = {
     contentType: type,
     encrypt: false,
+    dangerouslyIgnoreEtag: true,
   }
   const storage = new Storage({ userSession });
   const fileUrl = await storage.putFile(filename, data, putFileOptions);
@@ -49,6 +51,7 @@ function extractFungibleTokenText(source: string): string {
 }
 
 export const getTokenSource = async (address: string, contractName: string) => {
+  console.log(address, contractName)
   try {
     const config = {
       method: "get",
@@ -142,6 +145,9 @@ export const splitToken = (pair: string) => {
   return data;
 };
 
+export const getDuration = (date: Date) => {
+  return moment(date).fromNow(false);
+};
 
 export function generateContract(token_name: string, token_uri: string, token_ticker: string, token_supply: string) {
   token_supply = (Number(token_supply) * 1000000).toString();

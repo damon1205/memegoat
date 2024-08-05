@@ -6,10 +6,10 @@ import { UnstakeToken } from "./UnstakeToken"
 import Link from "next/link"
 import { ITokenMetadata, PendingTxnPool, StakeInterface, UserStakeInterface } from "@/interface"
 import { useEffect, useState } from "react"
-import { getEndDate, getMetas, getUserEarnings, getUserHasStake, getUserStakeInfo, getStoredPendingTransactions, checkForStake, filterStakePendingTxn, filterClaimPendingTxn, calcRewardPerblock } from "@/lib/contracts/staking"
+import { getEndDate, getMetas, getUserEarnings, getUserHasStake, getUserStakeInfo, getStoredPendingTransactions, checkForStake, filterStakePendingTxn, filterClaimPendingTxn, calcRewardPerblock, getStartDate } from "@/lib/contracts/staking"
 import { getAddress } from "@/utils/helpers"
 import { formatCVTypeNumber, formatNumber } from "@/utils/format"
-import { getAddressLink, network } from "@/utils/stacks.data"
+import { fetchCurrNoOfBlocks, getAddressLink, network } from "@/utils/stacks.data"
 import { ClaimBtn } from "./ClaimBtn"
 
 interface props {
@@ -30,8 +30,10 @@ export const StakeCard = ({
   const [rewardToken, setRewardToken] = useState<ITokenMetadata | null>(null);
   const [earned, setEarned] = useState<number>(0);
   const [endDate, setEndDate] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
   const [userHasStake, setHasStake] = useState<boolean>(false);
   const [pendingTxns, setPendingTxns] = useState<PendingTxnPool[]>([]);
+  const [currBlock, setCurrBlock] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -43,12 +45,16 @@ export const StakeCard = ({
       setStakeToken(result1.stakeMetadata);
       const result2 = await getEndDate(stakeInfo);
       setEndDate(result2);
+      const result7 = await getStartDate(stakeInfo);
+      setStartDate(result7);
       const result3 = await getUserEarnings(formatCVTypeNumber(stakeInfo.id));
       setEarned(result3);
       const result4 = await getUserHasStake(stakeInfo);
       setHasStake(result4);
       const result5 = await getStoredPendingTransactions(stakeInfo)
       setPendingTxns(result5)
+      const result6 = await fetchCurrNoOfBlocks();
+      setCurrBlock(result6)
     }
 
     fetchData()
@@ -75,10 +81,10 @@ export const StakeCard = ({
           </div>
 
           <div className="py-3 pb-[1rem] px-5 space-y-4 text-sm md:backdrop-blur-[22px]">
-            <div className="flex items-center gap-2 justify-between ">
+            {/* <div className="flex items-center gap-2 justify-between ">
               <p className="text-gray-400">APR</p>
               <p>16%</p>
-            </div>
+            </div> */}
             <div className="">
               <p className="text-gray-400 mb-2">Your Staked</p>
               <div className="flex items-center justify-between">
@@ -92,13 +98,14 @@ export const StakeCard = ({
                 <div className="inline-flex gap-2 items-center">
                   <StakeToken
                     stake_token={getAddress(stakeInfo['stake-token'])}
-                    disabled={ended}
+                    disabled={ended || (currBlock < formatCVTypeNumber(stakeInfo["start-block"]))}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
                     pendingTxns={filterStakePendingTxn(pendingTxns)}
                     token_icon={stakeToken ? stakeToken.image_uri : ""}
                   />
                   <UnstakeToken
                     stake_token={getAddress(stakeInfo['stake-token'])}
+                    disabled={currBlock < formatCVTypeNumber(stakeInfo["start-block"])}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
                     pendingTxns={filterStakePendingTxn(pendingTxns)}
                     token_icon={stakeToken ? stakeToken.image_uri : ""}
@@ -163,10 +170,23 @@ export const StakeCard = ({
               </div>
 
               <div className="flex justify-between">
-                <p className="text-gray-400">Ends In</p>
-                <div>
-                  <p>{stakeInfo ? endDate : "--"}</p>
-                </div>
+                {currBlock > formatCVTypeNumber(stakeInfo["start-block"]) ?
+                  (
+                    <>
+                      <p className="text-gray-400">Ends In</p>
+                      <div>
+                        <p>{stakeInfo ? endDate : "--"}</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-gray-400">Starts On</p>
+                      <div>
+                        <p>{stakeInfo ? startDate : "--"}</p>
+                      </div>
+                    </>
+                  )
+                }
               </div>
               <p className="text-end">
                 <Link href={getAddressLink(network, getAddress(stakeInfo.owner))}

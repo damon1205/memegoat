@@ -145,7 +145,7 @@ const address = (network: string) => {
 };
 
 type NetworkType = "mainnet" | "devnet" | "testnet";
-export const network: NetworkType = "mainnet";
+export const network: NetworkType = "devnet";
 export const networkInstance = getNetwork(network);
 export const contractAddress = address(network);
 
@@ -205,11 +205,8 @@ export const fetchUserBalance = async (
 };
 
 export const fetchTokenMetadata = async (token: string) => {
-  if (!token) return;
+  if (!token) return null;
   try {
-    if ((network as NetworkType) === "devnet") {
-      return dummyMetadata;
-    }
     const config = {
       method: "get",
       maxBodyLength: Infinity,
@@ -226,7 +223,7 @@ export const fetchTokenMetadata = async (token: string) => {
     return metadata;
   } catch (error) {
     try {
-      const response = await instance().get(`/campaign-requests/${token}`);
+      const response = await instance().get(`/minted-tokens/${token}`);
       const tokenInfo: LaunchpadDataI = response.data.data;
       const metadata: ITokenMetadata = {
         ...emptyMetadata,

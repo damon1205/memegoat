@@ -2,6 +2,7 @@ import { cvValue } from "@/interface";
 import { ClarityValue } from "@stacks/transactions";
 import { splitToken } from "./helpers";
 import { fetchCurrNoOfBlocks, userSession } from "./stacks.data";
+import moment from "moment";
 
 export const formatNumber = (num: number | string) => {
   const formatter = new Intl.NumberFormat();
@@ -38,4 +39,12 @@ export const convertToBlocks = async (dateStr: string, currBlock: string) => {
 export const splitColons = (pair: string) => {
   const data = pair.split("::");
   return data;
+};
+
+export const convertTime = (dateObj: Date) => {
+  return moment(dateObj).format("LLLL");
+};
+
+export const formatBal = (bal: number | string) => {
+  return Number(bal) / 1e6;
 };

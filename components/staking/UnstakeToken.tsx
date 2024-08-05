@@ -1,6 +1,8 @@
 "use client"
 import { PendingTxnPool } from "@/interface";
 import { fetchTransactionStatus, generateUnstakeTransaction, storeDB } from "@/lib/contracts/staking";
+import { truncateTokenAddress } from "@/utils/format";
+import { splitToken } from "@/utils/helpers";
 import { userSession } from "@/utils/stacks.data";
 import { useConnect } from "@stacks/connect-react";
 import { Avatar, Button, Checkbox, Input, Modal } from "antd"
@@ -12,12 +14,13 @@ interface props {
   stakeId: number;
   stake_token: string;
   token_icon: string;
+  disabled: boolean;
   // update: () => void;
   staked_amount: number;
   pendingTxns: PendingTxnPool[];
 }
 
-export const UnstakeToken = ({ stakeId, stake_token, token_icon, pendingTxns, staked_amount }: props) => {
+export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendingTxns, staked_amount }: props) => {
   const { doContractCall } = useConnect()
   const [open, setOpen] = useState(false)
   const toggleOpen = () => setOpen(!open)
@@ -81,8 +84,6 @@ export const UnstakeToken = ({ stakeId, stake_token, token_icon, pendingTxns, st
     return () => clearInterval(interval);
   }, [pendingTxns, txStatus])
 
-
-
   return (
     <>
       <Modal
@@ -99,15 +100,15 @@ export const UnstakeToken = ({ stakeId, stake_token, token_icon, pendingTxns, st
           },
         }}
       >
-        <h3 className="text-xl font-medium mb-7">Unstake {stake_token}</h3>
+        <h3 className="text-xl font-medium mb-7">Unstake {splitToken(stake_token)[1]}</h3>
         <div className="flex justify-end items-center gap-2">
           <p>
             <span className="text-[#7ff39c]">Available</span>{" "}
-            <span>{`${available} ${stake_token}`}</span>
+            <span>{`${available} ${truncateTokenAddress(stake_token)}`}</span>
           </p>
           <Avatar src={token_icon} size={30} />
           <p className="border-[1px] border-accent/40 text-accent  p-[1px] px-[4px]">
-            ERC20
+            SIP10
           </p>
         </div>
         <div className="my-4">
@@ -153,9 +154,9 @@ export const UnstakeToken = ({ stakeId, stake_token, token_icon, pendingTxns, st
         </Button>
       </Modal>
       <button
-        className={`inline-block px-[6px] py-[1px] border-[1px] ${hasStake() ? 'border-primary-40/60 text-primary-40' : 'border-[#1d1818] text-[#d3cece]'} `}
+        className={`inline-block px-[6px] py-[1px] border-[1px] ${hasStake() || !disabled ? 'border-primary-40/60 text-primary-40' : 'border-gray-500 text-white]'} `}
         onClick={toggleOpen}
-        disabled={hasStake()}
+        disabled={hasStake() || disabled}
       >
         -
       </button>

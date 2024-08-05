@@ -1,7 +1,7 @@
 "use client"
 import { PendingTxnPool } from "@/interface";
 import { fetchTransactionStatus, generateStakeTransaction, storeDB } from "@/lib/contracts/staking";
-import { formatNumber } from "@/utils/format";
+import { formatNumber, truncateTokenAddress } from "@/utils/format";
 import { splitToken } from "@/utils/helpers";
 import { getUserTokenBalance, userSession } from "@/utils/stacks.data";
 import { useConnect } from "@stacks/connect-react";
@@ -113,11 +113,11 @@ export const StakeToken = ({ stakeId, stake_token, token_icon, disabled, pending
         <div className="flex justify-end items-center gap-2">
           <p>
             <span className="text-[#7ff39c]">Available</span>{" "}
-            <span>{`${formatNumber(balance.toFixed(4))} ${stake_token}`}</span>
+            <span>{`${formatNumber(balance.toFixed(4))} ${truncateTokenAddress(stake_token)}`}</span>
           </p>
           <Avatar src={token_icon} size={30} />
           <p className="border-[1px] border-primary-40/40 text-primary-40  p-[1px] px-[4px]">
-            ERC20
+            SIP10
           </p>
         </div>
         <div className="my-4">
@@ -163,7 +163,7 @@ export const StakeToken = ({ stakeId, stake_token, token_icon, disabled, pending
         </Button>
       </Modal>
       <button
-        className={`inline-block px-[6px] py-[1px] border-[1px] ${disabled ? 'border-[#1d1818] text-[#2d2727]' : 'border-primary-40/60 text-primary-40'} `}
+        className={`inline-block px-[6px] py-[1px] border-[1px] ${disabled ? 'border-gray-500 text-white' : 'border-primary-40/60 text-primary-40'} `}
         onClick={toggleOpen}
         disabled={disabled}
       >

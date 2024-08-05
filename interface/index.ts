@@ -7,6 +7,8 @@ import {
   TupleCV,
 } from "@stacks/transactions";
 
+export type CsvObject = { [key: string]: string };
+
 export interface ITokenMetadata {
   name: string;
   symbol: string;
@@ -56,6 +58,7 @@ export interface LaunchpadDataI {
   soft_cap: string;
   maximum_buy: string;
   minimum_buy: string;
+  is_campaign: boolean;
   start_date: string;
   end_date: string;
 }
