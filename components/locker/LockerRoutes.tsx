@@ -8,10 +8,10 @@ export const LockerRoutes = () => {
   const routes = [
     { name: "Locker", path: "/locker" },
     { name: "View Your Locks", path: "/locker/locks" },
-    { name: "View All Locks", path: "/locker/lock" },
+    { name: "View All Locks", path: "/locker/all-locks" },
   ]
   return (
-    <div className="grid grid-cols-3 border-[1px] border-primary-90 mb-7">
+    <div className="grid md:grid-cols-3 border-[1px] border-primary-90 mb-7">
       {routes.map((route, index) => {
         const notLast = routes.length - 1 !== index
         const isLockerActive = pathname === "/locker/setup" && index === 0
@@ -24,8 +24,11 @@ export const LockerRoutes = () => {
           <Link
             href={route.path}
             key={index}
-            className={`${activeCls} ${notLast ? "border-r-[1px] border-primary-90" : ""
-              } text-center p-3`}
+            className={`${activeCls} ${
+              notLast
+                ? "md:border-r-[1px] md:border-b-0 border-b-[1px] border-primary-90"
+                : ""
+            } text-center p-3`}
           >
             {route.name}
           </Link>
