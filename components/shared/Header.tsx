@@ -21,28 +21,28 @@ export const Header = () => {
     showConnect({
       appDetails,
       onFinish: () => {
-        window.location.reload();
+        window.location.reload()
       },
       userSession,
-    });
-  }, []);
+    })
+  }, [])
 
   function disconnectWallet() {
-    userSession.signUserOut("/");
+    userSession.signUserOut("/")
   }
 
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [hasCheckedSession, setHasCheckedSession] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false)
+  const [hasCheckedSession, setHasCheckedSession] = useState(false)
 
   useEffect(() => {
     if (userSession.isUserSignedIn()) {
-      setIsSignedIn(true);
+      setIsSignedIn(true)
     }
-    setHasCheckedSession(true);
-  }, []);
+    setHasCheckedSession(true)
+  }, [])
 
   if (!hasCheckedSession) {
-    return null; // or a loading spinner, etc.
+    return null // or a loading spinner, etc.
   }
 
   return (
@@ -88,11 +88,13 @@ export const Header = () => {
                           {route.name}
                         </Link>
                       ) : (
-                        <p
-                          className={`text-sm block p-4 hover:text-silver text-silver`}
+                        <Link
+                          href={"https://games.memegoat.io/"}
+                          className={`${activeCls} text-sm block p-4 hover:text-white`}
+                          target="_blank"
                         >
-                          {route.name}(coming soon)
-                        </p>
+                          {route.name}
+                        </Link>
                       )}
                     </li>
                   )
@@ -154,11 +156,13 @@ export const Header = () => {
                             {route.name}
                           </Link>
                         ) : (
-                          <p
-                            className={`text-sm block hover:text-silver text-silver cursor-not-allowed`}
+                          <Link
+                            href={"https://games.memegoat.io/"}
+                            className={`${activeCls} text-sm block p-4 hover:text-white`}
+                            target="_blank"
                           >
-                            {route.name}(coming soon)
-                          </p>
+                            {route.name}
+                          </Link>
                         )}
                       </li>
                     )
@@ -192,11 +196,17 @@ export const Header = () => {
                 </Link>
               </div>
               {isSignedIn ? (
-                <Button onClick={() => disconnectWallet()} className="px-14 font-bold bg-transparent border-primary-90 md:text-primary-50">
+                <Button
+                  onClick={() => disconnectWallet()}
+                  className="px-14 font-bold bg-transparent border-primary-90 md:text-primary-50"
+                >
                   Disconnect Wallet
                 </Button>
               ) : (
-                <Button onClick={() => onConnectWallet()} className="px-14 font-bold bg-transparent border-primary-90 md:text-primary-50">
+                <Button
+                  onClick={() => onConnectWallet()}
+                  className="px-14 font-bold bg-transparent border-primary-90 md:text-primary-50"
+                >
                   Connect Wallet
                 </Button>
               )}
