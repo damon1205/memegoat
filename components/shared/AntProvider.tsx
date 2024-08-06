@@ -21,6 +21,10 @@ export const AntProvider = ({ children }: { children: React.ReactNode }) => {
               colorBgContainer: "rgb(110,222,138,0.01)",
               rowHoverBg: "rgb(110,222,138,0.07)",
             },
+            Collapse: {
+              headerBg: "rgb(110,222,138,0.1)",
+              colorBorder: "rgb(110,222,138,0.2)",
+            },
           },
         }}
       >
