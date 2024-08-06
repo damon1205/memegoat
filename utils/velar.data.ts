@@ -65,10 +65,11 @@ export const getTokenInfo = async (symbol: string) => {
       url: getTokenData("mainnet", symbol),
       headers: {
         "Content-Type": "application/json",
+        "x-api-key": "bb2d18f57a4486d69bf13e5be6a1239b",
       },
     };
     const response = await axios.request(config);
-    return response.data.results[0] as ITokenMetadata;
+    return response.data.results[0];
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.log(

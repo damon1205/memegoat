@@ -1,21 +1,32 @@
-import { ITokenMetadata, TokenData } from '@/interface'
-import { fetchTokenMetadata, getUserTokenBalance } from '@/utils/stacks.data'
+"use client"
+import { TokenData } from '@/interface'
+import { useTokensContext } from '@/provider/Tokens'
+import { formatBal } from '@/utils/format'
+import { fetchSTXBalance, getUserTokenBalance, userSession } from '@/utils/stacks.data'
 import { Avatar } from 'antd'
 import React, { useEffect, useState } from 'react'
 
 const Token = ({ token, action }: { token: TokenData, action: (token: TokenData) => void }) => {
   const [tokenBalance, setTokenBalance] = useState<number>(0);
-  const [tokenMetadata, setTokenMetadata] = useState<ITokenMetadata | null>(null)
+  const [tokenMetadata, setTokenMetadata] = useState<TokenData | null>(null)
+  const tokensContext = useTokensContext();
 
   useEffect(() => {
     const fetchData = async () => {
-      const balance = await getUserTokenBalance(token.address);
-      setTokenBalance(balance)
-      const tokenMetadata = await fetchTokenMetadata(token.address)
-      setTokenMetadata(tokenMetadata)
+      if (userSession.isUserSignedIn()) {
+        if (token.name.toLocaleLowerCase() === "stx") {
+          const balance = await fetchSTXBalance()
+          setTokenBalance(balance)
+        } else {
+          const balance = await getUserTokenBalance(token.address, token.decimals);
+          setTokenBalance(balance)
+        }
+      }
+      const meta = tokensContext.getTokenMeta(token.name)
+      setTokenMetadata(meta);
     }
     fetchData()
-  }, [token])
+  }, [token, tokensContext])
 
   return (
     <div
@@ -24,7 +35,7 @@ const Token = ({ token, action }: { token: TokenData, action: (token: TokenData)
     >
       <div className="flex gap-3 items-center">
         <Avatar
-          src={tokenMetadata?.image_uri}
+          src={tokenMetadata?.icon}
           size={40}
           className="rounded-md"
         />
@@ -38,7 +49,7 @@ const Token = ({ token, action }: { token: TokenData, action: (token: TokenData)
         </div>
       </div>
       <p className="text-white font-medium text-sm">
-        {Number(tokenBalance).toLocaleString()}
+        {Number((tokenBalance)).toLocaleString()}
       </p>
     </div>
   )

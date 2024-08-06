@@ -1,24 +1,23 @@
 "use client"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
-import { Avatar, Button, Divider } from "antd"
+import { Avatar, Button } from "antd"
 import { MdOutlineSwapVert } from "react-icons/md"
 import { Slippage } from "./Slippage"
 import { SelectToken } from "../shared/SelectToken"
 import { MdKeyboardArrowDown } from "react-icons/md"
 import { useNotificationConfig } from "@/hooks/useNotification"
 import { TokenData } from "@/interface"
-import { Currency, TokenInfo } from "alex-sdk"
-import { alexSDK, getTokenInfo, velarSDK } from "@/utils/velar.data"
-import { getTokens, SwapType } from "@velarprotocol/velar-sdk"
+import { Currency } from "alex-sdk"
+import { alexSDK, velarSDK } from "@/utils/velar.data"
+import { SwapType } from "@velarprotocol/velar-sdk"
 import { appDetails, contractAddress, fetchSTXBalance, getUserPrincipal, getUserTokenBalance, networkInstance, userSession } from "@/utils/stacks.data"
-import { checkInAlexName, getAlexRouteId, checkInVelar, calculateSwapVelarMulti, calculateSwapVelar, getAlexName, getAlexTokenAddress, getTokenAddressHiro } from "@/utils/swap"
+import { checkInAlexName, getAlexRouteId, checkInVelar, calculateSwapVelarMulti, calculateSwapVelar, getAlexName, getAlexTokenAddress, getTokenAddressHiro, splitNGetCA } from "@/utils/swap"
 import { storePendingTxn } from "@/lib/contracts/launchpad"
 import { splitToken } from "@/utils/helpers"
 import { contractPrincipalCV, AnchorMode, uintCV, boolCV, someCV, listCV, noneCV, PostConditionMode, ContractPrincipalCV, UIntCV } from "@stacks/transactions"
 import { useConnect } from "@stacks/connect-react"
-
-type Tokens = { [key: string]: string }
+import { useTokensContext } from "@/provider/Tokens"
 
 export interface out {
   value: number
@@ -26,10 +25,7 @@ export interface out {
 
 export const Swap = () => {
   const { doContractCall } = useConnect();
-  const [velarTokens, setVelarTokens] = useState<Tokens | null>(null);
-  const [alexTokens, setAlexTokens] = useState<TokenInfo[] | null>(null);
-  const [tokens, setTokens] = useState<TokenData[]>([]);
-  // const [toTokens, setToTokens] = useState<TokenData[]>([]);
+  const { velarTokens, alexTokens, allTokens, getTokenMetaBySymbol } = useTokensContext()
   const [token, setToken] = useState<string | null>(null);
   const [toToken, setToToken] = useState<string | null>(null);
   const [balance, setBalance] = useState<number>(0);
@@ -436,8 +432,13 @@ export const Swap = () => {
       if (mode === 0) {
         const route = velarRoute[velarMaxIndex];
         const routeAddresses = await Promise.all(route.map(async (symbol) => {
-          const address = await getTokenAddressHiro(symbol)
-          return address;
+          const tokenData = getTokenMetaBySymbol(symbol)
+          if (tokenData) {
+            return tokenData.address
+          } else {
+            const address = await getTokenAddressHiro(symbol);
+            return address
+          }
         }))
         const minAmountOut = Math.max(...velarRates);
         await swapVelar(amount, minAmountOut, routeAddresses);
@@ -456,7 +457,13 @@ export const Swap = () => {
       } else if (mode === 2) {
         const route = velarRoute[velarMaxIndex];
         const velarRouteAddresses = await Promise.all(route.map(async (symbol) => {
-          const address = await getTokenAddressHiro(symbol)
+          const tokenData = getTokenMetaBySymbol(symbol);
+          let address: string;
+          if (tokenData) {
+            address = tokenData.address
+          } else {
+            address = await getTokenAddressHiro(symbol)
+          }
           const split = splitToken(address);
           return contractPrincipalCV(split[0], split[1]);
         }))
@@ -484,7 +491,13 @@ export const Swap = () => {
       } else if (mode === 3) {
         const route = velarRoute[velarMaxIndex];
         const velarRouteAddresses = await Promise.all(route.map(async (symbol) => {
-          const address = await getTokenAddressHiro(symbol)
+          const tokenData = getTokenMetaBySymbol(symbol);
+          let address: string;
+          if (tokenData) {
+            address = tokenData.address
+          } else {
+            address = await getTokenAddressHiro(symbol)
+          }
           const split = splitToken(address);
           return contractPrincipalCV(split[0], split[1]);
         }))
@@ -517,53 +530,13 @@ export const Swap = () => {
   };
 
   useEffect(() => {
-    const fetchData = async (): Promise<void> => {
-      const [alexTokens, velarTokens] = await Promise.all([
-        alexSDK.fetchSwappableCurrency(),
-        getTokens(),
-      ]);
-
-      setAlexTokens(alexTokens);
-      setVelarTokens(velarTokens);
-
-      const vTokens = velarTokens || {};
-
-      const alexTokenMap = new Map(alexTokens.map(token => [token.name, token]));
-
-      const tokensData: TokenData[] = alexTokens.map(token => ({
-        symbol: token.id,
-        name: token.name,
-        address: token.underlyingToken,
-      }));
-
-      const missingTokens = Object.keys(vTokens).filter(token => !alexTokenMap.has(token));
-
-      const missingTokenData = await Promise.all(missingTokens.map(getTokenInfo));
-
-      missingTokenData.forEach(tokenData => {
-        if (tokenData) {
-          tokensData.push({
-            symbol: tokenData.symbol,
-            name: tokenData.name,
-            address: tokenData.tokenAddress,
-          });
-        }
-      });
-
-      setTokens(tokensData);
-    };
-
-    fetchData()
-  }, [])
-
-  useEffect(() => {
     const fetchData = async () => {
       if (token?.toLowerCase() === 'stx') {
         const stxBalance = await fetchSTXBalance()
         setBalance(stxBalance)
       } else {
 
-        const tokenData = tokens.find(tokenData => tokenData.name === token);
+        const tokenData = allTokens.find(tokenData => tokenData.name === token);
 
         if (tokenData) {
           const balance = await getUserTokenBalance(tokenData.address);
@@ -571,7 +544,7 @@ export const Swap = () => {
         }
       }
     }
-  }, [token, tokens])
+  }, [token, allTokens])
 
 
   useEffect(() => {
@@ -650,7 +623,7 @@ export const Swap = () => {
                 ref={fromRef}
               />
               <div className="px-2 py-2 rounded-lg bg-[#00000033] border-[1px] border-[#FFFFFF1A]">
-                <SelectToken tokens={tokens} action={handleSetFromToken} />
+                <SelectToken tokens={allTokens} action={handleSetFromToken} />
               </div>
             </div>
 
@@ -700,7 +673,7 @@ export const Swap = () => {
                 ref={toRef}
               />
               <div className="px-2 py-2 rounded-lg bg-[#00000033] border-[1px] border-[#FFFFFF1A]">
-                <SelectToken tokens={tokens} action={handleSetToToken} />
+                <SelectToken tokens={allTokens} action={handleSetToToken} />
               </div>
             </div>
 

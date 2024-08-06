@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { NFTStorage } from 'nft.storage';
-import { getContractLink, getUserPrincipal, network, traitAddress, userSession } from './stacks.data';
+import { ApiURLS, getContractLink, getUserPrincipal, network, traitAddress, userSession } from './stacks.data';
 import { callReadOnlyFunction, cvToValue, StandardPrincipalCV } from '@stacks/transactions';
 import { StacksNetwork } from '@stacks/network';
 import { cvValue } from '@/interface';
@@ -59,6 +59,7 @@ export const getTokenSource = async (address: string, contractName: string) => {
       url: getContractLink(network, address, contractName),
       headers: {
         "Content-Type": "application/json",
+        'x-api-key': 'b28d0f9f8fe9fefa3b3c2f952643ecb2'
       },
     };
     const response = await axios.request(config);
@@ -129,6 +130,7 @@ export const getToken = async (address: string, contractName: string) => {
       url: getContractLink(network, address, contractName),
       headers: {
         "Content-Type": "application/json",
+        'x-api-key': '10a0b6d06387564651f3c26a75474a82'
       },
     };
     const response = await axios.request(config);
@@ -231,3 +233,5 @@ export function generateContract(token_name: string, token_uri: string, token_ti
 `
   )
 }
+
+

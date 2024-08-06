@@ -2,23 +2,22 @@
 import React, { useCallback, useEffect, useState } from "react"
 import { Button, Divider, Form, Input } from "antd"
 import { FaDiscord, FaGlobe } from "react-icons/fa"
-import { FaArrowUpRightFromSquare, FaXTwitter } from "react-icons/fa6"
+import { FaXTwitter } from "react-icons/fa6"
 import { useForm } from "antd/es/form/Form"
 import { UploadImage } from "@/components/shared/UploadImage"
 import { Rule } from "antd/es/form"
-import Link from "next/link"
-// import { FiArrowUpRight } from "react-icons/fi"
+// import Link from "next/link"
 import { motion } from "framer-motion"
-import { BsDot } from "react-icons/bs"
 import { LaunchpadDataI } from "@/interface"
 import { useTokenMinterFields } from "@/hooks/useTokenMinterHooks"
 import {
   ApiURLS,
   appDetails,
-  getExplorerLink,
+  // getExplorerLink,
   getUserPrincipal,
   network,
   networkInstance,
+  storeTransaction,
   userSession,
 } from "@/utils/stacks.data"
 import { uploadToGaia, generateContract } from "@/utils/helpers"
@@ -28,6 +27,8 @@ import axios from "axios"
 import { initialData } from "@/data/constants"
 import { uploadCampaign } from "@/lib/contracts/launchpad"
 import { useNotificationConfig } from "@/hooks/useNotification"
+import { createHash, hash } from "crypto"
+import { PendingTransactions } from "../shared/PendingTransactions"
 
 interface PropI {
   current: number
@@ -101,25 +102,47 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
         formData.token_supply
       )
       const contractName = `${formData.token_ticker}`
-      const tokenAddress = `${getUserPrincipal()}.${contractName}`
+      // const tokenAddress = `${getUserPrincipal()}.${contractName}`
       await doContractDeploy({
         network: networkInstance,
         anchorMode: AnchorMode.Any,
         codeBody: contract,
         contractName,
-        onFinish: (data) => {
-          setTokenMintProgress({
-            ...tokenMintProgress,
-            ...form.getFieldsValue(),
-            tx_id: data.txId,
-            token_address: tokenAddress,
-            user_addr: getUserPrincipal(),
-            action: "Token Mint",
-            tx_status: "pending",
+        onFinish: async (data) => {
+          // setTokenMintProgress({
+          //   ...tokenMintProgress,
+          //   ...form.getFieldsValue(),
+          //   tx_id: data.txId,
+          //   token_address: tokenAddress,
+          //   user_addr: getUserPrincipal(),
+          //   action: "Token Mint",
+          //   tx_status: "pending",
+          // })
+          await storeTransaction({
+            key: createHash('sha256').update(data.txId).digest('hex'),
+            txId: data.txId,
+            txStatus: 'pending',
+            amount: Number(formData.token_supply),
+            tag: "MINTER",
+            txSender: getUserPrincipal(),
+            action: 'Mint New Token'
           })
+          config({
+            message: "Token Mint Transaction sent",
+            title: "Minter",
+            type: "pending",
+          })
+          setLoading(false)
+          resetForm()
+          setTokenMintProgress(initialData)
         },
         onCancel: () => {
           setLoading(false)
+          config({
+            message: "Transaction was canceled",
+            title: "Minter",
+            type: "error",
+          })
           console.log("onCancel:", "Transaction was canceled")
         },
       })
@@ -129,63 +152,67 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
     }
   }
 
-  const fetchTransactionStatus = useCallback(async () => {
-    try {
-      if (tokenMintProgress.tx_status !== "pending") return
-      setLoading(true)
-      const txn = tokenMintProgress
-      const axiosConfig = {
-        method: "get",
-        maxBodyLength: Infinity,
-        url: ApiURLS[network].getTxnInfo + `${txn.tx_id} `,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-      const response = await axios.request(axiosConfig)
-      if (response.data.tx_status !== "pending") {
-        txn.tx_status = response.data.tx_status
-        if (response.data.tx_status === "success") {
-          config({
-            message: `${txn.action} Successful`,
-            title: "Staking",
-            type: "success",
-          })
-          if (!minter) {
-            txn.step = "2"
-          }
-          if (minter) {
-            await uploadCampaign({ ...tokenMintProgress, is_campaign: false })
-            setTokenMintProgress({ ...initialData })
-            form.resetFields()
-          } else {
-            setTokenMintProgress({ ...txn })
-          }
-        } else {
-          config({
-            message: `${txn.action} Failed`,
-            title: "Staking",
-            type: "error",
-          })
-          setTokenMintProgress({ ...txn })
-        }
-        setLoading(false)
-      }
-    } catch (error) {
-      setLoading(false)
-      console.error(error)
-    }
-  }, [tokenMintProgress, setTokenMintProgress, minter, form, config])
+  // const fetchTransactionStatus = useCallback(async () => {
+  //   try {
+  //     if (tokenMintProgress.tx_status !== "pending") return
+  //     setLoading(true)
+  //     const txn = tokenMintProgress
+  //     const axiosConfig = {
+  //       method: "get",
+  //       maxBodyLength: Infinity,
+  //       url: ApiURLS[network].getTxnInfo + `${txn.tx_id} `,
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     }
+  //     const response = await axios.request(axiosConfig)
+  //     if (response.data.tx_status !== "pending") {
+  //       txn.tx_status = response.data.tx_status
+  //       if (response.data.tx_status === "success") {
+  //         config({
+  //           message: `${txn.action} Successful`,
+  //           title: "Staking",
+  //           type: "success",
+  //         })
+  //         if (!minter) {
+  //           txn.step = "2"
+  //         }
+  //         if (minter) {
+  //           await uploadCampaign({ ...tokenMintProgress, is_campaign: false })
+  //           setTokenMintProgress({ ...initialData })
+  //           form.resetFields()
+  //         } else {
+  //           setTokenMintProgress({ ...txn })
+  //         }
+  //       } else {
+  //         config({
+  //           message: `${txn.action} Failed`,
+  //           title: "Staking",
+  //           type: "error",
+  //         })
+  //         setTokenMintProgress({ ...txn })
+  //       }
+  //       setLoading(false)
+  //     }
+  //   } catch (error) {
+  //     setLoading(false)
+  //     console.error(error)
+  //   }
+  // }, [tokenMintProgress, setTokenMintProgress, minter, form, config])
 
   useEffect(() => {
     nextStep()
-    const interval = setInterval(() => {
-      if (tokenMintProgress.tx_status !== "pending") return
-      fetchTransactionStatus()
-    }, 1000)
-    //Clearing the interval
-    return () => clearInterval(interval)
-  }, [tokenMintProgress, fetchTransactionStatus, nextStep])
+    // const interval = setInterval(() => {
+    //   if (tokenMintProgress.tx_status !== "pending") return
+    //   fetchTransactionStatus()
+    // }, 1000)
+    // //Clearing the interval
+    // return () => clearInterval(interval)
+  }, [
+    // tokenMintProgress, 
+    // fetchTransactionStatus, 
+    nextStep
+  ])
 
   useEffect(() => {
     if (userSession.isUserSignedIn()) {
@@ -200,6 +227,9 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
 
   return (
     <>
+      <div className="flex items-center justify-end mb-2 gap-2">
+        <PendingTransactions txRequest={{ tag: "MINTER", address: getUserPrincipal() }} />
+      </div>
       <motion.div className="max-w-[485px] mx-auto p-4 md:p-6 mb-7 bg-primary-100/35 rounded-lg  mt-3  py-4 border-[1px] border-primary-100/60">
         <div className="mb-4 flex justify-between items-center">
           <h3 className="text-[1.2rem] font-medium mb-5">Token Minter</h3>
@@ -352,10 +382,10 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
                     {!loading ? (
                       <span>Continue</span>
                     ) : (
-                      <span>Minting In Progess</span>
+                      <span>Awaiting Confirmation</span>
                     )}
                   </Button>
-                  {loading && tokenMintProgress.tx_id !== "" && (
+                  {/* {loading && tokenMintProgress.tx_id !== "" && (
                     <div className="text-xs flex flex-row items-center justify-center mt-2">
                       <Link
                         href={getExplorerLink(network, tokenMintProgress.tx_id)}
@@ -372,7 +402,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
                         </h1>
                       </Link>
                     </div>
-                  )}
+                  )} */}
                 </div>
               ) : (
                 <Button

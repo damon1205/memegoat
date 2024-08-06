@@ -36,6 +36,7 @@
     "moment": "^2.30.1",
     "next": "14.2.4",
     "nft.storage": "^7.1.1",
+    "nookies": "^2.5.2",
     "prettier": "^3.2.5",
     "rc-progress": "^4.0.0",
     "react": "^18",

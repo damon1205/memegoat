@@ -7,6 +7,7 @@ import { DexChart } from "./DexChart"
 import { PendingTransactions } from "../shared/PendingTransactions"
 import { Avatar, Tooltip } from "antd"
 import { BiBarChartAlt } from "react-icons/bi"
+import { getUserPrincipal } from "@/utils/stacks.data"
 
 export const Dex = () => {
   const [showChart, setShowChart] = useState(true)
@@ -30,7 +31,7 @@ export const Dex = () => {
         className="md:mt-[3rem] py-4"
       >
         <div className="flex items-center justify-end mb-2 gap-2">
-          <PendingTransactions />
+          <PendingTransactions txRequest={{ tag: "DEX", address: getUserPrincipal() }} />
           <Tooltip title="Toggle Chart" arrow={false}>
             <Avatar
               className="bg-[#FFFFFF14] rounded-md cursor-pointer"

@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+import React, { useEffect } from "react"
 import {
   Avatar,
   Button,
@@ -102,68 +102,68 @@ const columns: TableProps<TxType>["columns"] = [
   }
 ]
 
-const data: TxType[] = [
-  {
-    key: "1",
-    id: "1",
-    createdAt: new Date().toUTCString(),
-    txId: "0x4b190ef14a41e27cf49998186896d0f5106733a1401d0ea8c42eaedbabbaface",
-    txStatus: "pending",
-    txSender: "ST3XA7M6J0JV8XHXA31G3J8AMD0PSKRTN317XT50N",
-    action: "Mint Tokens",
-    amount: 0,
-    tag: "STAKING"
-  },
-  {
-    key: "2",
-    id: "2",
-    createdAt: new Date().toUTCString(),
-    txId: "0x4b190ef14a41e27cf49998186896d0f5106733a1401d0ea8c42eaedbabbaface",
-    txStatus: "pending",
-    txSender: "ST3XA7M6J0JV8XHXA31G3J8AMD0PSKRTN317XT50N",
-    action: "Mint Tokens",
-    amount: 0,
-    tag: 'LAUNCHPAD'
-  },
-  {
-    key: "3",
-    id: "3",
-    createdAt: new Date().toUTCString(),
-    txId: "0x4b190ef14a41e27cf49998186896d0f5106733a1401d0ea8c42eaedbabbaface",
-    txStatus: "pending",
-    txSender: "ST3XA7M6J0JV8XHXA31G3J8AMD0PSKRTN317XT50N",
-    action: "Mint Tokens",
-    amount: 0,
-    tag: 'MINTER'
-  },
-  {
-    key: "4",
-    id: "4",
-    createdAt: new Date().toUTCString(),
-    txId: "0x4b190ef14a41e27cf49998186896d0f5106733a1401d0ea8c42eaedbabbaface",
-    txStatus: "pending",
-    txSender: "ST3XA7M6J0JV8XHXA31G3J8AMD0PSKRTN317XT50N",
-    action: "Mint Tokens",
-    amount: 0,
-    tag: 'STAKING'
-  },
-  {
-    key: "5",
-    id: "5",
-    createdAt: new Date().toUTCString(),
-    txId: "0x4b190ef14a41e27cf49998186896d0f5106733a1401d0ea8c42eaedbabbaface",
-    txStatus: "confirmed",
-    txSender: "ST3XA7M6J0JV8XHXA31G3J8AMD0PSKRTN317XT50N",
-    action: "Mint Tokens",
-    amount: 0,
-    tag: 'DEXs'
-  },
-]
+// const data: TxType[] = [
+//   {
+//     key: "1",
+//     id: "1",
+//     createdAt: new Date().toUTCString(),
+//     txId: "0x4b190ef14a41e27cf49998186896d0f5106733a1401d0ea8c42eaedbabbaface",
+//     txStatus: "pending",
+//     txSender: "ST3XA7M6J0JV8XHXA31G3J8AMD0PSKRTN317XT50N",
+//     action: "Mint Tokens",
+//     amount: 0,
+//     tag: "STAKING"
+//   },
+//   {
+//     key: "2",
+//     id: "2",
+//     createdAt: new Date().toUTCString(),
+//     txId: "0x4b190ef14a41e27cf49998186896d0f5106733a1401d0ea8c42eaedbabbaface",
+//     txStatus: "pending",
+//     txSender: "ST3XA7M6J0JV8XHXA31G3J8AMD0PSKRTN317XT50N",
+//     action: "Mint Tokens",
+//     amount: 0,
+//     tag: 'LAUNCHPAD'
+//   },
+//   {
+//     key: "3",
+//     id: "3",
+//     createdAt: new Date().toUTCString(),
+//     txId: "0x4b190ef14a41e27cf49998186896d0f5106733a1401d0ea8c42eaedbabbaface",
+//     txStatus: "pending",
+//     txSender: "ST3XA7M6J0JV8XHXA31G3J8AMD0PSKRTN317XT50N",
+//     action: "Mint Tokens",
+//     amount: 0,
+//     tag: 'MINTER'
+//   },
+//   {
+//     key: "4",
+//     id: "4",
+//     createdAt: new Date().toUTCString(),
+//     txId: "0x4b190ef14a41e27cf49998186896d0f5106733a1401d0ea8c42eaedbabbaface",
+//     txStatus: "pending",
+//     txSender: "ST3XA7M6J0JV8XHXA31G3J8AMD0PSKRTN317XT50N",
+//     action: "Mint Tokens",
+//     amount: 0,
+//     tag: 'STAKING'
+//   },
+//   {
+//     key: "5",
+//     id: "5",
+//     createdAt: new Date().toUTCString(),
+//     txId: "0x4b190ef14a41e27cf49998186896d0f5106733a1401d0ea8c42eaedbabbaface",
+//     txStatus: "confirmed",
+//     txSender: "ST3XA7M6J0JV8XHXA31G3J8AMD0PSKRTN317XT50N",
+//     action: "Mint Tokens",
+//     amount: 0,
+//     tag: 'DEXs'
+//   },
+// ]
 
-export const TransactionTable = ({ data2 }: { data2: TxType[] }) => {
+export const TransactionTable = ({ data, dashboard }: { data: TxType[], dashboard?: boolean }) => {
   return (
     <div className="mt-5">
-      <div className="mb-4">
+      {!dashboard && <div className="mb-4">
         <Input
           className="h-[44px] md:w-[360px] rounded-md bg-[#FFFFFF0D]"
           placeholder="Search address"
@@ -171,7 +171,7 @@ export const TransactionTable = ({ data2 }: { data2: TxType[] }) => {
           prefix={<IoIosSearch size={20} color="#FFFFFF4D" />}
           allowClear
         />
-      </div>
+      </div>}
       <Table
         columns={columns}
         dataSource={data}

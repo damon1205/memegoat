@@ -1,11 +1,11 @@
 "use client"
 import React from "react"
 import { Avatar, Button } from "antd"
-import { Orbitron } from "next/font/google"
 import { motion } from "framer-motion"
 import { TransactionTable } from "./TransactionTable"
 import { Attestation } from "./Attestation"
 import Link from "next/link"
+import { AllTransactions } from "../shared/AllTransactions"
 
 export const Dashboard = () => {
   return (
@@ -80,7 +80,8 @@ export const Dashboard = () => {
         transition={{ duration: 2 }}
         className="my-14"
       >
-        <TransactionTable />
+        <AllTransactions txRequest={{}} />
+        {/* <TransactionTable /> */}
       </motion.div>
       {/* <div className="mt-14">
         <Attestation />

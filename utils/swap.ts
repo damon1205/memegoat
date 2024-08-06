@@ -221,3 +221,8 @@ export const getAlexTokenAddress = (
   const token = alexTokens.find((token) => token.id === symbol);
   return token ? split(token.wrapToken) : "";
 };
+
+export const splitNGetCA = (token: string) => {
+  const result = token.split("::");
+  return result[0];
+};

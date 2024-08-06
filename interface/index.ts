@@ -9,6 +9,20 @@ import {
 
 export type CsvObject = { [key: string]: string };
 
+export interface TokenDataMeta {
+  name: string;
+  symbol: string;
+  decimals: number;
+  total_supply: string;
+  token_uri: string;
+  description: string;
+  image_uri: string;
+  image_canonical_uri: string;
+  tx_id: string;
+  sender_address: string;
+  contract_principal: string;
+}
+
 export interface TxType {
   key: string;
   id: string;
@@ -19,6 +33,16 @@ export interface TxType {
   txSender: string;
   action: string;
   createdAt: string;
+}
+
+export interface TxData {
+  key: string;
+  txId: string;
+  txStatus: "pending" | "confirmed";
+  amount: number;
+  tag: string;
+  txSender: string;
+  action: string;
 }
 
 export interface ITokenMetadata {
@@ -198,4 +222,14 @@ export interface TokenData {
   symbol?: string;
   address: string;
   name: string;
+  icon?: string;
+  decimals?: number;
 }
+
+export interface TxRequest {
+  status?: TxStatus;
+  address?: string;
+  tag?: string;
+}
+
+type TxStatus = "Failed" | "Pending" | "Successful";

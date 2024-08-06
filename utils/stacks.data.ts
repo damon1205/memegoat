@@ -1,4 +1,4 @@
-import { LaunchpadDataI } from "@/interface";
+import { LaunchpadDataI, TxData, TxRequest, TxType } from "@/interface";
 import { AppConfig, UserSession } from "@stacks/connect";
 import {
   StacksMainnet,
@@ -13,6 +13,7 @@ import { ITokenMetadata } from "@/interface";
 import { dummyMetadata, emptyMetadata } from "@/data/constants";
 import config from "./config";
 import { splitColons } from "./format";
+import * as crypto from "crypto";
 
 export const pointsAPI =
   "https://memegoat-referral-backend.onrender.com/points";
@@ -145,7 +146,7 @@ const address = (network: string) => {
 };
 
 type NetworkType = "mainnet" | "devnet" | "testnet";
-export const network: NetworkType = "devnet";
+export const network: NetworkType = "mainnet";
 export const networkInstance = getNetwork(network);
 export const contractAddress = address(network);
 
@@ -186,6 +187,7 @@ export const fetchUserBalance = async (
         url: balanceURL,
         headers: {
           "Content-Type": "application/json",
+          "x-api-key": "b28d0f9f8fe9fefa3b3c2f952643ecb2",
         },
       };
       const response = await axios.request(config);
@@ -213,6 +215,7 @@ export const fetchTokenMetadata = async (token: string) => {
       url: getTokenMetadataUrl(network, token),
       headers: {
         "Content-Type": "application/json",
+        "x-api-key": "10a0b6d06387564651f3c26a75474a82",
       },
     };
     const response = await axios.request(config);
@@ -284,6 +287,7 @@ export const fetchSTXBalance = async () => {
       url: balanceURL,
       headers: {
         "Content-Type": "application/json",
+        "x-api-key": "10a0b6d06387564651f3c26a75474a82",
       },
     };
     const response = await axios.request(config);
@@ -295,7 +299,10 @@ export const fetchSTXBalance = async () => {
   }
 };
 
-export const getUserTokenBalance = async (stake_token: string) => {
+export const getUserTokenBalance = async (
+  stake_token: string,
+  decimals?: number
+) => {
   if (!stake_token) return 0;
 
   const data = await fetchUserBalance(networkInstance, getUserPrincipal());
@@ -305,7 +312,8 @@ export const getUserTokenBalance = async (stake_token: string) => {
 
   for (const key of Object.keys(data.fungible_tokens)) {
     if (key.includes(stake_token)) {
-      return Number(data.fungible_tokens[key].balance) / 1000000;
+      const divisor = decimals ? 10 ** decimals : 1e6;
+      return Number(data.fungible_tokens[key].balance) / divisor;
     }
   }
   return 0;
@@ -321,6 +329,7 @@ export const getAllUserTokens = async () => {
     url: url,
     headers: {
       "Content-Type": "application/json",
+      "x-api-key": "bb2d18f57a4486d69bf13e5be6a1239b",
     },
   };
   const response = await axios.request(config);
@@ -336,4 +345,31 @@ export const getAllUserTokens = async () => {
     tokenList.push(token);
   }
   return tokenList;
+};
+
+export const storeTransaction = async (data: TxData) => {
+  const hash = crypto
+    .createHmac("sha256", config.WEBHOOK_SECRET)
+    .update(JSON.stringify(data))
+    .digest("hex");
+
+  await axios.post(
+    "https://games-server.memegoat.io/webhook",
+    { data },
+    {
+      headers: {
+        "x-webhook-signature": hash,
+      },
+    }
+  );
+};
+
+export const getRecentTransactions = async (data: TxRequest) => {
+  const result = await axios.get(
+    "https://games-server.memegoat.io/webhook/transactions",
+    {
+      params: data,
+    }
+  );
+  return result.data.data as TxType[];
 };
