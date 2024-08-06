@@ -44,12 +44,12 @@ export const Hero = () => {
           <h3 className="md:text-8xl hidden md:block font-medium text-center neonText special-text">
             Stake & deploy a pool.
           </h3>
-          <h3 className="md:hidden block text-4xl">Stake with GoatSTX</h3>
+          <h3 className="md:hidden block text-4xl">Stake & deploy a pool.</h3>
         </div>
         <div className="text-center md:mt-10 mt-5 md:text-[16px] text-sm">
-          <span className="text-primary-20">Stake</span> GoatSTX to earn tokens.
+          {/* <span className="text-primary-20">Stake</span> GoatSTX to earn tokens. */}
         </div>
-        <p className="text-center md:text-[16px] text-sm">
+        <p className="text-center md:text-[18px] text-sm">
           <span className="text-primary-20">Create</span> staking pool for your
           community. <span className="text-primary-20">Earn</span> rewards from
           your favourite community.
