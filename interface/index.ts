@@ -195,6 +195,7 @@ export interface PendingTxnPool {
 }
 
 export interface TokenData {
+  symbol?: string;
   address: string;
   name: string;
 }
