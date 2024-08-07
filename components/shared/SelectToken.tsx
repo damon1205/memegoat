@@ -4,9 +4,10 @@ import { Avatar, Input, Modal } from "antd"
 import { MdKeyboardArrowDown } from "react-icons/md"
 import { CgClose } from "react-icons/cg"
 import { IoIosSearch } from "react-icons/io"
-import { ITokenMetadata, TokenData } from "@/interface"
+import { TokenData } from "@/interface"
 import Token from "./Token"
-import { fetchTokenMetadata } from "@/utils/stacks.data"
+import { useTokensContext } from "@/provider/Tokens"
+import { checkInVelar } from "@/utils/swap"
 
 interface propsI {
   tokens: TokenData[]
@@ -16,7 +17,8 @@ interface propsI {
 
 export const SelectToken = ({ tokens, defaultTokenID, action }: propsI) => {
   const [selectedToken, setSelectedToken] = useState<TokenData | null>()
-  const [tokenMetadata, setTokenMetadata] = useState<ITokenMetadata | null>(null);
+  const [tokenMetadata, setTokenMetadata] = useState<TokenData | null>(null);
+  const tokensContext = useTokensContext()
 
   const [openModal, setOpenModal] = useState(false)
   const toggleModal = () => setOpenModal(!openModal)
@@ -40,11 +42,14 @@ export const SelectToken = ({ tokens, defaultTokenID, action }: propsI) => {
       setTokenState(tokens)
     }
     if (defaultTokenID) {
+      const tok = tokens.find((token) => token.name?.toLowerCase() === defaultTokenID.toLowerCase()) as TokenData
       setSelectedToken(
-        tokens.find((token) => token.address === defaultTokenID) as TokenData
+        tok
       )
+      // action(tok)
     } else if (tokens.length > 1) {
       setSelectedToken(tokens[0] as TokenData)
+      // action(tokens[0] as TokenData)
     } else
       setSelectedToken({
         name: "",
@@ -55,13 +60,13 @@ export const SelectToken = ({ tokens, defaultTokenID, action }: propsI) => {
   useEffect(() => {
     if (selectedToken) {
       const fetchMeta = async () => {
-        const tokenMetadata = await fetchTokenMetadata(selectedToken.address);
-        setTokenMetadata(tokenMetadata);
+        const meta = tokensContext.getTokenMeta(selectedToken.name)
+        // const tokenMetadata = await fetchTokenMetadata(selectedToken.address);
+        setTokenMetadata(meta);
       }
-
       fetchMeta()
     }
-  }, [selectedToken])
+  }, [selectedToken, tokensContext])
   return (
     <>
       <Modal
@@ -111,12 +116,11 @@ export const SelectToken = ({ tokens, defaultTokenID, action }: propsI) => {
         onClick={toggleModal}
       >
         <div className="flex items-center gap-2">
-          <Avatar src={tokenMetadata?.image_uri} size={35} />
+          <Avatar src={tokenMetadata?.icon} size={35} />
           <p className="font-semibold text-[15px] text-white">
-            {selectedToken && selectedToken.name}
+            {selectedToken && checkInVelar(selectedToken.symbol || "", tokensContext.velarTokens) ? selectedToken.symbol : selectedToken?.name}
           </p>
         </div>
-
 
         <MdKeyboardArrowDown size={20} color="#fff" />
       </div>

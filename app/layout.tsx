@@ -8,6 +8,7 @@ import StacksProvider from "@/provider/stacks"
 import StoreProvider from "@/provider/Redux"
 import { NotificationModal } from "@/components/shared/NotificationModal"
 import { NotificationProvider } from "@/provider/notification"
+import { TokensProvider } from "@/provider/Tokens"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -45,14 +46,16 @@ export default function RootLayout({
       <body className={`${inter.className} bg-custom-black`}>
         <AntProvider>
           <StacksProvider>
-            <StoreProvider>
+            {/* <StoreProvider> */}
+            <TokensProvider>
               <PageContainer>
                 <NotificationProvider>
                   {children}
                   <NotificationModal />
                 </NotificationProvider>
               </PageContainer>
-            </StoreProvider>
+            </TokensProvider>
+            {/* </StoreProvider> */}
           </StacksProvider>
         </AntProvider>
       </body>

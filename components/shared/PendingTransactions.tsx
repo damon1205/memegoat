@@ -1,13 +1,25 @@
 "use client"
 import { Avatar, Modal, Tooltip } from "antd"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { CgClose } from "react-icons/cg"
 import { MdOutlinePendingActions } from "react-icons/md"
 import { TransactionTable } from "./TransactionsTable"
+import { TxRequest, TxType } from "@/interface"
+import { getRecentTransactions } from "@/utils/stacks.data"
 
-export const PendingTransactions = () => {
+export const PendingTransactions = ({ txRequest }: { txRequest: TxRequest }) => {
   const [openModal, setOpenModal] = useState(false)
+  const [transactions, setTransactions] = useState<TxType[]>([])
   const toggleModal = () => setOpenModal(!openModal)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const transactions = await getRecentTransactions(txRequest);
+      setTransactions(transactions)
+    }
+    fetchData()
+  }, [txRequest])
+
   return (
     <div>
       <Modal
@@ -29,7 +41,7 @@ export const PendingTransactions = () => {
           header: { background: "transparent" },
         }}
       >
-        <TransactionTable />
+        <TransactionTable data={transactions} />
       </Modal>
 
       <Tooltip title="Pending transactions" arrow={false}>
