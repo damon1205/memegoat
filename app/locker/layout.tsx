@@ -45,7 +45,6 @@ const LockerLayout = ({ children }: { children: React.ReactNode }) => {
           <div>{children}</div>
         </motion.div>
       </div>
-      <div>{children}</div>
     </>
   )
 }
