@@ -3,8 +3,6 @@ import React from "react"
 import { instance } from "@/utils/api";
 import { LaunchpadI } from "@/interface";
 
-export const dynamicParams = false
-
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const res = await instance().get("/campaign-requests");
   const infos: LaunchpadI[] = res.data.data;
