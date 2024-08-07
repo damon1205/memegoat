@@ -32,7 +32,7 @@ export default async function LaunchpadPage({ params }: PageProps) {
   const launchpadData = await getLaunchpadData()
   return (
     <div>
-      <LaunchpadDetails data={null} />
+      <LaunchpadDetails data={launchpadData} />
     </div>
   )
 }
