@@ -26,14 +26,14 @@ export const StakingTabs = () => {
   const [stakeOnly, setStakeOnly] = useState<boolean>(false)
 
   const tabItems: TabItem[] = [
-    {
-      title: "GoatSTX",
-      key: 1,
-      content: <MemeGoatStakingTab />,
-    },
+    // {
+    //   title: "GoatSTX",
+    //   key: 1,
+    //   content: <MemeGoatStakingTab />,
+    // },
     {
       title: "live pools",
-      key: 2,
+      key: 1,
       content: (
         <TabContent
           stakes={activeStakes}
@@ -44,7 +44,7 @@ export const StakingTabs = () => {
     },
     {
       title: "finished",
-      key: 3,
+      key: 2,
       content: (
         <TabContent stakes={endedStakes} stakedOnly={stakeOnly} ended={false} />
       ),

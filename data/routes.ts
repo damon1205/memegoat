@@ -5,7 +5,11 @@ export const routes: RouteI[] = [
   },
   {
     path: "/staking",
-    name: "Staking",
+    name: "Stake GoatSTX",
+  },
+  {
+    path: "/community-pools",
+    name: "Community Pools",
   },
   {
     path: "/launchpad",
@@ -22,10 +26,6 @@ export const routes: RouteI[] = [
   {
     path: "/dex",
     name: "Aggregator DEx",
-  },
-  {
-    path: "/community",
-    name: "Community",
   },
   {
     path: "/games",

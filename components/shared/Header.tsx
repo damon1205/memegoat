@@ -141,7 +141,7 @@ export const Header = () => {
                     const active = route.path === pathname
                     const gamesNav = route.path === "/games"
                     const isLockerPage =
-                      pathname.includes("locker") && index === 3
+                      pathname.includes("locker") && index === 4
                     const activeCls =
                       active || isLockerPage
                         ? "font-bold"
