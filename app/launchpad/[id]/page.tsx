@@ -3,6 +3,7 @@ import { LaunchpadDetails } from "@/components/launchpad/LaunchpadDetails"
 import React from "react"
 import { instance } from "@/utils/api";
 export const runtime = 'edge';
+export const dynamicParams = false
 const LaunchpadPage = async () => {
   const headerList = headers();
   const pathname = headerList.get("x-current-path");
