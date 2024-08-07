@@ -8,10 +8,10 @@ const StakingPage = () => {
   const targetDate = '2024-08-08T16:00:00Z'
   return (
     <div>
-      {/* <CountdownTimer targetDate={targetDate} /> */}
-      <div className="flex items-center justify-center mt-10">
+      <CountdownTimer targetDate={targetDate} />
+      {/* <div className="flex items-center justify-center mt-10">
         <MemeGoatStakingTab />
-      </div>
+      </div> */}
     </div>
   )
 }
