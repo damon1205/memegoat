@@ -1,7 +1,6 @@
 import { Launchpad } from "@/components/launchpad/Launchpad"
 import { instance } from "@/utils/api";
 import React from "react"
-import { GoatLaunchpad } from "@/data/constants"
 
 const LaunchpadPage = async () => {
   const fetchLaunches = async () => {

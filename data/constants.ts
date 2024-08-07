@@ -132,6 +132,14 @@ export const emptyMetadata = {
   tokenAddress: "",
 };
 
+export const initialTokenData = {
+  symbol: "",
+  address: "",
+  name: "",
+  icon: "",
+  decimals: 0,
+};
+
 export const initialData: LaunchpadDataI = {
   step: "",
   tx_id: "",
@@ -158,6 +166,7 @@ export const initialData: LaunchpadDataI = {
   soft_cap: "",
   maximum_buy: "",
   minimum_buy: "",
+  is_campaign: false,
   start_date: "",
   end_date: "",
 };
@@ -176,18 +185,5 @@ export const pendingInitial = {
   token_image: "",
 };
 
-export const GoatLaunchpad: LaunchpadI = {
-  id: "1sdjkjd",
-  token_name: "GoatSTX",
-  token_image: "/logo.svg",
-  token_address: "SP2F4QC563WN0A0949WPH5W1YXVC4M1R46QKE0G14.memegoatstx",
-  hard_cap: "50000",
-  start_date: "2024-04-29T16:00:00.000Z",
-  end_date: "2024-05-01T16:00:00.000Z",
-  token_desc: `📢 $MEMEGOAT is a groundbreaking meme finance layer on the
-      leading Bitcoin Layer 2, Stacks. Our mission is to cultivate a
-      vibrant, secure, and all-inclusive meme ecosystem, bringing
-      instant utility and simplicity to meme communities building on
-      Bitcoin.
-    `,
-};
+export const txMessage =
+  "Your transaction is currently being processed and should be confirmed within 10-20 minutes. You can track its progress in the transaction bar.";

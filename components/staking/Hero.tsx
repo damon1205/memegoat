@@ -1,11 +1,22 @@
 "use client"
-import { Avatar, Button } from "antd"
 import Image from "next/image"
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { CreatePool } from "./CreatePool"
+import { getAllUserTokens } from "@/utils/stacks.data"
+import { TokenData } from "@/interface"
 
 export const Hero = () => {
+  const [tokens, setTokens] = useState<TokenData[]>([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const tokens = await getAllUserTokens()
+      setTokens(tokens)
+    }
+
+    fetchData()
+  }, [])
   return (
     <>
       <div className="fixed top-0 left-[50%] translate-x-[-50%] w-[430px] h-[340px] blur-[300px] bg-primary-20 hidden md:block" />
@@ -31,19 +42,19 @@ export const Hero = () => {
         </div>
         <div className="">
           <h3 className="md:text-8xl hidden md:block font-medium text-center neonText special-text">
-            Stake with GoatSTX
+            Stake & deploy a pool.
           </h3>
-          <h3 className="md:hidden block text-4xl">Stake with GoatSTX</h3>
+          <h3 className="md:hidden block text-4xl">Stake & deploy a pool.</h3>
         </div>
         <div className="text-center md:mt-10 mt-5 md:text-[16px] text-sm">
-          <span className="text-primary-20">Stake</span> GoatSTX to earn tokens.
+          {/* <span className="text-primary-20">Stake</span> GoatSTX to earn tokens. */}
         </div>
-        <p className="text-center md:text-[16px] text-sm">
+        <p className="text-center md:text-[18px] text-sm">
           <span className="text-primary-20">Create</span> staking pool for your
           community. <span className="text-primary-20">Earn</span> rewards from
           your favourite community.
         </p>
-        <CreatePool />
+        <CreatePool tokens={tokens || []} />
       </motion.div>
     </>
   )

@@ -1,20 +1,99 @@
+"use client"
+import { useNotificationConfig } from "@/hooks/useNotification";
+import { PendingTxnPool } from "@/interface";
+import { fetchTransactionStatus, generateStakeTransaction, storeDB } from "@/lib/contracts/staking";
+import { formatNumber, truncateTokenAddress } from "@/utils/format";
+import { splitToken } from "@/utils/helpers";
+import { getUserTokenBalance, userSession } from "@/utils/stacks.data";
+import { useConnect } from "@stacks/connect-react";
 import { Avatar, Button, Checkbox, Input, Modal } from "antd"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { SlClose } from "react-icons/sl"
 
 interface props {
-  stake_token: string
-  token_icon: string
-  action: (value: number) => void
+  stakeId: number;
+  stake_token: string;
+  token_icon: string;
+  // update: () => void;
+  disabled: boolean;
+  pendingTxns: PendingTxnPool[]
 }
 
-export const StakeToken = ({ stake_token, action, token_icon }: props) => {
+export const StakeToken = ({ stakeId, stake_token, token_icon, disabled, pendingTxns }: props) => {
+  const { doContractCall } = useConnect()
+  const { config } = useNotificationConfig()
   const [open, setOpen] = useState(false)
   const toggleOpen = () => setOpen(!open)
   const [amount, setAmount] = useState<number>(0)
   const available = 986565646454.89
   const setMax = () => setAmount(available)
   const [checked, setChecked] = useState<boolean>(false)
+  const [balance, setBalance] = useState<number>(0);
+  const [txStatus, setTxStatus] = useState<string>("notactive");
+
+  const handleStake = async (amount: number) => {
+    if (!amount) return;
+    if (!userSession.isUserSignedIn) return;
+    try {
+      const txn = await generateStakeTransaction(stakeId, amount, stake_token)
+      doContractCall({
+        ...txn,
+        onFinish: async (data) => {
+          storeDB("Stake Tokens", data.txId, amount, stake_token, stakeId.toString());
+        },
+        onCancel: () => {
+          // setLoading(false)
+          console.log("onCancel:", "Transaction was canceled");
+        },
+      })
+    } catch (e) {
+      if (e instanceof Error) {
+        config({ message: e.message, title: 'Staking', type: 'error' })
+      } else {
+        config({ message: "An unknown error occurred", title: 'Staking', type: 'error' })
+      }
+    }
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const result = await getUserTokenBalance(stake_token);
+      setBalance(result)
+    }
+    fetchData()
+  }, [stake_token])
+
+  useEffect(() => {
+    setTxStatus(pendingTxns.length > 0 ? "pending" : "notactive");
+    const handleTransactionStatus = async () => {
+      if (pendingTxns.length < 0) return;
+      try {
+        const txn = pendingTxns[0];
+        const result = await fetchTransactionStatus(txn);
+        if (result !== "pending") {
+          localStorage.removeItem(txn.key);
+          if (result === "success") {
+            config({ message: `${txn.action} Successful`, title: 'Staking', type: 'success' })
+          } else {
+            config({ message: `${txn.action} Failed`, title: 'Staking', type: 'error' })
+          }
+          // update()
+        }
+      } catch (e) {
+        console.log(e)
+      }
+    }
+
+    const interval = setInterval(() => {
+      if (txStatus === "notactive") return;
+      handleTransactionStatus();
+    }, 1000);
+
+    //Clearing the interval
+    return () => clearInterval(interval);
+  }, [pendingTxns, txStatus, config])
+
+
   return (
     <>
       <Modal
@@ -31,15 +110,15 @@ export const StakeToken = ({ stake_token, action, token_icon }: props) => {
           },
         }}
       >
-        <h3 className="text-xl font-medium mb-7">Stake {stake_token}</h3>
+        <h3 className="text-xl font-medium mb-7">Stake {splitToken(stake_token)[1]}</h3>
         <div className="flex justify-end items-center gap-2">
           <p>
             <span className="text-[#7ff39c]">Available</span>{" "}
-            <span>{`${available} ${stake_token}`}</span>
+            <span>{`${formatNumber(balance.toFixed(4))} ${truncateTokenAddress(stake_token)}`}</span>
           </p>
           <Avatar src={token_icon} size={30} />
           <p className="border-[1px] border-primary-40/40 text-primary-40  p-[1px] px-[4px]">
-            ERC20
+            SIP10
           </p>
         </div>
         <div className="my-4">
@@ -75,7 +154,7 @@ export const StakeToken = ({ stake_token, action, token_icon }: props) => {
           </p>
         </div>
         <Button
-          onClick={() => action(amount)}
+          onClick={() => handleStake(amount * 1e6)}
           disabled={amount === 0 || !checked}
           className="h-[40px] rounded-[3px] w-full bg-primary-40"
           size="large"
@@ -85,8 +164,9 @@ export const StakeToken = ({ stake_token, action, token_icon }: props) => {
         </Button>
       </Modal>
       <button
-        className="inline-block px-[6px] py-[1px] border-[1px] border-primary-40/60 text-primary-40"
+        className={`inline-block px-[6px] py-[1px] border-[1px] ${disabled ? 'border-gray-500 text-white' : 'border-primary-40/60 text-primary-40'} `}
         onClick={toggleOpen}
+        disabled={disabled}
       >
         +
       </button>

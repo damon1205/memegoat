@@ -4,11 +4,13 @@ import Image from "next/image"
 import React from "react"
 import { motion } from "framer-motion"
 import { BsLockFill } from "react-icons/bs"
+import { PendingTransactions } from "@/components/shared/PendingTransactions"
+import { getUserPrincipal } from "@/utils/stacks.data"
 
 const LockerLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
-      <div>
+      {/* <div>
         <div className="fixed top-[10vh] right-[50%] translate-x-[50%]  z-[0]">
           <motion.div
             initial={{ opacity: 0 }}
@@ -25,11 +27,15 @@ const LockerLayout = ({ children }: { children: React.ReactNode }) => {
           transition={{ duration: 0.5, delay: 1 }}
           className="relative md:mt-[3rem] max-w-[900px] mx-auto p-4"
         >
+          <div className="flex items-center justify-end mb-2 gap-2">
+            <PendingTransactions txRequest={{ tag: "LOCKER", address: getUserPrincipal() }} />
+          </div>
           <LockerRoutes />
           <div className="rounded-sm from-primary-90/5 to-primary-60/20 md:p-6 p-4 border-[1px] border-primary-100 relative bg-gradient-to-r mb-10 overflow-hidden">
             <h3 className="text-lg md:text-2xl">Token Locker</h3>
-            <p className="text-custom-white/55 text-sm md:text-[16px] mt-1">
-              Creating and investing in the best memecoins just became easier.
+            <p className="text-custom-white/55 text-sm md:text-[16px] mt-1 md:w-[70%]">
+              Secure tokens, by locking them for a predetermined period to
+              prevent premature selling and ensure project stability and trust.
             </p>
 
             <div className="absolute top-0 right-0 text-primary-10/15 text-[10rem] overflow-hidden">
@@ -38,7 +44,8 @@ const LockerLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
           <div>{children}</div>
         </motion.div>
-      </div>
+      </div> */}
+      <div>{children}</div>
     </>
   )
 }

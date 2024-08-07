@@ -2,6 +2,7 @@ import { VelarSDK } from "@velarprotocol/velar-sdk";
 import { getTokenData } from "./stacks.data";
 import axios from "axios";
 import { AlexSDK } from "alex-sdk";
+import { ITokenMetadata } from "@/interface";
 
 export const velarSDK = new VelarSDK();
 
@@ -64,6 +65,7 @@ export const getTokenInfo = async (symbol: string) => {
       url: getTokenData("mainnet", symbol),
       headers: {
         "Content-Type": "application/json",
+        "x-api-key": "bb2d18f57a4486d69bf13e5be6a1239b",
       },
     };
     const response = await axios.request(config);
@@ -488,3 +490,30 @@ export const VelarTokenLists: TokenData[] = [
     contract_principal: "SP4SZE494VC2YC5JYG7AYFQ44F5Q4PYV7DVMDPBG.ststx-token",
   },
 ];
+
+// const fetchData = async () => {
+//   const alexTokens = await alexSDK.fetchSwappableCurrency();
+//   setAlexTokens(alexTokens);
+
+//   const velarTokens = await getTokens();
+//   setVelarTokens(velarTokens);
+
+//   const vTokens = velarTokens ? velarTokens : {}
+
+//   const tokensData: TokenData[] = [];
+//   for (const token of alexTokens) {
+//     tokensData.push({ symbol: token.id, name: token.name, address: token.underlyingToken })
+//   }
+
+//   for (const token of Object.keys(vTokens)) {
+//     const existsInAlex = alexTokens.some(alexToken => alexToken.name === token);
+
+//     if (!existsInAlex) {
+//       const tokenData = await getTokenInfo(token);
+//       if (tokenData) {
+//         tokensData.push({ symbol: tokenData.symbol, name: tokenData.name, address: tokenData.tokenAddress })
+//       }
+//     }
+//   }
+//   setTokens(tokensData);
+// }

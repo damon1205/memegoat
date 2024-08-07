@@ -1,10 +1,51 @@
 "use client"
-import { Avatar, Button, Select } from "antd"
+import { ITokenMetadata, TokenData } from "@/interface"
+import { fetchTokenMetadata, getAllUserTokens, userSession } from "@/utils/stacks.data"
+import { Avatar, Button } from "antd"
 import Link from "next/link"
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { BsDot, BsLockFill } from "react-icons/bs"
+import { SelectToken } from "../shared/SelectToken"
+import { useTokensContext } from "@/provider/Tokens"
+import { useTokenLocker } from "@/hooks/useTokenLocker"
 
 export const Locker = () => {
+  const [tokens, setTokens] = useState<TokenData[]>([]);
+  const [metadata, setMetadata] = useState<TokenData | null>(null);
+
+  const { setTokenLockerDetails } = useTokenLocker()
+
+  const tokensContext = useTokensContext();
+
+  const handleChange = async (token: TokenData) => {
+
+    // const meta = tokensContext.getTokenMetaByAddress(token.address)
+    // if (meta) {
+    //   setMetadata(meta);
+    //   setTokenLockerDetails(meta)
+    // } else {
+    const tokenMetadata = await fetchTokenMetadata(token.address);
+    const meta = {
+      symbol: tokenMetadata?.symbol,
+      address: token.address,
+      name: token.name,
+      icon: tokenMetadata?.image_uri,
+      decimals: tokenMetadata?.decimals
+    }
+    setMetadata(meta)
+    setTokenLockerDetails(meta)
+    // }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!userSession.isUserSignedIn()) return
+      const alltokens = await getAllUserTokens();
+      setTokens(alltokens);
+    }
+    fetchData()
+  }, []);
+
   return (
     <>
       <div>
@@ -44,10 +85,14 @@ export const Locker = () => {
 
           <div className="my-5">
             <p className="text-custom-white/60 mb-3">Select Token</p>
-            <select className="w-full bg-transparent border-[1px] outline-none h-[40px] border-primary-90" />
+            {/* <SelectToken tokens={tokens} action={handleChange} /> */}
+
+            <div className="px-2 py-2 rounded-lg bg-[#00000033] border-[1px] border-[#FFFFFF1A] w-100">
+              <SelectToken tokens={tokens} action={handleChange} />
+            </div>
           </div>
           <Link href={"/locker/setup"}>
-            <Button className="w-full" type="primary">
+            <Button className="w-full" type="primary" disabled={!metadata}>
               Continue
             </Button>
           </Link>

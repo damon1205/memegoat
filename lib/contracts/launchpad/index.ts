@@ -1,10 +1,12 @@
 import {
   cvValue,
   ITokenMetadata,
+  LaunchpadDataI,
   LaunchpadI,
   PendingTxnLaunchPad,
   PoolInterface,
 } from "@/interface";
+import { instance } from "@/utils/api";
 import { formatCVTypeNumber } from "@/utils/format";
 import { getTokenSource, splitToken } from "@/utils/helpers";
 import {
@@ -32,8 +34,7 @@ import {
   uintCV,
   UIntCV,
 } from "@stacks/transactions";
-import { error } from "console";
-import toast from "react-hot-toast";
+import axios from "axios";
 
 export const storePendingTxn = (
   action: string,
@@ -87,7 +88,7 @@ export const getSTXRate = async (id: number) => {
   }
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-launchpad-v1-6",
+    contractName: "memegoat-launchpad-v1-4",
     functionName: "get-stx-quote",
     functionArgs: [uintCV(id)],
     senderAddress: getUserPrincipal(),
@@ -103,7 +104,7 @@ export const getUserDeposits = async (id: number) => {
   const user = getUserPrincipal();
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-launchpad-v1-6",
+    contractName: "memegoat-launchpad-v1-4",
     functionName: "get-user-deposits",
     functionArgs: [standardPrincipalCV(user), uintCV(id)],
     senderAddress: user,
@@ -119,7 +120,7 @@ export const getLaunchpadInfo = async (token: string) => {
   const tokenData = splitToken(token);
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-launchpad-v1-6",
+    contractName: "memegoat-launchpad-v1-4",
     functionName: "get-token-id-launch-by-addr",
     functionArgs: [contractPrincipalCV(tokenData[0], tokenData[1])],
     senderAddress: getUserPrincipal(),
@@ -131,7 +132,7 @@ export const getLaunchpadInfo = async (token: string) => {
   }
   const result2 = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-launchpad-v1-6",
+    contractName: "memegoat-launchpad-v1-4",
     functionName: "get-token-launch-by-id",
     functionArgs: [uintCV(Number(id.toString()))],
     senderAddress: getUserPrincipal(),
@@ -148,7 +149,7 @@ export const checkIfClaimed = async (id: number) => {
   const user = getUserPrincipal();
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-launchpad-v1-6",
+    contractName: "memegoat-launchpad-v1-4",
     functionName: "check-if-claimed",
     functionArgs: [standardPrincipalCV(user), uintCV(id)],
     senderAddress: user,
@@ -164,7 +165,7 @@ export const calculateAllocation = async (id: number) => {
   const user = getUserPrincipal();
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-launchpad-v1-6",
+    contractName: "memegoat-launchpad-v1-4",
     functionName: "calculate-allocation",
     functionArgs: [standardPrincipalCV(user), uintCV(id)],
     senderAddress: user,
@@ -197,7 +198,7 @@ export const generateDepositSTXTransaction = (
     network: networkInstance,
     anchorMode: AnchorMode.Any,
     contractAddress,
-    contractName: "memegoat-launchpad-v1-6",
+    contractName: "memegoat-launchpad-v1-4",
     functionName: "deposit-stx",
     functionArgs: [
       uintCV(amount * 1000000),
@@ -254,7 +255,7 @@ export const generateClaimTransaction = async (
     network: networkInstance,
     anchorMode: AnchorMode.Any,
     contractAddress,
-    contractName: "memegoat-launchpad-v1-6",
+    contractName: "memegoat-launchpad-v1-4",
     functionName: "claim-token",
     functionArgs: [
       uintCV(launchpadId),
@@ -316,8 +317,7 @@ export async function listToken(
   }
 
   if (assetName === "") {
-    toast.error("Error with token contract");
-    return;
+    throw new Error("Error with token contract");
   }
   const fungibleAssetInfo = createAssetInfo(
     assetAddress,
@@ -332,8 +332,7 @@ export async function listToken(
     launchpadInfo["total-stx-deposited"]
   );
   if (!postConditionAmount) {
-    toast.error("Invalid amount");
-    return;
+    throw new Error("Invalid amount");
   }
   const contractFungiblePostCondition = makeContractFungiblePostCondition(
     contractAddress,
@@ -350,14 +349,13 @@ export async function listToken(
   );
   const lp = await getTokenLP(token);
   if (lp.length == 0) {
-    toast.error("No token address found");
-    return;
+    throw new Error("Not token address found");
   }
   return {
     network: networkInstance,
     anchorMode: AnchorMode.Any,
     contractAddress,
-    contractName: "memegoat-launchpad-v1-6",
+    contractName: "memegoat-launchpad-v1-4",
     functionName: "add-exchange-liquidity",
     functionArgs: [
       uintCV(launchpadId),
@@ -410,4 +408,36 @@ export const checkLive = (
   return launchpadInfo
     ? currBlock >= formatCVTypeNumber(launchpadInfo["start-block"])
     : false;
+};
+
+export const checkDate = (dateStr: string) => {
+  const now = Date.now();
+  const date = new Date(dateStr);
+  return now > date.getTime();
+};
+
+export const uploadCampaign = async (tokenMintProgress: LaunchpadDataI) => {
+  const maxRetries = 2;
+  if (!tokenMintProgress) return;
+  let retries = 0;
+  while (retries < maxRetries) {
+    try {
+      const response = await instance().post(
+        "/campaign-request",
+        tokenMintProgress
+      );
+      return response.data;
+    } catch (error) {
+      // Check if the error is a timeout error
+      if (axios.isAxiosError(error)) {
+        retries++;
+        console.log(
+          `Timeout error occurred, retrying (${retries}/${maxRetries})...`
+        );
+        continue; // Retry the request
+      } else {
+        console.log(error);
+      }
+    }
+  }
 };

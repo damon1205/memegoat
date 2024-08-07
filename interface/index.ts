@@ -7,6 +7,44 @@ import {
   TupleCV,
 } from "@stacks/transactions";
 
+export type CsvObject = { [key: string]: string };
+
+export interface TokenDataMeta {
+  name: string;
+  symbol: string;
+  decimals: number;
+  total_supply: string;
+  token_uri: string;
+  description: string;
+  image_uri: string;
+  image_canonical_uri: string;
+  tx_id: string;
+  sender_address: string;
+  contract_principal: string;
+}
+
+export interface TxType {
+  key: string;
+  id: string;
+  txId: string;
+  txStatus: "Pending" | "Successful" | "Failed";
+  amount: number;
+  tag: string;
+  txSender: string;
+  action: string;
+  createdAt: string;
+}
+
+export interface TxData {
+  key: string;
+  txId: string;
+  txStatus: "Pending" | "Successful" | "Failed";
+  amount: number;
+  tag: string;
+  txSender: string;
+  action: string;
+}
+
 export interface ITokenMetadata {
   name: string;
   symbol: string;
@@ -56,6 +94,7 @@ export interface LaunchpadDataI {
   soft_cap: string;
   maximum_buy: string;
   minimum_buy: string;
+  is_campaign: boolean;
   start_date: string;
   end_date: string;
 }
@@ -145,4 +184,56 @@ export interface PoolInterface {
   symbol: StringUtf8CV;
   token0: StandardPrincipalCV;
   token1: StandardPrincipalCV;
+}
+
+export interface StakeInterface {
+  id: UIntCV;
+  "stake-token": StandardPrincipalCV;
+  "reward-token": StandardPrincipalCV;
+  "reward-amount": UIntCV;
+  "reward-per-block": UIntCV;
+  "total-staked": UIntCV;
+  "start-block": UIntCV;
+  "end-block": UIntCV;
+  "last-update-block": UIntCV;
+  "reward-per-token-staked": UIntCV;
+  owner: StandardPrincipalCV;
+  participants: UIntCV;
+}
+
+export interface UserStakeInterface {
+  "amount-staked": UIntCV;
+  "stake-rewards": UIntCV;
+  "reward-per-token-staked": UIntCV;
+}
+
+export interface PendingTxnPool {
+  key: string;
+  stakeId: string;
+  tag: string;
+  txID: string;
+  userAddr: string;
+  action: string;
+  amount: string;
+  token: string;
+}
+
+export interface TokenData {
+  symbol?: string;
+  address: string;
+  name: string;
+  icon?: string;
+  decimals?: number;
+}
+
+export interface TxRequest {
+  status?: TxStatus;
+  address?: string;
+  tag?: string;
+}
+
+type TxStatus = "Failed" | "Pending" | "Successful";
+
+export interface VelarToken {
+  symbol: string;
 }

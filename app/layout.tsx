@@ -5,6 +5,10 @@ import { PageContainer } from "@/components/shared/PageContainer"
 import { AntProvider } from "@/components/shared/AntProvider"
 import config from "@/utils/config"
 import StacksProvider from "@/provider/stacks"
+import StoreProvider from "@/provider/Redux"
+import { NotificationModal } from "@/components/shared/NotificationModal"
+import { NotificationProvider } from "@/provider/notification"
+import { TokensProvider } from "@/provider/Tokens"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -28,9 +32,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: "MemeGoat",
     siteName: "MemeGoat",
-    images: '/og-image.png'
+    images: "/og-image.png",
   },
-
 }
 
 export default function RootLayout({
@@ -43,9 +46,16 @@ export default function RootLayout({
       <body className={`${inter.className} bg-custom-black`}>
         <AntProvider>
           <StacksProvider>
-            <PageContainer>
-              {children}
-            </PageContainer>
+            {/* <StoreProvider> */}
+            <TokensProvider>
+              <PageContainer>
+                <NotificationProvider>
+                  {children}
+                  <NotificationModal />
+                </NotificationProvider>
+              </PageContainer>
+            </TokensProvider>
+            {/* </StoreProvider> */}
           </StacksProvider>
         </AntProvider>
       </body>
