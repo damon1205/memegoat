@@ -79,29 +79,29 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
       }
       setLoading(true)
       const formData = form.getFieldsValue()
-      const metadata = {
-        name: formData.token_name,
-        description: formData.token_desc,
-        image: formData.token_image,
-      }
-      const data = JSON.stringify(metadata)
-      const filename = `${metadata.name.replace(/ /g, "-")}.json`
-      const token_uri = await uploadToGaia(filename, data, "application/json")
-      if (token_uri === "") {
-        config({
-          message: "Please connect Wallet",
-          title: "Staking",
-          type: "error",
-        })
-        return
-      }
-      const contract = generateContract(
-        formData.token_name,
-        token_uri,
-        formData.token_ticker,
-        formData.token_supply
-      )
-      const contractName = `${formData.token_ticker}`
+      // const metadata = {
+      //   name: formData.token_name,
+      //   description: formData.token_desc,
+      //   image: formData.token_image,
+      // }
+      // const data = JSON.stringify(metadata)
+      // const filename = `${metadata.name.replace(/ /g, "-")}.json`
+      // const token_uri = await uploadToGaia(filename, data, "application/json")
+      // if (token_uri === "") {
+      //   config({
+      //     message: "Please connect Wallet",
+      //     title: "Staking",
+      //     type: "error",
+      //   })
+      //   return
+      // }
+      // const contract = generateContract(
+      //   formData.token_name,
+      //   token_uri,
+      //   formData.token_ticker,
+      //   formData.token_supply
+      // )
+      // const contractName = `${formData.token_ticker}`
       // const tokenAddress = `${getUserPrincipal()}.${contractName}`
       // console.log(.toString())
       console.log({

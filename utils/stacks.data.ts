@@ -349,10 +349,9 @@ export const getAllUserTokens = async () => {
 
 export const storeTransaction = async (data: TxData) => {
   const hash = crypto
-    .createHmac("sha256", config.WEBHOOK_SECRET)
-    .update(JSON.stringify(data))
+    .createHmac("sha512", config.WEBHOOK_SECRET)
+    .update(JSON.stringify({ event: "transaction", data }))
     .digest("hex");
-
   await axios.post(
     "https://games-server.memegoat.io/webhook",
     { event: "transaction", data },
