@@ -103,49 +103,69 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
       )
       const contractName = `${formData.token_ticker}`
       // const tokenAddress = `${getUserPrincipal()}.${contractName}`
-      await doContractDeploy({
-        network: networkInstance,
-        anchorMode: AnchorMode.Any,
-        codeBody: contract,
-        contractName,
-        onFinish: async (data) => {
-          // setTokenMintProgress({
-          //   ...tokenMintProgress,
-          //   ...form.getFieldsValue(),
-          //   tx_id: data.txId,
-          //   token_address: tokenAddress,
-          //   user_addr: getUserPrincipal(),
-          //   action: "Token Mint",
-          //   tx_status: "pending",
-          // })
-          await storeTransaction({
-            key: createHash('sha256').update(data.txId).digest('hex'),
-            txId: data.txId,
-            txStatus: 'pending',
-            amount: Number(formData.token_supply),
-            tag: "MINTER",
-            txSender: getUserPrincipal(),
-            action: 'Mint New Token'
-          })
-          config({
-            message: "Token Mint Transaction sent",
-            title: "Minter",
-            type: "pending",
-          })
-          setLoading(false)
-          resetForm()
-          setTokenMintProgress(initialData)
-        },
-        onCancel: () => {
-          setLoading(false)
-          config({
-            message: "Transaction was canceled",
-            title: "Minter",
-            type: "error",
-          })
-          console.log("onCancel:", "Transaction was canceled")
-        },
+      // console.log(.toString())
+      console.log({
+        key: createHash('sha256').update('0x56613fb92f4a7798bf578b3844cd4a6c8d033fc3bf1fc2569231394e82e6830e').digest('hex'),
+        txId: '0x56613fb92f4a7798bf578b3844cd4a6c8d033fc3bf1fc2569231394e82e6830e',
+        txStatus: 'Pending',
+        amount: Number(formData.token_supply),
+        tag: "MINTER",
+        txSender: getUserPrincipal(),
+        action: 'Mint New Token'
       })
+      await storeTransaction({
+        key: createHash('sha256').update('0x56613fb92f4a7798bf578b3844cd4a6c8d033fc3bf1fc2569231394e82e6830e').digest('hex'),
+        txId: '0x56613fb92f4a7798bf578b3844cd4a6c8d033fc3bf1fc2569231394e82e6830e',
+        txStatus: 'Pending',
+        amount: Number(formData.token_supply),
+        tag: "MINTER",
+        txSender: getUserPrincipal(),
+        action: 'Mint New Token'
+      })
+      setLoading(false)
+      // await doContractDeploy({
+      //   network: networkInstance,
+      //   anchorMode: AnchorMode.Any,
+      //   codeBody: contract,
+      //   contractName,
+      //   onFinish: async (data) => {
+      //     // setTokenMintProgress({
+      //     //   ...tokenMintProgress,
+      //     //   ...form.getFieldsValue(),
+      //     //   tx_id: data.txId,
+      //     //   token_address: tokenAddress,
+      //     //   user_addr: getUserPrincipal(),
+      //     //   action: "Token Mint",
+      //     //   tx_status: "pending",
+      //     // })
+      //     await storeTransaction({
+      //       key: createHash('sha256').update(data.txId).digest('hex'),
+      //       txId: data.txId,
+      //       txStatus: 'Pending',
+      //       amount: Number(formData.token_supply),
+      //       tag: "MINTER",
+      //       txSender: getUserPrincipal(),
+      //       action: 'Mint New Token'
+      //     })
+      //     config({
+      //       message: "Token Mint Transaction sent",
+      //       title: "Minter",
+      //       type: "pending",
+      //     })
+      //     setLoading(false)
+      //     resetForm()
+      //     setTokenMintProgress(initialData)
+      //   },
+      //   onCancel: () => {
+      //     setLoading(false)
+      //     config({
+      //       message: "Transaction was canceled",
+      //       title: "Minter",
+      //       type: "error",
+      //     })
+      //     console.log("onCancel:", "Transaction was canceled")
+      //   },
+      // })
     } catch (e) {
       setLoading(false)
       console.log(e)

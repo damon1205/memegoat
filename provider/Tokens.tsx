@@ -12,6 +12,7 @@ type TokenContextI = {
   allTokens: TokenData[];
   getTokenMeta: (token: string) => TokenData | null
   getTokenMetaBySymbol: (symbol: string) => TokenData | null
+  getTokenMetaByAddress: (address: string) => TokenData | null
   getTokenBalance: (symbol: TokenData) => Promise<number | null>;
 }
 
@@ -21,6 +22,7 @@ const TokensContext = createContext<TokenContextI>({
   allTokens: [],
   getTokenMeta: () => null,
   getTokenMetaBySymbol: () => null,
+  getTokenMetaByAddress: () => null,
   getTokenBalance: () => Promise.resolve(null),
 });
 
@@ -57,6 +59,11 @@ export const TokensProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return tokenData ? tokenData : null
   }
 
+  const getTokenMetaByAddress = (address: string) => {
+    const tokenData = allTokens.find(tokenData => tokenData.address.toLowerCase() === address.toLowerCase());
+    return tokenData ? tokenData : null
+  }
+
   const getTokenBalance = async (token: TokenData) => {
     if (balances[token.name] >= 0) {
       return balances[token.name]; // Return cached balance
@@ -75,7 +82,7 @@ export const TokensProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }
 
   return (
-    <TokensContext.Provider value={{ allTokens, velarTokens, alexTokens, getTokenMeta, getTokenMetaBySymbol, getTokenBalance }}>
+    <TokensContext.Provider value={{ allTokens, velarTokens, alexTokens, getTokenMeta, getTokenMetaBySymbol, getTokenMetaByAddress, getTokenBalance }}>
       {children}
     </TokensContext.Provider>
   );

@@ -1,11 +1,11 @@
 "use client";
-import { emptyMetadata } from "@/data/constants";
-import { ITokenMetadata } from "@/interface";
+import { initialTokenData } from "@/data/constants";
+import { TokenData } from "@/interface";
 import { useLocalStorage } from "usehooks-ts";
 
 const useTokenLocker = () => {
   const [tokenLockerDetails, setTokenLockerDetails] =
-    useLocalStorage<ITokenMetadata>("token-locker-details", emptyMetadata, {
+    useLocalStorage<TokenData>("token-locker-details", initialTokenData, {
       initializeWithValue: false,
     });
   return { tokenLockerDetails, setTokenLockerDetails };

@@ -27,7 +27,7 @@ export interface TxType {
   key: string;
   id: string;
   txId: string;
-  txStatus: "pending" | "confirmed";
+  txStatus: "Pending" | "Succesful" | "Failed";
   amount: number;
   tag: string;
   txSender: string;
@@ -38,7 +38,7 @@ export interface TxType {
 export interface TxData {
   key: string;
   txId: string;
-  txStatus: "pending" | "confirmed";
+  txStatus: "Pending" | "Successful" | "Failed";
   amount: number;
   tag: string;
   txSender: string;

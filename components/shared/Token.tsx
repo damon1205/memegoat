@@ -1,7 +1,7 @@
 "use client"
 import { TokenData } from '@/interface'
 import { useTokensContext } from '@/provider/Tokens'
-import { userSession } from '@/utils/stacks.data'
+import { fetchTokenMetadata, userSession } from '@/utils/stacks.data'
 import { Avatar } from 'antd'
 import React, { useEffect, useState } from 'react'
 
@@ -17,8 +17,19 @@ const Token = ({ token, action }: { token: TokenData, action: (token: TokenData)
           const balance = await tokensContext.getTokenBalance(token);
           setTokenBalance(balance ? balance : 0)
         }
-        const meta = tokensContext.getTokenMeta(token.name)
-        setTokenMetadata(meta);
+        const meta = tokensContext.getTokenMetaByAddress(token.address)
+        if (meta) {
+          setTokenMetadata(meta);
+        } else {
+          const tokenMetadata = await fetchTokenMetadata(token.address);
+          setTokenMetadata({
+            symbol: tokenMetadata?.symbol,
+            address: token.address,
+            name: token.name,
+            icon: tokenMetadata?.image_uri,
+            decimals: tokenMetadata?.decimals
+          })
+        }
       } catch (e) {
         console.log(e)
       }

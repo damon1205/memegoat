@@ -355,7 +355,7 @@ export const storeTransaction = async (data: TxData) => {
 
   await axios.post(
     "https://games-server.memegoat.io/webhook",
-    { data },
+    { event: "transaction", data },
     {
       headers: {
         "x-webhook-signature": hash,

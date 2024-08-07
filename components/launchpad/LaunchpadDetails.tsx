@@ -70,7 +70,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
           storeTransaction({
             key: createHash('sha256').update(txData.txId).digest('hex'),
             txId: txData.txId,
-            txStatus: 'pending',
+            txStatus: 'Pending',
             amount: amount,
             tag: "LAUNCHPAD",
             txSender: getUserPrincipal(),
@@ -112,7 +112,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
           storeTransaction({
             key: createHash('sha256').update(txData.txId).digest('hex'),
             txId: txData.txId,
-            txStatus: 'pending',
+            txStatus: 'Pending',
             amount: allocation,
             tag: "LAUNCHPAD",
             txSender: getUserPrincipal(),

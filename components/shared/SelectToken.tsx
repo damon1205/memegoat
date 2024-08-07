@@ -8,6 +8,7 @@ import { TokenData } from "@/interface"
 import Token from "./Token"
 import { useTokensContext } from "@/provider/Tokens"
 import { checkInVelar } from "@/utils/swap"
+import { fetchTokenMetadata } from "@/utils/stacks.data"
 
 interface propsI {
   tokens: TokenData[]
@@ -60,9 +61,19 @@ export const SelectToken = ({ tokens, defaultTokenID, action }: propsI) => {
   useEffect(() => {
     if (selectedToken) {
       const fetchMeta = async () => {
-        const meta = tokensContext.getTokenMeta(selectedToken.name)
-        // const tokenMetadata = await fetchTokenMetadata(selectedToken.address);
-        setTokenMetadata(meta);
+        const meta = tokensContext.getTokenMetaByAddress(selectedToken.address)
+        if (meta) {
+          setTokenMetadata(meta);
+        } else {
+          const tokenMetadata = await fetchTokenMetadata(selectedToken.address);
+          setTokenMetadata({
+            symbol: tokenMetadata?.symbol,
+            address: selectedToken.address,
+            name: selectedToken.name,
+            icon: tokenMetadata?.image_uri,
+            decimals: tokenMetadata?.decimals
+          })
+        }
       }
       fetchMeta()
     }

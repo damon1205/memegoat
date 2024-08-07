@@ -132,6 +132,14 @@ export const emptyMetadata = {
   tokenAddress: "",
 };
 
+export const initialTokenData = {
+  symbol: "",
+  address: "",
+  name: "",
+  icon: "",
+  decimals: 0,
+};
+
 export const initialData: LaunchpadDataI = {
   step: "",
   tx_id: "",

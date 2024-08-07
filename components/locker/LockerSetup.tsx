@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { BsLockFill } from "react-icons/bs"
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { FinishedTxData, useConnect } from "@stacks/connect-react"
-import { contractAddress, fetchCurrNoOfBlocks, fetchSTXBalance, getUserPrincipal, getUserTokenBalance, network, networkInstance } from "@/utils/stacks.data"
+import { contractAddress, fetchCurrNoOfBlocks, fetchSTXBalance, getUserPrincipal, getUserTokenBalance, network, networkInstance, storeTransaction } from "@/utils/stacks.data"
 import { formatBal, formatNumber } from "@/utils/format"
 import { CsvObject } from "@/interface"
 import { tupleCV, uintCV, standardPrincipalCV, createAssetInfo, FungibleConditionCode, makeStandardFungiblePostCondition, makeStandardSTXPostCondition, AnchorMode, boolCV, contractPrincipalCV, listCV, PostConditionMode } from "@stacks/transactions"
@@ -15,6 +15,9 @@ import { storeDB } from "@/lib/contracts/locker"
 import { useRouter } from "next/navigation"
 import { useNotificationConfig } from "@/hooks/useNotification"
 import { useTokenLocker } from "@/hooks/useTokenLocker"
+import { createHash } from "crypto"
+import { useTokensContext } from "@/provider/Tokens"
+import { checkInVelar } from "@/utils/swap"
 
 type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
 
@@ -49,6 +52,7 @@ export const LockerSetup = () => {
     null,
   );
   const [txData, setTxData] = useState<FinishedTxData | null>(null);
+  const tokensContext = useTokensContext()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,12 +60,10 @@ export const LockerSetup = () => {
       setStxBalance(stxBalance);
 
       const memegoatBalance = await getUserTokenBalance(`${contractAddress}.memegoatstx`);
-      console.log(memegoatBalance)
       setMemegoatBalance(memegoatBalance);
 
       if (tokenLockerDetails) {
-        console.log(tokenLockerDetails)
-        const balance = await getUserTokenBalance(tokenLockerDetails.tokenAddress)
+        const balance = await getUserTokenBalance(tokenLockerDetails.address)
         setBalance(balance)
       }
     }
@@ -112,104 +114,118 @@ export const LockerSetup = () => {
 
   const handleLock = async () => {
     if (!tokenLockerDetails) return;
-    setIsProcessing(true);
+    try {
+      setIsProcessing(true);
+      const toWithdrawerAddress = canWithdraw
+        ? withdrawerAddress
+        : getUserPrincipal();
 
-    const toWithdrawerAddress = canWithdraw
-      ? withdrawerAddress
-      : getUserPrincipal();
+      const tokenAddress = splitToken(tokenLockerDetails.address);
+      const postConditionCode = FungibleConditionCode.LessEqual;
+      const assetContractName = tokenAddress[1];
+      const assetName = await getTokenSource(tokenAddress[0], tokenAddress[1]);
 
-    const tokenAddress = splitToken(tokenLockerDetails.tokenAddress);
-    const postConditionCode = FungibleConditionCode.LessEqual;
-    const assetContractName = tokenAddress[1];
-    const assetName = await getTokenSource(tokenAddress[0], tokenAddress[1]);
+      if (assetName === "") {
+        config({ message: 'Error with token contract', title: 'Locker', type: 'error' })
+        return
+      }
+      const fungibleAssetInfo = createAssetInfo(
+        tokenAddress[0],
+        assetContractName,
+        assetName,
+      );
+      console.log(amount)
+      const postConditionAmount = BigInt(Math.round(amount))
 
-    if (assetName === "") {
-      config({ message: 'Error with token contract', title: 'Locker', type: 'error' })
-      return
+      const fungiblePostConditionToken = makeStandardFungiblePostCondition(
+        getUserPrincipal(),
+        postConditionCode,
+        postConditionAmount,
+        fungibleAssetInfo,
+      );
+
+      const postConditionAmountFee = BigInt(1000000000);
+
+      const fungibleAssetInfoGoat = createAssetInfo(
+        contractAddress,
+        'memegoatstx',
+        'memegoatstx',
+      );
+
+      const fungiblePostConditionGOATSTX = makeStandardFungiblePostCondition(
+        getUserPrincipal(),
+        postConditionCode,
+        postConditionAmountFee,
+        fungibleAssetInfoGoat,
+      );
+
+      const postConditionAddress = getUserPrincipal();
+      const postConditionCodeSTX = FungibleConditionCode.LessEqual;
+      const postConditionAmountSTX = BigInt(1000000);
+
+      const standardSTXPostCondition = makeStandardSTXPostCondition(
+        postConditionAddress,
+        postConditionCodeSTX,
+        postConditionAmountSTX,
+      );
+
+      const blockheight = await fetchCurrNoOfBlocks();
+
+      const unlockBlocksCv = unvestBlocks && vesting ? unvestBlocks.map(data => (tupleCV({
+        height: uintCV(Number(getDifferenceInBlocks(data.height)) + blockheight),
+        percentage: uintCV(data.percentage),
+      }))) : [tupleCV({ height: uintCV(noOfBlocks + blockheight), percentage: uintCV(100) })];
+
+      const addressInfoCv = addressInfo && vesting ? addressInfo.map(data => tupleCV({
+        address: standardPrincipalCV(data.address),
+        amount: uintCV(Number(data.amount) * 1000000),
+        "withdrawal-address": standardPrincipalCV(data.address)
+      })) : [tupleCV({ address: standardPrincipalCV(getUserPrincipal()), amount: uintCV(postConditionAmount), "withdrawal-address": standardPrincipalCV(toWithdrawerAddress) })]
+
+      doContractCall({
+        network: networkInstance,
+        anchorMode: AnchorMode.Any,
+        contractAddress,
+        contractName: "memegoat-token-locker-v1-1",
+        functionName: "lock-token",
+        functionArgs: [
+          uintCV(postConditionAmount),
+          boolCV(feeIsSTx()),
+          contractPrincipalCV(tokenAddress[0], tokenAddress[1]),
+          contractPrincipalCV(
+            contractAddress,
+            "memegoatstx",
+          ),
+          boolCV(vesting),
+          listCV(unlockBlocksCv),
+          listCV(addressInfoCv)
+        ],
+        postConditionMode: PostConditionMode.Deny,
+        postConditions: feeIsSTx() ? [fungiblePostConditionToken, standardSTXPostCondition] : [fungiblePostConditionToken, fungiblePostConditionGOATSTX],
+        onFinish: async (txData) => {
+          setTxData(txData);
+          setIsProcessing(false);
+          // storeDB(data.txId, amount, noOfBlocks, tokenLockerDetails);
+          await storeTransaction({
+            key: createHash('sha256').update(txData.txId).digest('hex'),
+            txId: txData.txId,
+            txStatus: 'Pending',
+            amount: amount,
+            tag: "LOCKER",
+            txSender: getUserPrincipal(),
+            action: `Lock ${tokenLockerDetails.symbol} Token`
+          })
+          router.push("/locker/userlocks");
+        },
+        onCancel: () => {
+          setIsProcessing(false)
+          console.log("onCancel:", "Transaction was canceled");
+        },
+      });
+    } catch (e) {
+      setIsProcessing(false)
+      console.log(e)
     }
-    const fungibleAssetInfo = createAssetInfo(
-      tokenAddress[0],
-      assetContractName,
-      assetName,
-    );
-    const postConditionAmount = BigInt(amount)
-
-    const fungiblePostConditionToken = makeStandardFungiblePostCondition(
-      getUserPrincipal(),
-      postConditionCode,
-      postConditionAmount,
-      fungibleAssetInfo,
-    );
-
-    const postConditionAmountFee = BigInt(1000000000);
-
-    const fungibleAssetInfoGoat = createAssetInfo(
-      contractAddress,
-      'memegoatstx',
-      'memegoatstx',
-    );
-
-    const fungiblePostConditionGOATSTX = makeStandardFungiblePostCondition(
-      getUserPrincipal(),
-      postConditionCode,
-      postConditionAmountFee,
-      fungibleAssetInfoGoat,
-    );
-
-    const postConditionAddress = getUserPrincipal();
-    const postConditionCodeSTX = FungibleConditionCode.LessEqual;
-    const postConditionAmountSTX = BigInt(1000000);
-
-    const standardSTXPostCondition = makeStandardSTXPostCondition(
-      postConditionAddress,
-      postConditionCodeSTX,
-      postConditionAmountSTX,
-    );
-
-    const blockheight = await fetchCurrNoOfBlocks();
-
-    const unlockBlocksCv = unvestBlocks && vesting ? unvestBlocks.map(data => (tupleCV({
-      height: uintCV(Number(getDifferenceInBlocks(data.height)) + blockheight),
-      percentage: uintCV(data.percentage),
-    }))) : [tupleCV({ height: uintCV(noOfBlocks + blockheight), percentage: uintCV(100) })];
-
-    const addressInfoCv = addressInfo && vesting ? addressInfo.map(data => tupleCV({
-      address: standardPrincipalCV(data.address),
-      amount: uintCV(Number(data.amount) * 1000000),
-      "withdrawal-address": standardPrincipalCV(data.address)
-    })) : [tupleCV({ address: standardPrincipalCV(getUserPrincipal()), amount: uintCV(amount), "withdrawal-address": standardPrincipalCV(toWithdrawerAddress) })]
-
-    doContractCall({
-      network: networkInstance,
-      anchorMode: AnchorMode.Any,
-      contractAddress,
-      contractName: "memegoat-token-locker-v1-1",
-      functionName: "lock-token",
-      functionArgs: [
-        uintCV(amount),
-        boolCV(feeIsSTx()),
-        contractPrincipalCV(tokenAddress[0], tokenAddress[1]),
-        contractPrincipalCV(
-          contractAddress,
-          "memegoatstx",
-        ),
-        boolCV(vesting),
-        listCV(unlockBlocksCv),
-        listCV(addressInfoCv)
-      ],
-      postConditionMode: PostConditionMode.Deny,
-      postConditions: feeIsSTx() ? [fungiblePostConditionToken, standardSTXPostCondition] : [fungiblePostConditionToken, fungiblePostConditionGOATSTX],
-      onFinish: (data) => {
-        setTxData(data);
-        setIsProcessing(false);
-        storeDB(data.txId, amount, noOfBlocks, tokenLockerDetails);
-        router.push("/locker/userlocks");
-      },
-      onCancel: () => {
-        setIsProcessing(false)
-        console.log("onCancel:", "Transaction was canceled");
-      },
-    });
   }
 
   return (
@@ -226,13 +242,14 @@ export const LockerSetup = () => {
 
           <div className="bg-[rgba(72,145,90,0.05)] border-0 border-[rgba(16,69,29,0.85)] p-4 md:p-6 backdrop-blur-[12px] text-sm">
             <div className="flex gap-3 items-center mb-5">
-              <Avatar src={tokenLockerDetails.image_uri} size={50} />
+              <Avatar src={tokenLockerDetails.icon} size={50} />
               <div>
-                <h3>{tokenLockerDetails.name}</h3>
+                <h3>{tokenLockerDetails.name.toUpperCase()}</h3>
                 <p className="mb-1 text-sm text-custom-white/60">
                   Balance:{" "}
                   <span className="text-primary-30">
-                    {balance.toLocaleString()} {tokenLockerDetails.symbol}
+                    {balance.toLocaleString()} {" "}
+                    {checkInVelar(tokenLockerDetails.symbol || "", tokensContext.velarTokens) ? tokenLockerDetails.symbol : tokenLockerDetails?.name}
                   </span>
                 </p>
               </div>
@@ -282,7 +299,7 @@ export const LockerSetup = () => {
               </div>
 
               <div>
-                <div className="mb-3">
+                {/* <div className="mb-3">
                   <p className="text-primary-50 mb-3">Vest Tokens</p>
                   <Radio.Group
                     defaultValue={false}
@@ -291,7 +308,7 @@ export const LockerSetup = () => {
                     <Radio value={true}>Yes</Radio>
                     <Radio value={false}>No</Radio>
                   </Radio.Group>
-                </div>
+                </div> */}
                 {!vesting ? (
                   <div>
                     <p className="text-custom-white/60">Unlock Date</p>
@@ -384,7 +401,7 @@ export const LockerSetup = () => {
                     <Button className={`w-full bg-transparent ${feeIsSTx() && 'border-primary-80'} text-primary-50 mb-1`} onClick={() => handleOptionClick(1)}>
                       STX
                     </Button>
-                    <p>Balance: {formatBal(stxBalance)}</p>
+                    <p>Balance: {stxBalance}</p>
                   </div>
                 </div>
                 <p className="mt-5 text-custom-white/60">

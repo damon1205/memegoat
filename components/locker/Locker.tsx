@@ -6,20 +6,35 @@ import Link from "next/link"
 import React, { useEffect, useState } from "react"
 import { BsDot, BsLockFill } from "react-icons/bs"
 import { SelectToken } from "../shared/SelectToken"
+import { useTokensContext } from "@/provider/Tokens"
 import { useTokenLocker } from "@/hooks/useTokenLocker"
 
 export const Locker = () => {
   const [tokens, setTokens] = useState<TokenData[]>([]);
-  const [metadata, setMetadata] = useState<ITokenMetadata | null>(null);
+  const [metadata, setMetadata] = useState<TokenData | null>(null);
 
   const { setTokenLockerDetails } = useTokenLocker()
 
+  const tokensContext = useTokensContext();
+
   const handleChange = async (token: TokenData) => {
-    const metadata = await fetchTokenMetadata(token.address);
-    setMetadata(metadata)
-    if (metadata) {
-      setTokenLockerDetails(metadata)
+
+    // const meta = tokensContext.getTokenMetaByAddress(token.address)
+    // if (meta) {
+    //   setMetadata(meta);
+    //   setTokenLockerDetails(meta)
+    // } else {
+    const tokenMetadata = await fetchTokenMetadata(token.address);
+    const meta = {
+      symbol: tokenMetadata?.symbol,
+      address: token.address,
+      name: token.name,
+      icon: tokenMetadata?.image_uri,
+      decimals: tokenMetadata?.decimals
     }
+    setMetadata(meta)
+    setTokenLockerDetails(meta)
+    // }
   };
 
   useEffect(() => {
