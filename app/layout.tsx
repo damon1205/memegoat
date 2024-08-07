@@ -5,11 +5,9 @@ import { PageContainer } from "@/components/shared/PageContainer"
 import { AntProvider } from "@/components/shared/AntProvider"
 import config from "@/utils/config"
 import StacksProvider from "@/provider/stacks"
-import StoreProvider from "@/provider/Redux"
 import { NotificationModal } from "@/components/shared/NotificationModal"
 import { NotificationProvider } from "@/provider/notification"
 import { TokensProvider } from "@/provider/Tokens"
-import QueryProvider from "@/provider/Query"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -47,8 +45,6 @@ export default function RootLayout({
       <body className={`${inter.className} bg-custom-black`}>
         <AntProvider>
           <StacksProvider>
-            {/* <StoreProvider> */}
-            {/* <QueryProvider> */}
             <TokensProvider>
               <PageContainer>
                 <NotificationProvider>
@@ -57,8 +53,6 @@ export default function RootLayout({
                 </NotificationProvider>
               </PageContainer>
             </TokensProvider>
-            {/* </QueryProvider> */}
-            {/* </StoreProvider> */}
           </StacksProvider>
         </AntProvider>
       </body>
