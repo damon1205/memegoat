@@ -72,7 +72,9 @@ export const TokensProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (token.name.toLowerCase() === 'stx') {
       balance = await fetchSTXBalance();
     } else {
-      balance = await getUserTokenBalance(token.address, token.decimals);
+      const decimals = getTokenMetaByAddress(token.address)
+      const finalDecimals = decimals ? decimals.decimals : token.decimals
+      balance = await getUserTokenBalance(token.address, finalDecimals);
     }
     setBalances((prevBalances) => ({
       ...prevBalances,

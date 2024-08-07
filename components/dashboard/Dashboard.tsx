@@ -1,13 +1,27 @@
 "use client"
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { Avatar, Button } from "antd"
 import { motion } from "framer-motion"
 import { TransactionTable } from "./TransactionTable"
 import { Attestation } from "./Attestation"
 import Link from "next/link"
 import { AllTransactions } from "../shared/AllTransactions"
+import { alexSDK } from "@/utils/velar.data"
 
 export const Dashboard = () => {
+  const [tokenPrice, setTokenPrice] = useState<number | undefined>(0);
+
+  useEffect(() => {
+    const fetchPrice = async () => {
+      const price = await alexSDK.getLatestPrices()
+      const tokenKey = 'token-ssl-memegoatstx-E0G14' as keyof typeof price;
+      if (tokenKey in price) {
+        setTokenPrice(price[tokenKey])
+      }
+    }
+    fetchPrice()
+  }, [])
+
   return (
     <div>
       <motion.div
@@ -33,18 +47,18 @@ export const Dashboard = () => {
           <div className="grid md:grid-cols-4 gap-7">
             <div className="bg-primary-100/10 border-[1px] border-primary-90 w-full px-5 py-5">
               <p className="text-sm">Number of Assets Supported</p>
-              <p className="text-2xl font-semibold mt-3">38 Tokens</p>
+              <p className="text-2xl font-semibold mt-3">84 Tokens</p>
             </div>
             <div className="bg-primary-100/10 border-[1px] border-primary-100 w-full px-5 py-5">
               <p className="text-sm">Funds Raised</p>
-              <p className="text-2xl font-semibold mt-3">$ 268,844,327.23</p>
+              <p className="text-2xl font-semibold mt-3">$ 135,000</p>
             </div>
             <div className="bg-primary-100/10 border-[1px] border-primary-100 w-full px-5 py-5">
               <p className="text-sm">
                 <Avatar src="/logo.svg" size={30} />
                 <span className="ml-2">MemeGoat Price</span>
               </p>
-              <p className="text-2xl font-semibold mt-3">$ 0.04662922</p>
+              <p className="text-2xl font-semibold mt-3">$ {tokenPrice ? tokenPrice.toFixed(10) : 0.00002}</p>
             </div>
             <div className="bg-primary-100/10 border-[1px] border-primary-100 w-full px-5 py-5">
               <p className="text-sm">

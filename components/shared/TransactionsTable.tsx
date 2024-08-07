@@ -38,7 +38,7 @@ const columns: TableProps<TxType>["columns"] = [
     title: "Action",
     dataIndex: "action",
     key: "action",
-    render(record) {
+    render(value, record) {
       return (
         <div className="font-medium text-sm">
           {record.action}
@@ -85,7 +85,7 @@ const columns: TableProps<TxType>["columns"] = [
     render(value, record) {
       return (
         <div className="font-medium ">
-          {record.txStatus === "confirmed" ? (
+          {record.txStatus === "Successful" ? (
             <div className="text-primary-40 mb-3 flex gap-1 items-center capitalize">
               <BsDot size={30} />
               <span>{record.txStatus}</span>

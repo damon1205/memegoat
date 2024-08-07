@@ -4,7 +4,7 @@ import React from "react"
 
 const StakingPage = () => {
   // Set a specific target date (e.g., August 15, 2024)
-  const targetDate = "2024-08-12T12:04:00"
+  const targetDate = '2024-08-08T16:00:00Z'
   return (
     <div>
       <CountdownTimer targetDate={targetDate} />

@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useState } from "react"
 import { Button, Divider, Form, Input } from "antd"
 import { FaDiscord, FaGlobe } from "react-icons/fa"
-import { FaXTwitter } from "react-icons/fa6"
+import { FaArrowUpRightFromSquare, FaXTwitter } from "react-icons/fa6"
 import { useForm } from "antd/es/form/Form"
 import { UploadImage } from "@/components/shared/UploadImage"
 import { Rule } from "antd/es/form"
@@ -13,6 +13,7 @@ import { useTokenMinterFields } from "@/hooks/useTokenMinterHooks"
 import {
   ApiURLS,
   appDetails,
+  getExplorerLink,
   // getExplorerLink,
   getUserPrincipal,
   network,
@@ -24,11 +25,12 @@ import { uploadToGaia, generateContract } from "@/utils/helpers"
 import { AnchorMode } from "@stacks/transactions"
 import { showConnect, useConnect } from "@stacks/connect-react"
 import axios from "axios"
-import { initialData } from "@/data/constants"
+import { initialData, txMessage } from "@/data/constants"
 import { uploadCampaign } from "@/lib/contracts/launchpad"
 import { useNotificationConfig } from "@/hooks/useNotification"
 import { createHash, hash } from "crypto"
 import { PendingTransactions } from "../shared/PendingTransactions"
+import Link from "next/link"
 
 interface PropI {
   current: number
@@ -79,158 +81,153 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
       }
       setLoading(true)
       const formData = form.getFieldsValue()
-      // const metadata = {
-      //   name: formData.token_name,
-      //   description: formData.token_desc,
-      //   image: formData.token_image,
-      // }
-      // const data = JSON.stringify(metadata)
-      // const filename = `${metadata.name.replace(/ /g, "-")}.json`
-      // const token_uri = await uploadToGaia(filename, data, "application/json")
-      // if (token_uri === "") {
-      //   config({
-      //     message: "Please connect Wallet",
-      //     title: "Staking",
-      //     type: "error",
-      //   })
-      //   return
-      // }
-      // const contract = generateContract(
-      //   formData.token_name,
-      //   token_uri,
-      //   formData.token_ticker,
-      //   formData.token_supply
-      // )
-      // const contractName = `${formData.token_ticker}`
-      // const tokenAddress = `${getUserPrincipal()}.${contractName}`
-      // console.log(.toString())
-      console.log({
-        key: createHash('sha256').update('0x56613fb92f4a7798bf578b3844cd4a6c8d033fc3bf1fc2569231394e82e6830e').digest('hex'),
-        txId: '0x56613fb92f4a7798bf578b3844cd4a6c8d033fc3bf1fc2569231394e82e6830e',
-        txStatus: 'Pending',
-        amount: Number(formData.token_supply),
-        tag: "MINTER",
-        txSender: getUserPrincipal(),
-        action: 'Mint New Token'
+      const metadata = {
+        name: formData.token_name,
+        description: formData.token_desc,
+        image: formData.token_image,
+      }
+      const data = JSON.stringify(metadata)
+      const filename = `${metadata.name.replace(/ /g, "-")}.json`
+      const token_uri = await uploadToGaia(filename, data, "application/json")
+      if (token_uri === "") {
+        config({
+          message: "Please connect Wallet",
+          title: "Staking",
+          type: "error",
+        })
+        return
+      }
+      const contract = generateContract(
+        formData.token_name,
+        token_uri,
+        formData.token_ticker,
+        formData.token_supply
+      )
+      const contractName = `${formData.token_ticker}`
+      const tokenAddress = `${getUserPrincipal()}.${contractName}`
+      await doContractDeploy({
+        network: networkInstance,
+        anchorMode: AnchorMode.Any,
+        codeBody: contract,
+        contractName,
+        onFinish: async (data) => {
+          try {
+            await storeTransaction({
+              key: createHash('sha256').update(data.txId).digest('hex'),
+              txId: data.txId,
+              txStatus: 'Pending',
+              amount: Number(formData.token_supply),
+              tag: "MINTER",
+              txSender: getUserPrincipal(),
+              action: 'Mint New Token'
+            })
+            await uploadCampaign({ ...tokenMintProgress, is_campaign: false })
+            if (!minter) {
+              setTokenMintProgress(
+                {
+                  ...tokenMintProgress,
+                  ...form.getFieldsValue(),
+                  tx_id: data.txId,
+                  token_address: tokenAddress,
+                  user_addr: getUserPrincipal(),
+                  action: "Token Mint",
+                  tx_status: "pending"
+                }
+              );
+            }
+          } catch (e) {
+            console.log(e)
+          }
+          config({
+            message: txMessage,
+            title: "Mint request successfully received!",
+            type: "success",
+            details_link: getExplorerLink(network, data.txId)
+          })
+          setLoading(false)
+          resetForm()
+          setTokenMintProgress(initialData)
+        },
+        onCancel: () => {
+          setLoading(false)
+          config({
+            message: "Transaction was canceled",
+            title: "Minter",
+            type: "error",
+          })
+          console.log("onCancel:", "Transaction was canceled")
+        },
       })
-      await storeTransaction({
-        key: createHash('sha256').update('0x56613fb92f4a7798bf578b3844cd4a6c8d033fc3bf1fc2569231394e82e6830e').digest('hex'),
-        txId: '0x56613fb92f4a7798bf578b3844cd4a6c8d033fc3bf1fc2569231394e82e6830e',
-        txStatus: 'Pending',
-        amount: Number(formData.token_supply),
-        tag: "MINTER",
-        txSender: getUserPrincipal(),
-        action: 'Mint New Token'
-      })
-      setLoading(false)
-      // await doContractDeploy({
-      //   network: networkInstance,
-      //   anchorMode: AnchorMode.Any,
-      //   codeBody: contract,
-      //   contractName,
-      //   onFinish: async (data) => {
-      //     // setTokenMintProgress({
-      //     //   ...tokenMintProgress,
-      //     //   ...form.getFieldsValue(),
-      //     //   tx_id: data.txId,
-      //     //   token_address: tokenAddress,
-      //     //   user_addr: getUserPrincipal(),
-      //     //   action: "Token Mint",
-      //     //   tx_status: "pending",
-      //     // })
-      //     await storeTransaction({
-      //       key: createHash('sha256').update(data.txId).digest('hex'),
-      //       txId: data.txId,
-      //       txStatus: 'Pending',
-      //       amount: Number(formData.token_supply),
-      //       tag: "MINTER",
-      //       txSender: getUserPrincipal(),
-      //       action: 'Mint New Token'
-      //     })
-      //     config({
-      //       message: "Token Mint Transaction sent",
-      //       title: "Minter",
-      //       type: "pending",
-      //     })
-      //     setLoading(false)
-      //     resetForm()
-      //     setTokenMintProgress(initialData)
-      //   },
-      //   onCancel: () => {
-      //     setLoading(false)
-      //     config({
-      //       message: "Transaction was canceled",
-      //       title: "Minter",
-      //       type: "error",
-      //     })
-      //     console.log("onCancel:", "Transaction was canceled")
-      //   },
-      // })
     } catch (e) {
       setLoading(false)
-      console.log(e)
+      if (e instanceof Error) {
+        config({ message: e.message, title: 'Launchpad', type: 'error' })
+      } else {
+        config({ message: "An unknown error occurred", title: 'Launchpad', type: 'error' })
+      }
     }
   }
 
-  // const fetchTransactionStatus = useCallback(async () => {
-  //   try {
-  //     if (tokenMintProgress.tx_status !== "pending") return
-  //     setLoading(true)
-  //     const txn = tokenMintProgress
-  //     const axiosConfig = {
-  //       method: "get",
-  //       maxBodyLength: Infinity,
-  //       url: ApiURLS[network].getTxnInfo + `${txn.tx_id} `,
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //     }
-  //     const response = await axios.request(axiosConfig)
-  //     if (response.data.tx_status !== "pending") {
-  //       txn.tx_status = response.data.tx_status
-  //       if (response.data.tx_status === "success") {
-  //         config({
-  //           message: `${txn.action} Successful`,
-  //           title: "Staking",
-  //           type: "success",
-  //         })
-  //         if (!minter) {
-  //           txn.step = "2"
-  //         }
-  //         if (minter) {
-  //           await uploadCampaign({ ...tokenMintProgress, is_campaign: false })
-  //           setTokenMintProgress({ ...initialData })
-  //           form.resetFields()
-  //         } else {
-  //           setTokenMintProgress({ ...txn })
-  //         }
-  //       } else {
-  //         config({
-  //           message: `${txn.action} Failed`,
-  //           title: "Staking",
-  //           type: "error",
-  //         })
-  //         setTokenMintProgress({ ...txn })
-  //       }
-  //       setLoading(false)
-  //     }
-  //   } catch (error) {
-  //     setLoading(false)
-  //     console.error(error)
-  //   }
-  // }, [tokenMintProgress, setTokenMintProgress, minter, form, config])
+  const fetchTransactionStatus = useCallback(async () => {
+    try {
+      if (tokenMintProgress.tx_status !== "pending") return
+      setLoading(true)
+      const txn = tokenMintProgress
+      const axiosConfig = {
+        method: "get",
+        maxBodyLength: Infinity,
+        url: ApiURLS[network].getTxnInfo + `${txn.tx_id} `,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+      const response = await axios.request(axiosConfig)
+      if (response.data.tx_status !== "pending") {
+        txn.tx_status = response.data.tx_status
+        if (response.data.tx_status === "success") {
+          config({
+            message: `${txn.action} Successful`,
+            title: "Staking",
+            type: "success",
+          })
+          if (!minter) {
+            txn.step = "2"
+          }
+          if (minter) {
+            setTokenMintProgress({ ...initialData })
+            form.resetFields()
+          } else {
+            setTokenMintProgress({ ...txn })
+          }
+        } else {
+          config({
+            message: `${txn.action} Failed`,
+            title: "Staking",
+            type: "error",
+          })
+          setTokenMintProgress({ ...txn })
+        }
+        setLoading(false)
+      }
+    } catch (error) {
+      setLoading(false)
+      console.error(error)
+    }
+  }, [tokenMintProgress, setTokenMintProgress, minter, form, config])
 
   useEffect(() => {
     nextStep()
-    // const interval = setInterval(() => {
-    //   if (tokenMintProgress.tx_status !== "pending") return
-    //   fetchTransactionStatus()
-    // }, 1000)
-    // //Clearing the interval
-    // return () => clearInterval(interval)
+    const interval = setInterval(() => {
+      if (minter) return
+      if (tokenMintProgress.tx_status !== "pending") return
+      fetchTransactionStatus()
+    }, 1000)
+    //Clearing the interval
+    return () => clearInterval(interval)
   }, [
-    // tokenMintProgress, 
-    // fetchTransactionStatus, 
+    minter,
+    tokenMintProgress,
+    fetchTransactionStatus,
     nextStep
   ])
 
@@ -405,7 +402,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
                       <span>Awaiting Confirmation</span>
                     )}
                   </Button>
-                  {/* {loading && tokenMintProgress.tx_id !== "" && (
+                  {loading && !minter && tokenMintProgress.tx_id !== "" && (
                     <div className="text-xs flex flex-row items-center justify-center mt-2">
                       <Link
                         href={getExplorerLink(network, tokenMintProgress.tx_id)}
@@ -422,7 +419,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
                         </h1>
                       </Link>
                     </div>
-                  )} */}
+                  )}
                 </div>
               ) : (
                 <Button

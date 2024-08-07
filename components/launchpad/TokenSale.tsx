@@ -20,6 +20,7 @@ import {
   ApiURLS,
   network,
   getExplorerLink,
+  storeTransaction,
 } from "@/utils/stacks.data"
 import {
   FungibleConditionCode,
@@ -38,11 +39,12 @@ import { useConnect } from "@stacks/connect-react"
 import axios from "axios"
 import Link from "next/link"
 import { FaArrowUpRightFromSquare } from "react-icons/fa6"
-import { initialData } from "@/data/constants"
+import { initialData, txMessage } from "@/data/constants"
 import moment from "moment"
 import { LaunchpadDataI } from "@/interface"
 import { uploadCampaign } from "@/lib/contracts/launchpad"
 import { useNotificationConfig } from "@/hooks/useNotification"
+import { createHash } from "crypto"
 
 interface PropI {
   current: number
@@ -143,81 +145,115 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
   const handleRegister = async () => {
     if (!tokenMintProgress) return
 
-    const formData = form.getFieldsValue()
-    const tokenAddress = splitToken(tokenMintProgress.token_address)
-    const postConditionCode = FungibleConditionCode.LessEqual
-    const assetAddress = tokenAddress[0]
-    const assetContractName = tokenAddress[1]
+    try {
+      const formData = form.getFieldsValue()
+      const tokenAddress = splitToken(tokenMintProgress.token_address)
+      const postConditionCode = FungibleConditionCode.LessEqual
+      const assetAddress = tokenAddress[0]
+      const assetContractName = tokenAddress[1]
 
-    const assetName = tokenMintProgress.token_ticker
-    const fungibleAssetInfo = createAssetInfo(
-      assetAddress,
-      assetContractName,
-      assetName
-    )
-    const postConditionAmount = BigInt(
-      Number(
-        tokenMintProgress.campaign_allocation
-          ? tokenMintProgress.campaign_allocation
-          : 0
-      ) +
+      const assetName = tokenMintProgress.token_ticker
+      const fungibleAssetInfo = createAssetInfo(
+        assetAddress,
+        assetContractName,
+        assetName
+      )
+      const postConditionAmount = BigInt(
+        Number(
+          tokenMintProgress.campaign_allocation
+            ? tokenMintProgress.campaign_allocation
+            : 0
+        ) +
         Number(formData.listing_allocation) +
         Number(formData.sale_allocation)
-    )
-    const fungiblePostCondition = makeStandardFungiblePostCondition(
-      getUserPrincipal(),
-      postConditionCode,
-      postConditionAmount * BigInt(10e5),
-      fungibleAssetInfo
-    )
+      )
+      const fungiblePostCondition = makeStandardFungiblePostCondition(
+        getUserPrincipal(),
+        postConditionCode,
+        postConditionAmount * BigInt(10e5),
+        fungibleAssetInfo
+      )
 
-    const currBlock = await fetchCurrNoOfBlocks()
-    const startBlocks = await convertToBlocks(formData.start_date, currBlock)
-    const endBlocks = await convertToBlocks(formData.end_date, currBlock)
+      const currBlock = await fetchCurrNoOfBlocks()
+      const startBlocks = await convertToBlocks(formData.start_date, currBlock)
+      const endBlocks = await convertToBlocks(formData.end_date, currBlock)
 
-    doContractCall({
-      network: networkInstance,
-      anchorMode: AnchorMode.Any,
-      contractAddress,
-      contractName: "memegoat-launchpad-v1-4",
-      functionName: "register-token-launch",
-      functionArgs: [
-        contractPrincipalCV(tokenAddress[0], tokenAddress[1]),
-        uintCV(Number(formData.sale_allocation) * 1000000),
-        uintCV(Number(formData.hard_cap) * 1000000),
-        uintCV(Number(formData.soft_cap) * 1000000),
-        uintCV(startBlocks),
-        uintCV(endBlocks),
-        uintCV(Number(formData.minimum_buy) * 1000000),
-        uintCV(Number(formData.maximum_buy) * 1000000),
-        boolCV(false),
-        uintCV(Number(formData.listing_allocation) * 1000000),
-        Number(tokenMintProgress.campaign_allocation) > 0
-          ? someCV(
+      doContractCall({
+        network: networkInstance,
+        anchorMode: AnchorMode.Any,
+        contractAddress,
+        contractName: "memegoat-launchpad-v1-4",
+        functionName: "register-token-launch",
+        functionArgs: [
+          contractPrincipalCV(tokenAddress[0], tokenAddress[1]),
+          uintCV(Number(formData.sale_allocation) * 1000000),
+          uintCV(Number(formData.hard_cap) * 1000000),
+          uintCV(Number(formData.soft_cap) * 1000000),
+          uintCV(startBlocks),
+          uintCV(endBlocks),
+          uintCV(Number(formData.minimum_buy) * 1000000),
+          uintCV(Number(formData.maximum_buy) * 1000000),
+          boolCV(false),
+          uintCV(Number(formData.listing_allocation) * 1000000),
+          Number(tokenMintProgress.campaign_allocation) > 0
+            ? someCV(
               uintCV(Number(tokenMintProgress.campaign_allocation) * 1000000)
             )
-          : noneCV(),
-        boolCV(true),
-      ],
-      postConditionMode: PostConditionMode.Deny,
-      postConditions: [fungiblePostCondition],
-      onFinish: (data) => {
-        setShowTokenSale(false)
-        setTokenMintProgress({
-          ...tokenMintProgress,
-          ...form.getFieldsValue(),
-          action: "Create Sale",
-          tx_id: data.txId,
-          start_date: convertToIso(formData.start_date).toString(),
-          end_date: convertToIso(formData.end_date).toString(),
-          tx_status: "pending",
-        })
-      },
-      onCancel: () => {
-        setLoading(false)
-        console.log("onCancel:", "Transaction was canceled")
-      },
-    })
+            : noneCV(),
+          boolCV(true),
+        ],
+        postConditionMode: PostConditionMode.Deny,
+        postConditions: [fungiblePostCondition],
+        onFinish: async (txData) => {
+          try {
+            await storeTransaction({
+              key: createHash('sha256').update(txData.txId).digest('hex'),
+              txId: txData.txId,
+              txStatus: 'Pending',
+              amount: Number(formData.token_supply),
+              tag: "LAUNCHPAD",
+              txSender: getUserPrincipal(),
+              action: 'Create New Launchpad'
+            })
+
+            setTokenMintProgress({
+              ...tokenMintProgress,
+              ...form.getFieldsValue(),
+              action: "Create Token Sale",
+              tx_id: txData.txId,
+              start_date: convertToIso(formData.start_date).toString(),
+              end_date: convertToIso(formData.end_date).toString(),
+              tx_status: "pending",
+            })
+          } catch (e) {
+            console.log(e)
+          }
+          config({
+            message: txMessage,
+            title: "Mint request successfully received!",
+            type: "success",
+            details_link: getExplorerLink(network, txData.txId)
+          })
+          setShowTokenSale(false)
+        },
+        onCancel: () => {
+          setLoading(false)
+          config({
+            message: "Transaction was canceled",
+            title: "Minter",
+            type: "error",
+          })
+          console.log("onCancel:", "Transaction was canceled")
+        },
+      })
+    } catch (e) {
+      setLoading(false)
+      if (e instanceof Error) {
+        config({ message: e.message, title: 'Launchpad', type: 'error' })
+      } else {
+        config({ message: "An unknown error occurred", title: 'Launchpad', type: 'error' })
+      }
+    }
   }
 
   const redirect = useCallback(() => {
@@ -419,6 +455,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                     size="large"
                     className="w-full bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px]"
                     name="start_date"
+                    disabled={loading}
                   />
                 </Form.Item>
                 <Form.Item
@@ -435,6 +472,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                     size="large"
                     className="w-full bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px]"
                     name="end_date"
+                    disabled={loading}
                   />
                 </Form.Item>
               </div>

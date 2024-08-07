@@ -27,7 +27,7 @@ export interface TxType {
   key: string;
   id: string;
   txId: string;
-  txStatus: "Pending" | "Succesful" | "Failed";
+  txStatus: "Pending" | "Successful" | "Failed";
   amount: number;
   tag: string;
   txSender: string;

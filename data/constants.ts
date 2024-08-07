@@ -184,3 +184,6 @@ export const pendingInitial = {
   end_date: "",
   token_image: "",
 };
+
+export const txMessage =
+  "Your transaction is currently being processed and should be confirmed within 10-20 minutes. You can track its progress in the transaction bar.";

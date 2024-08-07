@@ -10,7 +10,7 @@ import { getUserPrincipal } from "@/utils/stacks.data"
 const LockerLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
-      <div>
+      {/* <div>
         <div className="fixed top-[10vh] right-[50%] translate-x-[50%]  z-[0]">
           <motion.div
             initial={{ opacity: 0 }}
@@ -44,7 +44,8 @@ const LockerLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
           <div>{children}</div>
         </motion.div>
-      </div>
+      </div> */}
+      <div>{children}</div>
     </>
   )
 }
