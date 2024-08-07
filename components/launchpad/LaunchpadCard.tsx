@@ -41,18 +41,18 @@ export const LaunchpadCard = ({ ...props }: LaunchpadI) => {
           <div className="mt-8 flex items-center justify-between">
             <div>
               <p className="text-xs mt-2 text-custom-white/60">Target raise</p>
-              <p className="text-sm">{props.hard_cap} STX</p>
+              <p className="text-sm">{props.token_name === 'MoonMunchBTC' ? 'TBA' : `${props.hard_cap} STX`}</p>
             </div>
             {checkDate(props.start_date) ? checkDate(props.end_date) ?
               <div>
                 <p className="text-xs mt-2 text-custom-white/60">Ended In</p>
-                <p className="text-sm">{formatDate(props.end_date)}</p>
+                <p className="text-sm">{props.token_name === 'MoonMunchBTC' ? 'TBA' : formatDate(props.end_date)}</p>
               </div> : <div>
                 <p className="text-xs mt-2 text-custom-white/60">Ends In</p>
-                <p className="text-sm">{formatDate(props.end_date)}</p>
+                <p className="text-sm">{props.token_name === 'MoonMunchBTC' ? 'TBA' : formatDate(props.end_date)}</p>
               </div> : <div>
               <p className="text-xs mt-2 text-custom-white/60">Starts In</p>
-              <p className="text-sm">{formatDate(props.end_date)}</p>
+              <p className="text-sm">{props.token_name === 'MoonMunchBTC' ? 'TBA' : formatDate(props.end_date)}</p>
             </div>}
           </div>
         </div>

@@ -233,3 +233,7 @@ export interface TxRequest {
 }
 
 type TxStatus = "Failed" | "Pending" | "Successful";
+
+export interface VelarToken {
+  symbol: string;
+}

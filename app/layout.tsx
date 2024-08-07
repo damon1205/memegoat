@@ -46,16 +46,16 @@ export default function RootLayout({
       <body className={`${inter.className} bg-custom-black`}>
         <AntProvider>
           <StacksProvider>
-            <StoreProvider>
-              <TokensProvider>
-                <PageContainer>
-                  <NotificationProvider>
-                    {children}
-                    <NotificationModal />
-                  </NotificationProvider>
-                </PageContainer>
-              </TokensProvider>
-            </StoreProvider>
+            {/* <StoreProvider> */}
+            <TokensProvider>
+              <PageContainer>
+                <NotificationProvider>
+                  {children}
+                  <NotificationModal />
+                </NotificationProvider>
+              </PageContainer>
+            </TokensProvider>
+            {/* </StoreProvider> */}
           </StacksProvider>
         </AntProvider>
       </body>

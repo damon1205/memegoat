@@ -1,8 +1,7 @@
 "use client"
 import { TokenData } from '@/interface'
 import { useTokensContext } from '@/provider/Tokens'
-import { formatBal } from '@/utils/format'
-import { fetchSTXBalance, getUserTokenBalance, userSession } from '@/utils/stacks.data'
+import { userSession } from '@/utils/stacks.data'
 import { Avatar } from 'antd'
 import React, { useEffect, useState } from 'react'
 
@@ -13,17 +12,16 @@ const Token = ({ token, action }: { token: TokenData, action: (token: TokenData)
 
   useEffect(() => {
     const fetchData = async () => {
-      if (userSession.isUserSignedIn()) {
-        if (token.name.toLocaleLowerCase() === "stx") {
-          const balance = await fetchSTXBalance()
-          setTokenBalance(balance)
-        } else {
-          const balance = await getUserTokenBalance(token.address, token.decimals);
-          setTokenBalance(balance)
+      try {
+        if (userSession.isUserSignedIn()) {
+          const balance = await tokensContext.getTokenBalance(token);
+          setTokenBalance(balance ? balance : 0)
         }
+        const meta = tokensContext.getTokenMeta(token.name)
+        setTokenMetadata(meta);
+      } catch (e) {
+        console.log(e)
       }
-      const meta = tokensContext.getTokenMeta(token.name)
-      setTokenMetadata(meta);
     }
     fetchData()
   }, [token, tokensContext])

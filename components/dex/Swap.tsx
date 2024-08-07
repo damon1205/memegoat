@@ -12,7 +12,7 @@ import { Currency } from "alex-sdk"
 import { alexSDK, velarSDK } from "@/utils/velar.data"
 import { SwapType } from "@velarprotocol/velar-sdk"
 import { appDetails, contractAddress, fetchSTXBalance, getUserPrincipal, getUserTokenBalance, networkInstance, userSession } from "@/utils/stacks.data"
-import { checkInAlexName, getAlexRouteId, checkInVelar, calculateSwapVelarMulti, calculateSwapVelar, getAlexName, getAlexTokenAddress, getTokenAddressHiro, splitNGetCA } from "@/utils/swap"
+import { checkInAlexName, getAlexRouteId, checkInVelar, calculateSwapVelarMulti, calculateSwapVelar, getAlexName, getAlexTokenAddress, getTokenAddressHiro } from "@/utils/swap"
 import { storePendingTxn } from "@/lib/contracts/launchpad"
 import { splitToken } from "@/utils/helpers"
 import { contractPrincipalCV, AnchorMode, uintCV, boolCV, someCV, listCV, noneCV, PostConditionMode, ContractPrincipalCV, UIntCV } from "@stacks/transactions"
@@ -31,6 +31,8 @@ export const Swap = () => {
   const [balance, setBalance] = useState<number>(0);
   const [amount, setAmount] = useState<number>(0);
   const [amountOut, setAmountOut] = useState<number>(0);
+  const [rate, setRate] = useState<number>(0)
+  const [outBalance, setOutBalance] = useState<number>(0);
 
   const [constraint, setConstraint] = useState<number>(0);
   const [velarRoute, setVelarRoutes] = useState<string[][]>([]);
@@ -47,7 +49,6 @@ export const Swap = () => {
 
   const setMax = () => {
     fromRef.current.value = balance
-    toRef.current.value = balance
     setAmount(balance)
     setConstraint(Number(balance / 2) + constraint);
     // setTo((prev) => ({ ...prev, amount: balance * tokenRate }))
@@ -75,22 +76,27 @@ export const Swap = () => {
     })
   }
 
+  const updateAmountOut = useCallback((amountOut: number) => {
+    setAmountOut(amountOut);
+    if (toRef.current) {
+      toRef.current.value = amountOut > 0 ? Number(amountOut).toFixed(5) : '0';
+    }
+    const rate = (amountOut / amount).toFixed(10)
+    setRate(Number(rate))
+  }, [amount])
+
   const handleSetFromToken = (token: TokenData) => {
-    setToken(token.symbol ? token.symbol : token.name);
-    setAmountOut(0);
+    if (!token) return;
+    setToken(token.name);
+    updateAmountOut(0);
     setVelarRates([]);
     setAlexRates([]);
     // setToTokens(tokens)
   };
 
   const handleSetToToken = (token: TokenData) => {
-    setToToken(token.symbol ? token.symbol : token.name);
-  };
-
-  const getAlexImage = (symbol: string): string => {
-    if (!alexTokens) return "";
-    const token = alexTokens.find((token) => token.id === symbol);
-    return token ? token.icon : "";
+    if (!token) return;
+    setToToken(token.name);
   };
 
   const reset = () => {
@@ -109,7 +115,7 @@ export const Swap = () => {
     setToken(toToken);  // Swapping the tokens
     setToToken(token1);
     setAmount(0);
-    setAmountOut(0);
+    updateAmountOut(0);
     reset();
   };
 
@@ -170,21 +176,21 @@ export const Swap = () => {
     if (alexIndex === 1 && velarIndex !== 1) {
       const finalAmountAlex = await processAlexRoute(amountToSwap);
       setMode(1)
-      setAmountOut(finalAmountAlex);
+      updateAmountOut(finalAmountAlex);
     } else if (alexIndex !== 1 && velarIndex === 1) {
       const finalAmountVelar = await processVelarRoute(amountToSwap);
       setMode(0)
-      setAmountOut(finalAmountVelar);
+      updateAmountOut(finalAmountVelar);
     } else if (alexIndex === 3 && velarIndex === 2) {
       const crossAmount = await processVelarRoute(amountToSwap);
       const finalAmount = await processAlexRoute(crossAmount);
       setMode(2)
-      setAmountOut(finalAmount);
+      updateAmountOut(finalAmount);
     } else if (alexIndex === 2 && velarIndex === 3) {
       const crossAmount = await processAlexRoute(amountToSwap);
       const finalAmount = await processVelarRoute(crossAmount);
       setMode(3)
-      setAmountOut(finalAmount);
+      updateAmountOut(finalAmount);
     } else {
       const finalAmountVelar = await processVelarRoute(amountToSwap);
       const finalAmountAlex = await processAlexRoute(amountToSwap);
@@ -194,10 +200,9 @@ export const Swap = () => {
         setMode(1)
       }
       const maxOut = Math.max(finalAmountVelar, finalAmountAlex)
-      setAmountOut(maxOut);
-      toRef.current.value = maxOut > 0 ? Number(maxOut).toFixed(5) : 0
+      updateAmountOut(maxOut)
     }
-  }, [amount]);
+  }, [amount, updateAmountOut]);
 
   const getRoutes = useCallback(
     async (token: string, toToken: string) => {
@@ -208,7 +213,6 @@ export const Swap = () => {
         let alexMatch = 0;
         let alexRoutes: Currency[] = [];
         console.log(token, toToken);
-
         if (checkInAlexName(token, alexTokens) && checkInAlexName(toToken, alexTokens)) {
           const fromId = getAlexRouteId(token, alexTokens);
           const toId = getAlexRouteId(toToken, alexTokens);
@@ -535,17 +539,34 @@ export const Swap = () => {
         const stxBalance = await fetchSTXBalance()
         setBalance(stxBalance)
       } else {
-
         const tokenData = allTokens.find(tokenData => tokenData.name === token);
-
         if (tokenData) {
-          const balance = await getUserTokenBalance(tokenData.address);
+          const balance = await getUserTokenBalance(tokenData.address, tokenData.decimals);
           setBalance(balance)
         }
       }
-    }
-  }, [token, allTokens])
 
+      if (toToken?.toLowerCase() === 'stx') {
+        const stxBalance = await fetchSTXBalance()
+        setOutBalance(stxBalance)
+      } else {
+        const tokenData = allTokens.find(tokenData => tokenData.name === toToken);
+        if (tokenData) {
+          const balance = await getUserTokenBalance(tokenData.address, tokenData.decimals);
+          setOutBalance(balance)
+        }
+      }
+    }
+    fetchData()
+  }, [token, toToken, allTokens])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setToken('STX')
+      setToToken('GOATSTX')
+    }
+    fetchData()
+  }, [])
 
   useEffect(() => {
     if (token && toToken) {
@@ -623,7 +644,7 @@ export const Swap = () => {
                 ref={fromRef}
               />
               <div className="px-2 py-2 rounded-lg bg-[#00000033] border-[1px] border-[#FFFFFF1A]">
-                <SelectToken tokens={allTokens} action={handleSetFromToken} />
+                <SelectToken tokens={allTokens} action={handleSetFromToken} defaultTokenID="STX" />
               </div>
             </div>
 
@@ -658,9 +679,9 @@ export const Swap = () => {
                 className="w-[170px] bg-transparent border-0 outline-none text-[36px] text-white font-semibold placeholder:text-white"
                 type="number"
                 inputMode="decimal"
-                maxLength={5}
+                maxLength={8}
                 pattern="^[0-9]*[.]?[0-9]*$"
-                step=".01"
+                step=".0001"
                 placeholder="0.00"
                 onChange={() => {
                   // setTo((prev) => ({ ...prev, amount: Number(e.target.value) }))
@@ -673,7 +694,7 @@ export const Swap = () => {
                 ref={toRef}
               />
               <div className="px-2 py-2 rounded-lg bg-[#00000033] border-[1px] border-[#FFFFFF1A]">
-                <SelectToken tokens={allTokens} action={handleSetToToken} />
+                <SelectToken tokens={allTokens} action={handleSetToToken} defaultTokenID="GOATSTX" />
               </div>
             </div>
 
@@ -683,7 +704,7 @@ export const Swap = () => {
               </p>
               <div className="flex gap-2 items-center">
                 <p className="text-sm text-white">
-                  <span className="text-sm mr-2 text-white/50">Balance:</span>0
+                  <span className="text-sm mr-2 text-white/50">Balance:</span>{outBalance.toString()}
                 </p>
               </div>
             </div>
@@ -698,9 +719,9 @@ export const Swap = () => {
               Confirm Swap
             </Button>
             <p className="py-2 text-sm">
-              {token && `1 ${token} ≈`}{" "}
+              {token && `${amountOut ? `1` : ""}  ${token} ≈`}{" "}
               {toToken &&
-                `${(amountOut / amount).toFixed(10)} ${toToken}`}
+                `${amountOut ? rate : ""} ${toToken}`}
             </p>
             <motion.div
               className="text-primary-40 inline-flex gap-1 items-center cursor-pointer"
@@ -720,7 +741,7 @@ export const Swap = () => {
                 {alexIndex === 3 && velarIndex == 2 ?
                   (<>
                     {velarRoute.length > 0 && (
-                      <div className="font-medium text-[16px] mb-5 mt-7 text-[#F4F3EE]">
+                      <div className="font-medium mb-5 mt-7">
                         Velar Routes: {velarRoute.map((route, index) => (
                           <div key={index} className="flex justify-between">
                             <span>
@@ -742,7 +763,7 @@ export const Swap = () => {
                     )}
 
                     {alexRoute.length > 0 && (
-                      <div className="font-medium text-[16px] mb-5 mt-7 text-[#F4F3EE]">
+                      <div className="font-medium mb-5 mt-7">
                         Alex Route:
                         <div className="flex justify-between">
                           <span> 1. {alexRoute.map((route) => (
@@ -760,7 +781,7 @@ export const Swap = () => {
                   </>) : (<>
 
                     {alexRoute.length > 0 && check1() && check3() && (
-                      <div className="font-medium text-[16px] mb-5 mt-7 text-[#F4F3EE]">
+                      <div className="font-medium mb-5 mt-7">
                         Alex Route:
                         <div className="flex justify-between">
                           <span> 1. {alexRoute.map((route) => (
@@ -776,7 +797,7 @@ export const Swap = () => {
                     )}
 
                     {velarRoute.length > 0 && check2() && check4() && (
-                      <div className="font-medium text-[16px] mb-5 mt-7 text-[#F4F3EE]">
+                      <div className="font-medium mb-5 mt-7">
                         Velar Routes: {velarRoute.map((route, index) => (
                           <div key={index} className="flex justify-between">
                             <span>

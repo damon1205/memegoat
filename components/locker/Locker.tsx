@@ -1,25 +1,24 @@
 "use client"
 import { ITokenMetadata, TokenData } from "@/interface"
-import { setTokenMetadata } from "@/lib/features/pairs/tokenSlice"
-import { useAppDispatch } from "@/lib/hooks"
 import { fetchTokenMetadata, getAllUserTokens, userSession } from "@/utils/stacks.data"
-import { Avatar, Button, Select } from "antd"
+import { Avatar, Button } from "antd"
 import Link from "next/link"
 import React, { useEffect, useState } from "react"
 import { BsDot, BsLockFill } from "react-icons/bs"
 import { SelectToken } from "../shared/SelectToken"
+import { useTokenLocker } from "@/hooks/useTokenLocker"
 
 export const Locker = () => {
   const [tokens, setTokens] = useState<TokenData[]>([]);
   const [metadata, setMetadata] = useState<ITokenMetadata | null>(null);
 
-  const dispatch = useAppDispatch();
+  const { setTokenLockerDetails } = useTokenLocker()
 
   const handleChange = async (token: TokenData) => {
     const metadata = await fetchTokenMetadata(token.address);
     setMetadata(metadata)
     if (metadata) {
-      dispatch(setTokenMetadata(metadata))
+      setTokenLockerDetails(metadata)
     }
   };
 

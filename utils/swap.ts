@@ -5,8 +5,7 @@ import {
   velarSDK,
   VelarTokenLists,
 } from "./velar.data";
-
-type Tokens = { [key: string]: string };
+import { VelarToken } from "@/interface";
 
 const HOPS = ["SBTC", "AEUSDC", "VELAR", "STX"];
 
@@ -132,12 +131,17 @@ export const checkInAlexName = (
   return token ? true : false;
 };
 
-export const checkInVelar = (symbol: string, velarTokens: Tokens | null) => {
+export const checkInVelar = (
+  symbol: string,
+  velarTokens: VelarToken[] | null
+) => {
   if (!velarTokens) return false;
-  return (
-    Object.keys(velarTokens).includes(symbol) &&
-    !EXCLUDED_TOKENS.includes(symbol)
-  );
+  // return (
+  //   Object.keys(velarTokens).includes(symbol) &&
+  //   !EXCLUDED_TOKENS.includes(symbol)
+  // );
+  const token = velarTokens.find((token) => token.symbol === symbol);
+  return token && !EXCLUDED_TOKENS.includes(symbol) ? true : false;
 };
 
 export const getAlexRouteId = (

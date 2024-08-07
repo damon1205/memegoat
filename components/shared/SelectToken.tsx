@@ -7,6 +7,7 @@ import { IoIosSearch } from "react-icons/io"
 import { TokenData } from "@/interface"
 import Token from "./Token"
 import { useTokensContext } from "@/provider/Tokens"
+import { checkInVelar } from "@/utils/swap"
 
 interface propsI {
   tokens: TokenData[]
@@ -41,11 +42,14 @@ export const SelectToken = ({ tokens, defaultTokenID, action }: propsI) => {
       setTokenState(tokens)
     }
     if (defaultTokenID) {
+      const tok = tokens.find((token) => token.name?.toLowerCase() === defaultTokenID.toLowerCase()) as TokenData
       setSelectedToken(
-        tokens.find((token) => token.address === defaultTokenID) as TokenData
+        tok
       )
+      // action(tok)
     } else if (tokens.length > 1) {
       setSelectedToken(tokens[0] as TokenData)
+      // action(tokens[0] as TokenData)
     } else
       setSelectedToken({
         name: "",
@@ -114,7 +118,7 @@ export const SelectToken = ({ tokens, defaultTokenID, action }: propsI) => {
         <div className="flex items-center gap-2">
           <Avatar src={tokenMetadata?.icon} size={35} />
           <p className="font-semibold text-[15px] text-white">
-            {selectedToken && selectedToken.name}
+            {selectedToken && checkInVelar(selectedToken.symbol || "", tokensContext.velarTokens) ? selectedToken.symbol : selectedToken?.name}
           </p>
         </div>
 

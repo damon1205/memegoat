@@ -7,8 +7,6 @@ import { BsLockFill } from "react-icons/bs"
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { FinishedTxData, useConnect } from "@stacks/connect-react"
 import { contractAddress, fetchCurrNoOfBlocks, fetchSTXBalance, getUserPrincipal, getUserTokenBalance, network, networkInstance } from "@/utils/stacks.data"
-import { getTokenMetadata } from "@/lib/features/pairs/tokenSlice"
-import { useAppSelector } from "@/lib/hooks"
 import { formatBal, formatNumber } from "@/utils/format"
 import { CsvObject } from "@/interface"
 import { tupleCV, uintCV, standardPrincipalCV, createAssetInfo, FungibleConditionCode, makeStandardFungiblePostCondition, makeStandardSTXPostCondition, AnchorMode, boolCV, contractPrincipalCV, listCV, PostConditionMode } from "@stacks/transactions"
@@ -16,6 +14,7 @@ import { getTokenSource, splitToken } from "@/utils/helpers"
 import { storeDB } from "@/lib/contracts/locker"
 import { useRouter } from "next/navigation"
 import { useNotificationConfig } from "@/hooks/useNotification"
+import { useTokenLocker } from "@/hooks/useTokenLocker"
 
 type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
 
@@ -43,7 +42,7 @@ export const LockerSetup = () => {
   const defaultPercent = [25, 50, 75, 100]
   const amountRef = useRef(null) as any
   const [vesting, setVestToken] = useState<boolean>(false);
-  const tokenMetadata = useAppSelector(getTokenMetadata);
+  const { tokenLockerDetails } = useTokenLocker()
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [unvestBlocks, setVestingBlocks] = useState<CsvObject[] | null>(null);
   const [addressInfo, setAddressInfo] = useState<CsvObject[] | null>(
@@ -60,15 +59,15 @@ export const LockerSetup = () => {
       console.log(memegoatBalance)
       setMemegoatBalance(memegoatBalance);
 
-      if (tokenMetadata) {
-        console.log(tokenMetadata)
-        const balance = await getUserTokenBalance(tokenMetadata.tokenAddress)
+      if (tokenLockerDetails) {
+        console.log(tokenLockerDetails)
+        const balance = await getUserTokenBalance(tokenLockerDetails.tokenAddress)
         setBalance(balance)
       }
     }
 
     fetchData()
-  }, [tokenMetadata])
+  }, [tokenLockerDetails])
 
   const getDifferenceInBlocks = (dateStr: string) => {
     const date = new Date(dateStr)
@@ -112,14 +111,14 @@ export const LockerSetup = () => {
   };
 
   const handleLock = async () => {
-    if (!tokenMetadata) return;
+    if (!tokenLockerDetails) return;
     setIsProcessing(true);
 
     const toWithdrawerAddress = canWithdraw
       ? withdrawerAddress
       : getUserPrincipal();
 
-    const tokenAddress = splitToken(tokenMetadata.tokenAddress);
+    const tokenAddress = splitToken(tokenLockerDetails.tokenAddress);
     const postConditionCode = FungibleConditionCode.LessEqual;
     const assetContractName = tokenAddress[1];
     const assetName = await getTokenSource(tokenAddress[0], tokenAddress[1]);
@@ -203,7 +202,7 @@ export const LockerSetup = () => {
       onFinish: (data) => {
         setTxData(data);
         setIsProcessing(false);
-        storeDB(data.txId, amount, noOfBlocks, tokenMetadata);
+        storeDB(data.txId, amount, noOfBlocks, tokenLockerDetails);
         router.push("/locker/userlocks");
       },
       onCancel: () => {
@@ -215,7 +214,7 @@ export const LockerSetup = () => {
 
   return (
     <>
-      {tokenMetadata &&
+      {tokenLockerDetails &&
         <div className="mb-7">
           <div className="p-4 text-center from-primary-50/15 to-primary-70/20 bg-gradient-to-r text-primary-50 relative overflow-hidden mb-5">
             <span>Token Locker</span>
@@ -227,13 +226,13 @@ export const LockerSetup = () => {
 
           <div className="bg-[rgba(72,145,90,0.05)] border-0 border-[rgba(16,69,29,0.85)] p-4 md:p-6 backdrop-blur-[12px] text-sm">
             <div className="flex gap-3 items-center mb-5">
-              <Avatar src={tokenMetadata.image_uri} size={50} />
+              <Avatar src={tokenLockerDetails.image_uri} size={50} />
               <div>
-                <h3>{tokenMetadata.name}</h3>
+                <h3>{tokenLockerDetails.name}</h3>
                 <p className="mb-1 text-sm text-custom-white/60">
                   Balance:{" "}
                   <span className="text-primary-30">
-                    {balance.toLocaleString()} {tokenMetadata.symbol}
+                    {balance.toLocaleString()} {tokenLockerDetails.symbol}
                   </span>
                 </p>
               </div>

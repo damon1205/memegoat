@@ -7,10 +7,8 @@ import { BsClock } from "react-icons/bs"
 import moment from "moment"
 import { BiCopy } from "react-icons/bi"
 import {
-  ITokenMetadata,
   LaunchpadDataI,
   LaunchpadI,
-  PendingTxnLaunchPad,
 } from "@/interface"
 import {
   formatCVTypeNumber,
@@ -26,22 +24,22 @@ import {
   generateClaimTransaction,
   generateDepositSTXTransaction,
   getLaunchpadInfo,
-  getStoredPendingTransactions,
   getSTXRate,
   getUserDeposits,
   hardCapReached,
   presaleEnded,
-  storePendingTxn,
 } from "@/lib/contracts/launchpad"
 import {
   fetchCurrNoOfBlocks,
   fetchSTXBalance,
   getUserPrincipal,
+  storeTransaction,
 } from "@/utils/stacks.data"
 import { uintCV } from "@stacks/transactions"
 import { useConnect } from "@stacks/connect-react"
 import { PendingTransactions } from "../shared/PendingTransactions"
 import { useNotificationConfig } from "@/hooks/useNotification"
+import { createHash } from "crypto"
 
 export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
   const { doContractCall } = useConnect()
@@ -55,17 +53,10 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
   const [live, setLive] = useState<boolean>(false)
   const [allocation, setAllocation] = useState<number>(0)
   const [hasClaimed, setClaimed] = useState<boolean>(false)
-  const [pendingTxns, setPendingTxns] = useState<PendingTxnLaunchPad[]>([])
-  const [metadata, setMetadata] = useState<ITokenMetadata | null>(null)
   const [isOwner, setAuth] = useState<boolean>(false)
   const [hardcapStatus, setHardcapStatus] = useState<boolean>(false)
   const [presaleClosed, setPresaleClosed] = useState<boolean>(false)
   const [progress, setProgress] = useState<number>(0)
-
-  const fetchPendingTxns = async () => {
-    const pendingTxns = await getStoredPendingTransactions()
-    setPendingTxns(pendingTxns)
-  }
 
   const handleDepositStx = () => {
     if (!amount) return
@@ -74,9 +65,18 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
       const txnData = generateDepositSTXTransaction(user, amount, launchpadId)
       doContractCall({
         ...txnData,
-        onFinish: async (data) => {
-          storePendingTxn("Buy Presale", data.txId, amount.toString())
-          getStoredPendingTransactions()
+        onFinish: async (txData) => {
+          // storePendingTxn("Buy Presale", txData.txId, amount.toString())
+          storeTransaction({
+            key: createHash('sha256').update(txData.txId).digest('hex'),
+            txId: txData.txId,
+            txStatus: 'pending',
+            amount: amount,
+            tag: "LAUNCHPAD",
+            txSender: getUserPrincipal(),
+            action: `Buy Presale ${data?.token_ticker}`
+          })
+          // getStoredPendingTransactions()
         },
         onCancel: () => {
           console.log("onCancel:", "Transaction was canceled")
@@ -102,13 +102,23 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
       )
       doContractCall({
         ...txnData,
-        onFinish: async (data) => {
-          storePendingTxn(
-            "Claim Presale",
-            data.txId,
-            calculateAllocation(launchpadId).toString()
-          )
-          getStoredPendingTransactions()
+        onFinish: async (txData) => {
+          // storePendingTxn(
+          //   "Claim Presale",
+          //   data.txId,
+          //   calculateAllocation(launchpadId).toString()
+          // )
+          const allocation = await calculateAllocation(launchpadId)
+          storeTransaction({
+            key: createHash('sha256').update(txData.txId).digest('hex'),
+            txId: txData.txId,
+            txStatus: 'pending',
+            amount: allocation,
+            tag: "LAUNCHPAD",
+            txSender: getUserPrincipal(),
+            action: `Claim Presale ${data?.token_ticker}`
+          })
+          // getStoredPendingTransactions()
         },
         onCancel: () => {
           console.log("onCancel:", "Transaction was canceled")
@@ -126,6 +136,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
   useEffect(() => {
     const fetchData = async () => {
       if (!data) return
+      if (data.token_name.toLowerCase() == 'moonmunchbtc' || 'memegoatstx') return;
       const result = await getLaunchpadInfo(data?.token_address)
       const launchpadId = Number(result.id.toString())
       setLaunchpadId(launchpadId)
@@ -207,7 +218,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                   icon={<BsClock />}
                   className={`mdin-w-[4rem] flex items-center gap-2 ${live ? "bg-primary-80" : "bg-red-500"}`}
                 >
-                  {live ? presaleClosed ? "Active" : "Closed" : "Not Started"}
+                  {live ? presaleClosed ? "Active" : "Closed" : data.token_name.toLowerCase() == 'memegoatstx' ? "Closed" : "Not Started"}
                 </Tag>
               </div>
               <div className="md:grid md:grid-cols-3 gap-10 mt-10 space-y-10 md:space-y-0">
@@ -301,149 +312,204 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                             <p className="text-sm">{moment(data.end_date).format("LL LT")}</p>
                           </div>
                           :
-                          <div>
-                            <p className="text-xs mt-2 text-custom-white/60 text-end">
-                              Starts In
-                            </p>
-                            <p className="text-sm">{moment(data.start_date).format("LL LT")}</p>
-                          </div>
+                          data.token_name.toLowerCase() === 'memegoatstx' ?
+                            <div>
+                              <p className="text-xs mt-2 text-custom-white/60 text-end">
+                                Ended In
+                              </p>
+                              <p className="text-sm">{moment(data.end_date).format("LL LT")}</p>
+                            </div>
+
+                            :
+                            <div>
+                              <p className="text-xs mt-2 text-custom-white/60 text-end">
+                                Starts In
+                              </p>
+                              <p className="text-sm">{moment(data.start_date).format("LL LT")}</p>
+                            </div>
                         }
                       </div>
                     </div>
                   </div>
                 </div>
-                <div>
-                  {" "}
-                  <div className="flex items-end justify-end mb-2">
-                    <PendingTransactions txRequest={{ tag: "LAUNCHPAD", address: getUserPrincipal() }} />
-                  </div>
-                  <div className="bg-primary-60/5 backdrop-blur-[5px] text-sm w-full">
-                    <div className="p-4 text-silver border-b-[1px] border-primary-20/20 mb-5">
-                      <p>
-                        <BsClock className="inline mr-1" />{" "}
-                        {live ? presaleClosed ? "JOIN PRESALE" : "PRESALE ENDED" : "UPCOMING PRESALE"}
-                      </p>
-                    </div>
-                    {live ? (
-                      <div>
-                        <div className="p-4">
-                          <p className="text-center text-silver mb-2">
-                            Total Raised
+                {data.token_name !== 'MoonMunchBTC' && (
+                  <>
+                    <div>
+                      <div className="flex items-end justify-end mb-2">
+                        <PendingTransactions txRequest={{ tag: "LAUNCHPAD", address: getUserPrincipal() }} />
+                      </div>
+                      <div className="bg-primary-60/5 backdrop-blur-[5px] text-sm w-full">
+                        <div className="p-4 text-silver border-b-[1px] border-primary-20/20 mb-5">
+                          <p>
+                            <BsClock className="inline mr-1" />{" "}
+                            {live ? presaleClosed ? "JOIN PRESALE" : "PRESALE ENDED" : data.token_name.toLowerCase() == 'memegoatstx' ? "CLOSED" : "UPCOMING PRESALE"}
                           </p>
-                          <h3 className="text-xl text-center text-primary-40">
-                            {formatCVTypeNumber(
-                              launchpadInfo
-                                ? launchpadInfo["pool-amount"]
-                                : uintCV(0)
-                            )}
-                            /
-                            <span className="text-[16px] text-silver ml-2">
-                              {formatNumber(data.hard_cap)} STX
-                            </span>
-                          </h3>
+                        </div>
+
+                        {live ? (
                           <div>
-                            {(() => {
-                              const percent =
-                                formatCVTypeNumber(
+                            <div className="p-4">
+                              <p className="text-center text-silver mb-2">
+                                Total Raised
+                              </p>
+                              <h3 className="text-xl text-center text-primary-40">
+                                {formatCVTypeNumber(
                                   launchpadInfo
                                     ? launchpadInfo["pool-amount"]
                                     : uintCV(0)
-                                ) / Number(data.hard_cap)
-                              return (
-                                <Progress
-                                  strokeColor="#29ab4a"
-                                  percent={Number(
-                                    Number(percent * 100).toFixed(2)
-                                  )}
-                                />
-                              )
-                            })()}
-                          </div>
-                          <div className="mt-3 space-y-3">
-                            <div>
-                              <Input
-                                className="w-full h-[44px] rounded-sm"
-                                placeholder="Enter amount to buy"
-                              />
-                              <Button
-                                className="w-full mt-2 mb-5 rounded-sm"
-                                type="primary"
-                              >
-                                Continue
-                              </Button>
-                            </div>
-                            <div className="flex items-center gap-5 justify-between">
-                              <p>Your Balance</p>
-                              <p className="text-primary-40">{stxBalance}</p>
-                            </div>
-                            <div className="flex items-center gap-5 justify-between">
-                              <p>Your Contribution</p>
-                              <p className="text-primary-40">{userDeposits}</p>
-                            </div>
-                            <div className="flex items-center gap-5 justify-between">
-                              <p>Final Allocation</p>
-                              <p className="text-primary-40">{allocation}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-4">
-                        <p className="text-center text-silver mb-2">
-                          Total Raised
-                        </p>
-                        <h3 className="text-xl text-center text-primary-40">
-                          {formatCVTypeNumber(
-                            launchpadInfo
-                              ? launchpadInfo["pool-amount"]
-                              : uintCV(0)
-                          )}
-                          /
-                          <span className="text-[16px] text-silver">
-                            {" "}
-                            {formatNumber(data.hard_cap)} STX
-                          </span>
-                        </h3>
-                        <div>
-                          {(() => {
-                            const percent =
-                              formatCVTypeNumber(
-                                launchpadInfo
-                                  ? launchpadInfo["pool-amount"]
-                                  : uintCV(0)
-                              ) / Number(data.hard_cap)
-                            return (
-                              <Progress
-                                strokeColor="#29ab4a"
-                                percent={Number(
-                                  Number(percent * 100).toFixed(2)
                                 )}
-                              />
-                            )
-                          })()}
-                        </div>
-                        <div className="mt-7 space-y-3">
-                          <div className="flex items-center gap-5 justify-between">
-                            <p>Your Balance</p>
-                            <p className="text-primary-40">{stxBalance}</p>
+                                /
+                                <span className="text-[16px] text-silver ml-2">
+                                  {formatNumber(data.hard_cap)} STX
+                                </span>
+                              </h3>
+                              <div>
+                                {(() => {
+                                  const percent =
+                                    formatCVTypeNumber(
+                                      launchpadInfo
+                                        ? launchpadInfo["pool-amount"]
+                                        : uintCV(0)
+                                    ) / Number(data.hard_cap)
+                                  return (
+                                    <Progress
+                                      strokeColor="#29ab4a"
+                                      percent={Number(
+                                        Number(percent * 100).toFixed(2)
+                                      )}
+                                    />
+                                  )
+                                })()}
+                              </div>
+                              <div className="mt-3 space-y-3">
+                                <div>
+                                  <Input
+                                    className="w-full h-[44px] rounded-sm"
+                                    placeholder="Enter amount to buy"
+                                    onChange={(e) => setAmount(Number(e.target.value))}
+                                  />
+                                  <Button
+                                    className="w-full mt-2 mb-5 rounded-sm"
+                                    type="primary"
+                                    onClick={() => handleDepositStx()}
+                                  >
+                                    Continue
+                                  </Button>
+                                </div>
+                                <div className="flex items-center gap-5 justify-between">
+                                  <p>Your Balance</p>
+                                  <p className="text-primary-40">{stxBalance}</p>
+                                </div>
+                                <div className="flex items-center gap-5 justify-between">
+                                  <p>Your Contribution</p>
+                                  <p className="text-primary-40">{userDeposits}</p>
+                                </div>
+                                <div className="flex items-center gap-5 justify-between">
+                                  <p>Final Allocation</p>
+                                  <p className="text-primary-40">{allocation}</p>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-5 justify-between">
-                            <p>Your Contribution</p>
-                            <p className="text-primary-40">{userDeposits}</p>
+                        ) : (
+                          <div className="p-4">
+                            <p className="text-center text-silver mb-2">
+                              Total Raised
+                            </p>
+                            {data.token_name.toLowerCase() == 'memegoatstx' ?
+                              (
+                                <>
+                                  <h3 className="text-xl text-center text-primary-40">
+                                    {formatNumber(50000)}
+                                    /
+                                    <span className="text-[16px] text-silver">
+                                      {" "}
+                                      {formatNumber(data.hard_cap)} STX
+                                    </span>
+                                  </h3>
+                                  <div>
+                                    {(() => {
+                                      const percent = Number(50000) / Number(data.hard_cap)
+                                      return (
+                                        <Progress
+                                          strokeColor="#29ab4a"
+                                          percent={Number(
+                                            Number(percent * 100).toFixed(2)
+                                          )}
+                                        />
+                                      )
+                                    })()}
+                                  </div>
+                                  <div className="mt-7 space-y-3">
+                                  </div>
+                                  <Button className="w-full mt-5" type="primary" disabled={true}>
+                                    ENDED
+                                  </Button>
+                                </>
+                              )
+                              :
+                              (
+                                <>
+                                  <div>
+                                    <h3 className="text-xl text-center text-primary-40">
+                                      {formatCVTypeNumber(
+                                        launchpadInfo
+                                          ? launchpadInfo["pool-amount"]
+                                          : uintCV(0)
+                                      )}
+                                      /
+                                      <span className="text-[16px] text-silver">
+                                        {" "}
+                                        {formatNumber(data.hard_cap)} STX
+                                      </span>
+                                    </h3>
+                                    {(() => {
+                                      const percent =
+                                        formatCVTypeNumber(
+                                          launchpadInfo
+                                            ? launchpadInfo["pool-amount"]
+                                            : uintCV(0)
+                                        ) / Number(data.hard_cap)
+                                      return (
+                                        <Progress
+                                          strokeColor="#29ab4a"
+                                          percent={Number(
+                                            Number(percent * 100).toFixed(2)
+                                          )}
+                                        />
+                                      )
+                                    })()}
+                                  </div>
+                                  <div className="mt-7 space-y-3">
+                                    <div className="flex items-center gap-5 justify-between">
+                                      <p>Your Balance</p>
+                                      <p className="text-primary-40">{stxBalance}</p>
+                                    </div>
+                                    <div className="flex items-center gap-5 justify-between">
+                                      <p>Your Contribution</p>
+                                      <p className="text-primary-40">{userDeposits}</p>
+                                    </div>
+                                    <div className="flex items-center gap-5 justify-between">
+                                      <p>Final Allocation</p>
+                                      <p className="text-primary-40">{allocation}</p>
+                                    </div>
+                                  </div>
+                                  <Button className="w-full mt-5" type="primary" onClick={() => handleClaimToken()} disabled={hasClaimed}>
+                                    {hasClaimed ? "Claimed" : "Claim Now"}
+                                  </Button>
+                                </>
+                              )
+                            }
                           </div>
-                          <div className="flex items-center gap-5 justify-between">
-                            <p>Final Allocation</p>
-                            <p className="text-primary-40">{allocation}</p>
-                          </div>
-                        </div>
-                        <Button className="w-full mt-5" type="primary">
-                          Claim Now
-                        </Button>
+                        )}
+
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
+
+                  </>
+                )}
               </div>
+
             </div>
           </motion.div>
         </div>

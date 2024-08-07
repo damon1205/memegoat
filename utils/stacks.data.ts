@@ -292,7 +292,7 @@ export const fetchSTXBalance = async () => {
     };
     const response = await axios.request(config);
     const stxBal = response.data.stx;
-    return stxBal ? (stxBal.balance as number) : 0;
+    return stxBal ? (stxBal.balance as number) / 1e6 : 0;
   } catch (error) {
     console.error(error);
     return 0;
