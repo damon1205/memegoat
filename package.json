@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@cloudflare/next-on-pages": "^1.13.2",
     "@reduxjs/toolkit": "^2.2.3",
     "@stacks/auth": "^6.13.1",
     "@stacks/blockchain-api-client": "^7.9.1",

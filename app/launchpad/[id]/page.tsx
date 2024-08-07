@@ -3,12 +3,13 @@ import React from "react"
 import { instance } from "@/utils/api";
 import { LaunchpadI } from "@/interface";
 
-export async function generateStaticParams(): Promise<{ slug: string }[]> {
+export const dynamicParams = false;
+export async function generateStaticParams(): Promise<{ id: string }[]> {
   const res = await instance().get("/campaign-requests");
   const infos: LaunchpadI[] = res.data.data;
 
   return infos.map((info) => ({
-    slug: info.token_address,
+    id: info.token_address,
   }))
 }
 
@@ -31,7 +32,7 @@ export default async function LaunchpadPage({ params }: PageProps) {
   const launchpadData = await getLaunchpadData()
   return (
     <div>
-      <LaunchpadDetails data={launchpadData} />
+      <LaunchpadDetails data={null} />
     </div>
   )
 }
