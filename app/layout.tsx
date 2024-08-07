@@ -11,6 +11,8 @@ import { NotificationProvider } from "@/provider/notification"
 import { TokensProvider } from "@/provider/Tokens"
 const inter = Inter({ subsets: ["latin"] })
 
+export const runtime = 'edge'
+
 export const metadata: Metadata = {
   metadataBase: new URL(config.BASE_URL),
   title: "MemeGoat",
