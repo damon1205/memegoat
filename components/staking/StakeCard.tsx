@@ -115,7 +115,7 @@ export const StakeCard = ({
                 <div className="inline-flex gap-2 items-center">
                   <StakeToken
                     stake_token={stakeToken}
-                    disabled={false}
+                    disabled={ended || (currBlock < formatCVTypeNumber(stakeInfo["start-block"]))}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
                     pendingTxns={filterStakePendingTxn(pendingTxns)}
                     token_icon={stakeToken ? stakeToken.image_uri : ""}
@@ -187,7 +187,7 @@ export const StakeCard = ({
               </div>
 
               <div className="flex justify-between">
-                {currBlock > formatCVTypeNumber(stakeInfo["start-block"]) ?
+                {/* {currBlock > formatCVTypeNumber(stakeInfo["start-block"]) ?
                   (
                     <>
                       <p className="text-gray-400">Ends In</p>
@@ -203,7 +203,13 @@ export const StakeCard = ({
                       </div>
                     </>
                   )
-                }
+                } */}
+                <>
+                  <p className="text-gray-400">Ends On</p>
+                  <div>
+                    <p>{stakeInfo ? endDate : "--"}</p>
+                  </div>
+                </>
               </div>
               <p className="text-end">
                 <Link href={getAddressLink(network, getAddress(stakeInfo.owner))}
