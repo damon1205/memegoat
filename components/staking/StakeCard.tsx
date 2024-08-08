@@ -4,14 +4,15 @@ import { BiLinkExternal } from "react-icons/bi"
 import { StakeToken } from "./StakeToken"
 import { UnstakeToken } from "./UnstakeToken"
 import Link from "next/link"
-import { ITokenMetadata, PendingTxnPool, StakeInterface, TokenData, UserStakeInterface } from "@/interface"
+import { ITokenMetadata, StakeInterface, TokenData, UserStakeInterface } from "@/interface"
 import { useEffect, useState } from "react"
-import { getEndDate, getMetas, getUserEarnings, getUserHasStake, getUserStakeInfo, getStoredPendingTransactions, checkForStake, filterStakePendingTxn, filterClaimPendingTxn, calcRewardPerblock, getStartDate } from "@/lib/contracts/staking"
+import { getMetas, getUserEarnings, getUserHasStake, getUserStakeInfo, checkForStake, filterClaimPendingTxn, calcRewardPerblock } from "@/lib/contracts/staking"
 import { getAddress } from "@/utils/helpers"
-import { formatCVTypeNumber, formatNumber } from "@/utils/format"
+import { convertBlocksToDate, formatCVTypeNumber, formatNumber } from "@/utils/format"
 import { fetchCurrNoOfBlocks, getAddressLink, network } from "@/utils/stacks.data"
 import { ClaimBtn } from "./ClaimBtn"
 import { useTokensContext } from "@/provider/Tokens"
+import moment from "moment"
 
 interface props {
   stakeInfo: StakeInterface
@@ -34,7 +35,7 @@ export const StakeCard = ({
   const [endDate, setEndDate] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [userHasStake, setHasStake] = useState<boolean>(false);
-  const [pendingTxns, setPendingTxns] = useState<PendingTxnPool[]>([]);
+  const pending = []
   const [currBlock, setCurrBlock] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [sToken, setSToken] = useState<TokenData | null>(null);
@@ -51,7 +52,6 @@ export const StakeCard = ({
       if (result1.rewardMetadata && result1.stakeMetadata) {
         const sToken = getTokenMetaByAddress(result1.stakeMetadata.tokenAddress)
         const rToken = getTokenMetaByAddress(result1.rewardMetadata.tokenAddress);
-        // console.log(sToken, rToken)
         setSToken(sToken);
         setRToken(rToken)
       }
@@ -59,19 +59,17 @@ export const StakeCard = ({
       setCurrBlock(result6)
 
       if (stakeInfo) {
-        const result2 = await getEndDate(stakeInfo, result6);
+        const result2 = convertBlocksToDate(formatCVTypeNumber(stakeInfo["end-block"]), result6);
         setEndDate(result2);
-        const result7 = await getStartDate(stakeInfo, result6);
+        const result7 = convertBlocksToDate(formatCVTypeNumber(stakeInfo["start-block"]), result6);
         setStartDate(result7);
         const result3 = await getUserEarnings(formatCVTypeNumber(stakeInfo.id));
         setEarned(result3);
         const result4 = await getUserHasStake(stakeInfo);
         setHasStake(result4);
-
       }
       setLoading(false)
     }
-
     fetchData()
 
   }, [stakeInfo, getTokenMetaByAddress]);
@@ -117,36 +115,34 @@ export const StakeCard = ({
                     stake_token={stakeToken}
                     disabled={ended || (currBlock < formatCVTypeNumber(stakeInfo["start-block"]))}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
-                    pendingTxns={filterStakePendingTxn(pendingTxns)}
-                    token_icon={stakeToken ? stakeToken.image_uri : ""}
+                    token_icon={sToken ? sToken.icon : stakeToken ? stakeToken.image_uri : ""}
                   />
                   <UnstakeToken
                     stake_token={stakeToken}
                     disabled={currBlock < formatCVTypeNumber(stakeInfo["start-block"])}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
-                    pendingTxns={filterStakePendingTxn(pendingTxns)}
-                    token_icon={stakeToken ? stakeToken.image_uri : ""}
+                    token_icon={sToken ? sToken.icon : stakeToken ? stakeToken.image_uri : ""}
                     staked_amount={userStakeInfo ? formatCVTypeNumber(userStakeInfo["amount-staked"]) / 1e6 : 0}
                   />
                 </div>
               </div>
             </div>
             <div>
-              <p className="text-gray-400 mb-2">{rewardToken ? rewardToken.symbol : ""} earned</p>
+              <p className="text-gray-400 mb-2">{rToken ? rToken.name : rewardToken ? rewardToken.symbol : ""} earned</p>
               <div className="flex items-center justify-between">
                 <div className="inline-flex gap-2 items-center">
                   <div>
                     <span className="mr-3">
                       {loading ?
                         <Skeleton.Input active={true} size={'small'} block={false} />
-                        : formatNumber(earned / 1e12)} {rewardToken ? rewardToken.symbol : ""}
+                        : formatNumber(earned / 1e12)} {rToken ? rToken.name : rewardToken ? rewardToken.symbol : ""}
                     </span>
                   </div>
                 </div>
                 <ClaimBtn
                   stakeId={formatCVTypeNumber(stakeInfo.id)}
                   reward_token={getAddress(stakeInfo["reward-token"])}
-                  pendingTxns={filterClaimPendingTxn(pendingTxns)}
+                  pendingTxns={filterClaimPendingTxn([])}
                   erpb={calcRewardPerblock(stakeInfo, userStakeInfo)}
                   earned={earned} />
               </div>
@@ -161,7 +157,7 @@ export const StakeCard = ({
                   {stakeInfo
                     ? formatNumber(formatCVTypeNumber(stakeInfo["total-staked"]) / 1e6)
                     : 0.0}{" "}
-                  {stakeToken ? stakeToken.symbol : ""}
+                  {sToken ? sToken.name : stakeToken ? stakeToken.symbol : ""}
                   {/* <p className="text-end mt-1 text-gray-400">
                     {Intl.NumberFormat("en-US", {
                       currency: "USD",
@@ -176,7 +172,7 @@ export const StakeCard = ({
                   {stakeInfo
                     ? formatCVTypeNumber(stakeInfo["reward-per-block"]) / 1e6
                     : 0}{" "}
-                  {rewardToken ? rewardToken.symbol : ""}
+                  {rToken ? rToken.name : rewardToken ? rewardToken.symbol : ""}
                   {/* <p className="text-end mt-1 text-gray-400">
                     {Intl.NumberFormat("en-US", {
                       currency: "USD",
@@ -187,29 +183,29 @@ export const StakeCard = ({
               </div>
 
               <div className="flex justify-between">
-                {/* {currBlock > formatCVTypeNumber(stakeInfo["start-block"]) ?
+                {currBlock > formatCVTypeNumber(stakeInfo["start-block"]) ?
                   (
                     <>
-                      <p className="text-gray-400">Ends In</p>
+                      <p className="text-gray-400">Ends On</p>
                       <div>
-                        <p>{stakeInfo ? endDate : "--"}</p>
+                        <p>{stakeInfo ? moment(endDate).format('LLL') : "--"}</p>
                       </div>
                     </>
                   ) : (
                     <>
                       <p className="text-gray-400">Starts On</p>
                       <div>
-                        <p>{stakeInfo ? startDate : "--"}</p>
+                        <p>{stakeInfo ? moment(startDate).format('LLL') : "--"}</p>
                       </div>
                     </>
                   )
-                } */}
-                <>
-                  <p className="text-gray-400">Ends On</p>
-                  <div>
-                    <p>{stakeInfo ? endDate : "--"}</p>
-                  </div>
-                </>
+                }
+              </div>
+              <div className="flex justify-between">
+                <p className="text-gray-400">End Block</p>
+                <div>
+                  <p>{stakeInfo ? formatCVTypeNumber(stakeInfo["end-block"]) : "--"}</p>
+                </div>
               </div>
               <p className="text-end">
                 <Link href={getAddressLink(network, getAddress(stakeInfo.owner))}

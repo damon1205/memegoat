@@ -15,13 +15,12 @@ import { SlClose } from "react-icons/sl"
 interface props {
   stakeId: number;
   stake_token: ITokenMetadata | null;
-  token_icon: string;
+  token_icon: string | undefined;
   // update: () => void;
   disabled: boolean;
-  pendingTxns: PendingTxnPool[]
 }
 
-export const StakeToken = ({ stakeId, stake_token, token_icon, disabled, pendingTxns }: props) => {
+export const StakeToken = ({ stakeId, stake_token, token_icon, disabled }: props) => {
   const { doContractCall } = useConnect()
   const { config } = useNotificationConfig()
   const [open, setOpen] = useState(false)
