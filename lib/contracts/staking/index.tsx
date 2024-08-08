@@ -397,8 +397,8 @@ export const calculateRewardPerBlockAtCreation = async (rewardAmount: string, st
     return 0;
   }
   const currBlock = await fetchCurrNoOfBlocks();
-  const startBlock = await convertToBlocks(startDate, currBlock);
-  const endBlock = await convertToBlocks(endDate, currBlock);
+  const startBlock = convertToBlocks(startDate, currBlock);
+  const endBlock = convertToBlocks(endDate, currBlock);
   const diff = endBlock - startBlock;
   if (!diff) {
     return 0;

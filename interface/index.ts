@@ -109,7 +109,9 @@ export interface PendingTxnsI {
   stake_token: string;
   reward_token: string;
   start_date: string;
+  start_time: string;
   end_date: string;
+  end_time: string;
   token_image: string;
 }
 

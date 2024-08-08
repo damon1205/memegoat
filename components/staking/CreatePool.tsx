@@ -1,5 +1,13 @@
 "use client"
-import { Avatar, Button, DatePicker, Modal, Form, Input } from "antd"
+import {
+  Avatar,
+  Button,
+  DatePicker,
+  TimePicker,
+  Modal,
+  Form,
+  Input,
+} from "antd"
 import React, { useCallback, useState } from "react"
 import { IoCloseCircleOutline } from "react-icons/io5"
 import moment from "moment"
@@ -7,7 +15,13 @@ import type { GetProps } from "antd"
 import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 import { useForm } from "antd/es/form/Form"
-import { contractAddress, getExplorerLink, getUserPrincipal, network, userSession } from "@/utils/stacks.data"
+import {
+  contractAddress,
+  getExplorerLink,
+  getUserPrincipal,
+  network,
+  userSession,
+} from "@/utils/stacks.data"
 import {
   calculateRewardPerBlockAtCreation,
   generateCreatePoolTxn,
@@ -25,6 +39,36 @@ type RangePickerProps = GetProps<typeof DatePicker.RangePicker>
 
 dayjs.extend(customParseFormat)
 
+function range(start: number, end: number): number[] {
+  const result: number[] = [];
+  for (let i = start; i < end; i++) {
+    result.push(i);
+  }
+  return result;
+}
+
+// Function to disable specific time slots
+const disabledTime = () => {
+  const now = dayjs().add(1, 'hour');
+  const currentHour = now.hour();
+  const currentMinute = now.minute();
+
+  return {
+    disabledHours: () => {
+      const hours = range(0, 24);
+      // Disable hours before the current hour
+      return hours.filter(hour => hour < currentHour);
+    },
+    disabledMinutes: (selectedHour: number) => {
+      if (selectedHour === currentHour) {
+        return range(0, 60).filter(minute => minute < currentMinute);
+      }
+      return [];
+    },
+    disabledSeconds: () => [] // Keeping seconds enabled
+  };
+};
+
 export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
   const { config } = useNotificationConfig()
   const { doContractCall } = useConnect()
@@ -33,8 +77,8 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
   const [rewardPerBlock, setRewardPerBlock] = useState<number>(0)
   const [rewardsToken, setRewardToken] = useState<string>("")
   const [stakesToken, setSstakeToken] = useState<string>("")
-  const [form] = useForm<PendingTxnsI>();
-  const [loading, setLoading] = useState(false);
+  const [form] = useForm<PendingTxnsI>()
+  const [loading, setLoading] = useState(false)
 
   const { getTokenMetaByAddress } = useTokensContext()
 
@@ -42,9 +86,8 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
 
   // eslint-disable-next-line arrow-body-style
   const disabledDateStart: RangePickerProps["disabledDate"] = (current) => {
-    const now = dayjs().add(1, 'hour'); // Add 1 hour to the current time
-    return current && current.isBefore(now, 'minute');
-  };
+    return current && current < dayjs().startOf("day")
+  }
   // eslint-disable-next-line arrow-body-style
   const disabledDateEnd: RangePickerProps["disabledDate"] = (current) => {
     if (form.getFieldsValue().start_date) {
@@ -56,6 +99,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
       return current && current < dayjs().endOf("day")
     }
   }
+
 
   const handleForm = async () => {
     if (!userSession.isUserSignedIn) return
@@ -73,7 +117,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
         rewardAmount,
         startDate,
         endDate,
-        rewardsToken.toLowerCase() !== 'stx' ? false : true
+        rewardsToken.toLowerCase() !== "stx" ? false : true
       )
       doContractCall({
         ...txn,
@@ -82,11 +126,11 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
             await storeTransaction({
               key: genHex(data.txId),
               txId: data.txId,
-              txStatus: 'Pending',
+              txStatus: "Pending",
               amount: Number(rewardAmount),
               tag: "STAKE-POOLS",
               txSender: getUserPrincipal(),
-              action: `Create ${rewardsToken}/${stakesToken} POOL`
+              action: `Create ${rewardsToken}/${stakesToken} POOL`,
             })
             setLoading(false)
           } catch (e) {
@@ -98,7 +142,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
             message: txMessage,
             title: "Pool Creation request successfully received!",
             type: "success",
-            details_link: getExplorerLink(network, data.txId)
+            details_link: getExplorerLink(network, data.txId),
           })
           setPendingTxnProgress({ ...pendingInitial })
         },
@@ -143,8 +187,17 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
     setRewardToken(token ? token.name : rtoken)
     setSstakeToken(stokne ? stokne.name : stToken)
     const rewardAmount = formData.reward_amount
-    const startDate = formData.start_date
-    const endDate = formData.end_date
+    if (!formData.start_date || !formData.end_date || !formData.start_time || !formData.end_time) return
+    const startDate = dayjs(formData.start_date)
+      .hour(dayjs(formData.start_time).hour())
+      .minute(dayjs(formData.start_time).minute())
+      .second(dayjs(formData.start_time).second())
+      .toISOString();
+    const endDate = dayjs(formData.end_date)
+      .hour(dayjs(formData.end_time).hour())
+      .minute(dayjs(formData.end_time).minute())
+      .second(dayjs(formData.end_time).second())
+      .toISOString();
     const result = await calculateRewardPerBlockAtCreation(
       rewardAmount,
       startDate,
@@ -189,18 +242,27 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                 end_date: pendingTxnProgress.end_date
                   ? moment(pendingTxnProgress.end_date)
                   : null,
-                reward_token: 'SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-wstx',
-                stake_token: `${contractAddress}.memegoatstx`
+                reward_token:
+                  "SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-wstx",
+                stake_token: `${contractAddress}.memegoatstx`,
               }}
             >
               <Form.Item name={"stake_token"} label="Select Stake Token">
                 <div className="px-2 py-1 bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px]">
-                  <SelectToken tokens={tokens} action={setStakeToken} defaultTokenID="memegoatstx" />
+                  <SelectToken
+                    tokens={tokens}
+                    action={setStakeToken}
+                    defaultTokenID="memegoatstx"
+                  />
                 </div>
               </Form.Item>
               <Form.Item name={"reward_token"} label="Select Reward Token">
                 <div className="px-2 py-1 bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px]">
-                  <SelectToken tokens={tokens} action={setRewarddToken} defaultTokenID="STX" />
+                  <SelectToken
+                    tokens={tokens}
+                    action={setRewarddToken}
+                    defaultTokenID="STX"
+                  />
                 </div>
               </Form.Item>
               <Form.Item
@@ -222,16 +284,30 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                   rules={[{ required: true }]}
                 >
                   <DatePicker
-                    format="YYYY-MM-DD HH:mm:ss"
-                    use12Hours={true}
+                    format="YYYY-MM-DD"
+                    // use12Hours={true}
                     disabledDate={disabledDateStart}
-                    showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
+                    // showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
+                    placement="topRight"
                     className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
                     onChange={() => updateRate()}
                     size="small"
                   // onChange={calculateDifference}
                   />
                 </Form.Item>
+                <Form.Item name={"start_time"} label="Time">
+                  <TimePicker
+                    // disabled={loading}
+                    format="h:mm:ss A"
+                    use12Hours={true}
+                    placement="topLeft"
+                    className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
+                    size="small"
+                    disabledTime={disabledTime}
+                  />
+                </Form.Item>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <Form.Item
                   name={"end_date"}
                   label="End Date"
@@ -239,13 +315,25 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                 >
                   <DatePicker
                     // disabled={loading}
-                    format="YYYY-MM-DD HH:mm:ss"
+                    format="YYYY-MM-DD"
                     use12Hours={true}
                     disabledDate={disabledDateEnd}
-                    showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
+                    // showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
+                    placement="topLeft"
                     className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
                     onChange={() => updateRate()}
                     size="small"
+                  />
+                </Form.Item>
+                <Form.Item name={"end_time"} label="Time">
+                  <TimePicker
+                    // disabled={loading}
+                    format="h:mm:ss A"
+                    use12Hours={true}
+                    placement="topLeft"
+                    className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
+                    size="small"
+
                   />
                 </Form.Item>
               </div>
