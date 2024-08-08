@@ -51,30 +51,29 @@ export const StakeCard = ({
       if (result1.rewardMetadata && result1.stakeMetadata) {
         const sToken = getTokenMetaByAddress(result1.stakeMetadata.tokenAddress)
         const rToken = getTokenMetaByAddress(result1.rewardMetadata.tokenAddress);
-        console.log(sToken, rToken)
+        // console.log(sToken, rToken)
         setSToken(sToken);
         setRToken(rToken)
       }
-      const result2 = await getEndDate(stakeInfo);
-      setEndDate(result2);
-      const result7 = await getStartDate(stakeInfo);
-      setStartDate(result7);
-      const result3 = await getUserEarnings(formatCVTypeNumber(stakeInfo.id));
-      setEarned(result3);
-      const result4 = await getUserHasStake(stakeInfo);
-      setHasStake(result4);
-      const result5 = await getStoredPendingTransactions(stakeInfo)
-      setPendingTxns(result5)
-      const result6 = await fetchCurrNoOfBlocks();
-      setCurrBlock(result6)
+
+      if (stakeInfo) {
+        const result2 = await getEndDate(stakeInfo);
+        setEndDate(result2);
+        const result7 = await getStartDate(stakeInfo);
+        setStartDate(result7);
+        const result3 = await getUserEarnings(formatCVTypeNumber(stakeInfo.id));
+        setEarned(result3);
+        const result4 = await getUserHasStake(stakeInfo);
+        setHasStake(result4);
+        const result6 = await fetchCurrNoOfBlocks();
+        setCurrBlock(result6)
+      }
       setLoading(false)
     }
 
     fetchData()
 
   }, [stakeInfo, getTokenMetaByAddress]);
-
-  // console.log(stakeToken, rewardToken)
 
   if (loading) return <Loading />
 
@@ -115,7 +114,7 @@ export const StakeCard = ({
                 <div className="inline-flex gap-2 items-center">
                   <StakeToken
                     stake_token={stakeToken}
-                    disabled={ended || (currBlock < formatCVTypeNumber(stakeInfo["start-block"]))}
+                    disabled={true}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
                     pendingTxns={filterStakePendingTxn(pendingTxns)}
                     token_icon={stakeToken ? stakeToken.image_uri : ""}

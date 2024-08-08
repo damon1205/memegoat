@@ -133,13 +133,15 @@ export const getEndDate = async (stakeInfo: StakeInterface | null) => {
 };
 
 export const getStartDate = async (stakeInfo: StakeInterface | null) => {
+  console.log(stakeInfo)
   if (!stakeInfo) return "";
+  console.log(stakeInfo)
   const endBlock = formatCVTypeNumber(stakeInfo["start-block"]);
-  const now = Date.now();
   const currBlock = await fetchCurrNoOfBlocks();
   const dist = endBlock - currBlock;
   const distInSecs = dist * 600 * 1000;
-  const timeNow = now + distInSecs;
+  const now = Date.now();
+  const timeNow = now - distInSecs;
   const date = new Date(timeNow).toISOString();
   return moment(date).format("LLL");
 };
