@@ -172,20 +172,26 @@ export const MemeGoatStakingTab = () => {
               txSender: getUserPrincipal(),
               action: `Unstake GOATSTX`
             })
+            setLoading(false)
           } catch (e) {
             setLoading(false)
             console.log(e)
           }
+          setLoading(false)
           config({
             message: txMessage,
             title: "Unstake request successfully received!",
             type: "success",
             details_link: getExplorerLink(network, data.txId)
           })
-          setLoading(false)
         },
         onCancel: () => {
           setLoading(false)
+          config({
+            message: "User canceled transaction",
+            title: "Staking",
+            type: "error",
+          })
           console.log("onCancel:", "Transaction was canceled");
         },
       });
@@ -315,7 +321,7 @@ export const MemeGoatStakingTab = () => {
                   </div>
                   <div className="flex items-center gap-2 justify-between text-sm">
                     <p className="text-white/70">Unlock Date</p>
-                    <p className="">{userStake ? moment(convertBlocksToDate(formatCVTypeNumber(userStake["end-block"]), currBlock)).format("LL") : '0'}</p>
+                    <p className="">{userStake ? moment(convertBlocksToDate(formatCVTypeNumber(userStake["end-block"]), currBlock)).format("LLL") : '0'}</p>
                   </div>
                   <div className="my-6 grid grid-cols-3 bg-[#FFFFFF08] p-2 pb-2 pt-3 rounded-lg">
                     <div className="px-4 py-0 text-center">

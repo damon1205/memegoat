@@ -1,22 +1,20 @@
 "use client"
-import { Avatar, Button, DatePicker, Modal, Form, Input, Select } from "antd"
-import React, { useCallback, useEffect, useState } from "react"
+import { Avatar, Button, DatePicker, Modal, Form, Input } from "antd"
+import React, { useCallback, useState } from "react"
 import { IoCloseCircleOutline } from "react-icons/io5"
 import moment from "moment"
-import type { FormInstance, GetProps } from "antd"
+import type { GetProps } from "antd"
 import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 import { useForm } from "antd/es/form/Form"
 import { contractAddress, getExplorerLink, getUserPrincipal, network, userSession } from "@/utils/stacks.data"
 import {
   calculateRewardPerBlockAtCreation,
-  fetchTransactionStatus,
   generateCreatePoolTxn,
 } from "@/lib/contracts/staking"
 import { genHex, splitToken } from "@/utils/helpers"
 import { useConnect } from "@stacks/connect-react"
 import { usePendingTxnFields } from "@/hooks/useTokenMinterHooks"
-import { convertToIso } from "@/utils/format"
 import { PendingTxnsI, TokenData } from "@/interface"
 import { pendingInitial, txMessage } from "@/data/constants"
 import { useNotificationConfig } from "@/hooks/useNotification"
@@ -91,10 +89,12 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
               txSender: getUserPrincipal(),
               action: `Create ${rewardsToken}/${stakesToken} POOL`
             })
+            setLoading(false)
           } catch (e) {
             console.log(e)
             setLoading(false)
           }
+          setLoading(false)
           config({
             message: txMessage,
             title: "Pool Creation request successfully received!",
@@ -102,7 +102,6 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
             details_link: getExplorerLink(network, data.txId)
           })
           setPendingTxnProgress({ ...pendingInitial })
-          setLoading(false)
         },
         onCancel: () => {
           console.log("onCancel:", "Transaction was canceled")
@@ -154,45 +153,6 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
     )
     setRewardPerBlock(result)
   }
-
-  // useEffect(() => {
-  //   if (pendingTxnProgress.txStatus !== "pending") return
-  //   const handleTransactionStatus = async () => {
-  //     try {
-  //       const txn = pendingTxnProgress
-  //       const result = await fetchTransactionStatus(txn)
-  //       if (result !== "pending") {
-  //         if (result === "success") {
-  //           config({
-  //             message: `${txn.action} Successful`,
-  //             title: "Staking",
-  //             type: "success",
-  //           })
-  //           form.resetFields()
-  //           setPendingTxnProgress({ ...pendingInitial })
-  //           toggleModal()
-  //         } else {
-  //           config({
-  //             message: `${txn.action} Failed`,
-  //             title: "Staking",
-  //             type: "error",
-  //           })
-  //           setPendingTxnProgress({ ...txn })
-  //         }
-  //       }
-  //     } catch (e) {
-  //       console.log(e)
-  //     }
-  //   }
-
-  //   const interval = setInterval(() => {
-  //     if (pendingTxnProgress.txStatus !== "pending") return
-  //     handleTransactionStatus()
-  //   }, 1000)
-
-  //   //Clearing the interval
-  //   return () => clearInterval(interval)
-  // }, [form, pendingTxnProgress, setPendingTxnProgress, toggleModal, config])
 
   return (
     <div>
