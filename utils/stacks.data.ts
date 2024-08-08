@@ -220,7 +220,7 @@ export const fetchTokenMetadata = async (token: string) => {
     const response = await axios.request(config);
     const metadata: ITokenMetadata = {
       ...response.data,
-      tokenAddress: token,
+      address: token,
     };
     return metadata;
   } catch (error) {
@@ -236,14 +236,14 @@ export const fetchTokenMetadata = async (token: string) => {
         description: tokenInfo.token_desc,
         image_uri: tokenInfo.token_image,
         sender_address: tokenInfo.user_addr,
-        tokenAddress: token,
+        address: token,
       };
       return metadata;
     } catch (error) {
       const data = await getTokenURI(token, networkInstance);
       const metadata: ITokenMetadata = {
         ...emptyMetadata,
-        tokenAddress: token,
+        address: token,
         symbol: splitToken(token)[1],
         name: data.name,
         image_uri: cleanIPFS(data.image),

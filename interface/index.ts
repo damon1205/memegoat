@@ -65,7 +65,7 @@ export interface ITokenMetadata {
     cached_image: string;
     cached_thumbnail_image: string;
   };
-  tokenAddress: string;
+  address: string;
 }
 
 export interface LaunchpadDataI {

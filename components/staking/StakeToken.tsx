@@ -1,11 +1,11 @@
 "use client"
 import { txMessage } from "@/data/constants";
 import { useNotificationConfig } from "@/hooks/useNotification";
-import { PendingTxnPool, ITokenMetadata } from "@/interface";
-import { fetchTransactionStatus, generateStakeTransaction, storeDB } from "@/lib/contracts/staking";
+import { ITokenMetadata, TokenData } from "@/interface";
+import { generateStakeTransaction } from "@/lib/contracts/staking";
 import { storeTransaction } from "@/utils/db";
-import { formatNumber, truncateTokenAddress } from "@/utils/format";
-import { genHex, splitToken } from "@/utils/helpers";
+import { formatNumber } from "@/utils/format";
+import { genHex } from "@/utils/helpers";
 import { getExplorerLink, getUserPrincipal, getUserTokenBalance, network, userSession } from "@/utils/stacks.data";
 import { useConnect } from "@stacks/connect-react";
 import { Avatar, Button, Checkbox, Input, Modal } from "antd"
@@ -14,13 +14,14 @@ import { SlClose } from "react-icons/sl"
 
 interface props {
   stakeId: number;
-  stake_token: ITokenMetadata | null;
+  stake_token: ITokenMetadata | TokenData | null;
   token_icon: string | undefined;
   // update: () => void;
+  reward_token: ITokenMetadata | TokenData | null;
   disabled: boolean;
 }
 
-export const StakeToken = ({ stakeId, stake_token, token_icon, disabled }: props) => {
+export const StakeToken = ({ stakeId, stake_token, reward_token, token_icon, disabled }: props) => {
   const { doContractCall } = useConnect()
   const { config } = useNotificationConfig()
   const [open, setOpen] = useState(false)
@@ -31,13 +32,15 @@ export const StakeToken = ({ stakeId, stake_token, token_icon, disabled }: props
   const setMax = () => setAmount(balance)
   const [loading, setLoading] = useState<boolean>(false);
 
+  console.log(stake_token, reward_token)
+
   const handleStake = async (amount: number) => {
     if (!amount) return;
-    if (!stake_token) return
+    if (!stake_token || !reward_token) return
     if (!userSession.isUserSignedIn) return;
     try {
       setLoading(true)
-      const txn = await generateStakeTransaction(stakeId, amount, stake_token.tokenAddress, stake_token.name)
+      const txn = await generateStakeTransaction(stakeId, amount, stake_token.address, stake_token.name)
       doContractCall({
         ...txn,
         onFinish: async (data) => {
@@ -49,7 +52,7 @@ export const StakeToken = ({ stakeId, stake_token, token_icon, disabled }: props
               amount: Number(amount),
               tag: "STAKE-POOLS",
               txSender: getUserPrincipal(),
-              action: `Stake in ${stake_token.symbol} POOL`
+              action: `Stake in ${reward_token.name}/${stake_token.name} POOL`
             })
             setLoading(false)
           } catch (e) {
@@ -87,7 +90,7 @@ export const StakeToken = ({ stakeId, stake_token, token_icon, disabled }: props
   useEffect(() => {
     const fetchData = async () => {
       if (!stake_token) return
-      const result = await getUserTokenBalance(stake_token.tokenAddress);
+      const result = await getUserTokenBalance(stake_token.address);
       setBalance(result)
     }
     fetchData()
@@ -111,11 +114,11 @@ export const StakeToken = ({ stakeId, stake_token, token_icon, disabled }: props
               },
             }}
           >
-            <h3 className="text-xl font-medium mb-7">Stake {stake_token.symbol}</h3>
+            <h3 className="text-xl font-medium mb-7">Stake {stake_token.name}</h3>
             <div className="flex justify-end items-center gap-2">
               <p>
                 <span className="text-[#7ff39c]">Available</span>{" "}
-                <span>{`${formatNumber(balance.toFixed(4))} ${stake_token.symbol}`}</span>
+                <span>{`${formatNumber(balance.toFixed(4))} ${stake_token.name}`}</span>
               </p>
               <Avatar src={token_icon} size={30} />
               <p className="border-[1px] border-primary-40/40 text-primary-40  p-[1px] px-[4px]">
