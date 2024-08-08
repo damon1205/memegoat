@@ -10,7 +10,7 @@ import {
   getStakes,
 } from "@/lib/contracts/staking"
 import { StakeInterface } from "@/interface"
-import { fetchCurrNoOfBlocks, getUserPrincipal } from "@/utils/stacks.data"
+import { fetchCurrNoOfBlocks, getUserPrincipal, userSession } from "@/utils/stacks.data"
 import { MemeGoatStakingTab } from "./MemeGoatStakingTab"
 import { PendingTransactions } from "../shared/PendingTransactions"
 
@@ -26,6 +26,7 @@ export const StakingTabs = () => {
   const [endedStakes, setEndedStakes] = useState<StakeInterface[]>([])
   const [stakeOnly, setStakeOnly] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
+  const [connected, setConnected] = useState<boolean>()
 
   const tabItems: TabItem[] = [
     {
@@ -52,6 +53,7 @@ export const StakingTabs = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setConnected(userSession.isUserSignedIn())
       setLoading(true)
       const stakeIndex = await getStakeNonce()
       const stakes = await getStakes(stakeIndex)
@@ -80,9 +82,9 @@ export const StakingTabs = () => {
           <PendingTransactions txRequest={{ tag: "STAKE-POOLS", address: getUserPrincipal() }} />
         </div>
       </div>
-      <div className="pb-5">
+      {connected && <div className="pb-5">
         {tabItems.find((item) => item.key === current)?.content}
-      </div>
+      </div>}
     </div>
   )
 }
