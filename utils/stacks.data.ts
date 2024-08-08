@@ -1,5 +1,5 @@
 import { LaunchpadDataI, TxData, TxRequest, TxType } from "@/interface";
-import { AppConfig, UserSession } from "@stacks/connect";
+import { AppConfig, showConnect, UserSession } from "@stacks/connect";
 import {
   StacksMainnet,
   StacksMocknet,
@@ -344,4 +344,14 @@ export const getAllUserTokens = async () => {
     tokenList.push(token);
   }
   return tokenList;
+};
+
+export const onConnectWallet = () => {
+  showConnect({
+    appDetails,
+    onFinish: () => {
+      window.location.reload();
+    },
+    userSession,
+  });
 };

@@ -32,15 +32,17 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
   const [open, setOpen] = useState(false)
   const toggleModal = useCallback(() => setOpen(!open), [open])
   const [rewardPerBlock, setRewardPerBlock] = useState<number>(0)
-  const [rewardToken, setRewardToken] = useState<string>("")
-  const [stakeToken, setSstakeToken] = useState<string>("")
-  const [form] = useForm<PendingTxnsI>()
+  const [rewardsToken, setRewardToken] = useState<string>("")
+  const [stakesToken, setSstakeToken] = useState<string>("")
+  const [form] = useForm<PendingTxnsI>();
+  const [loading, setLoading] = useState(false);
+
 
   const { pendingTxnProgress, setPendingTxnProgress } = usePendingTxnFields()
 
   // eslint-disable-next-line arrow-body-style
   const disabledDateStart: RangePickerProps["disabledDate"] = (current) => {
-    return current && current < dayjs().endOf("day")
+    return current && current < dayjs().startOf("day")
   }
 
   // eslint-disable-next-line arrow-body-style
@@ -58,6 +60,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
   const handleForm = async () => {
     if (!userSession.isUserSignedIn) return
     try {
+      setLoading(true)
       const formData = form.getFieldsValue()
       const rewardToken = formData.reward_token
       const stakeToken = formData.stake_token
@@ -82,10 +85,11 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
               amount: Number(rewardAmount),
               tag: "STAKE-POOLS",
               txSender: getUserPrincipal(),
-              action: `Create ${rewardToken}/${stakeToken} POOL`
+              action: `Create ${rewardsToken}/${stakesToken} POOL`
             })
           } catch (e) {
             console.log(e)
+            setLoading(false)
           }
           config({
             message: txMessage,
@@ -94,6 +98,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
             details_link: getExplorerLink(network, data.txId)
           })
           setPendingTxnProgress({ ...pendingInitial })
+          setLoading(true)
         },
         onCancel: () => {
           console.log("onCancel:", "Transaction was canceled")
@@ -102,9 +107,11 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
             title: "Staking",
             type: "error",
           })
+          setLoading(false)
         },
       })
     } catch (e) {
+      setLoading(false)
       if (e instanceof Error) {
         config({ message: e.message, title: "Staking", type: "error" })
       } else {
@@ -276,14 +283,15 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
               <span className=" py-3">
                 Reward Per Block is{" "}
                 {rewardPerBlock > 0 ? rewardPerBlock.toFixed(4) : 0}{" "}
-                {rewardToken}
+                {rewardsToken}
               </span>
               <Button
                 className="w-full rounded-lg"
                 type="primary"
                 htmlType="submit"
+                loading={loading}
               >
-                Create
+                {loading ? "Submitting Transaction" : "Create"}
               </Button>
             </Form>
           </div>

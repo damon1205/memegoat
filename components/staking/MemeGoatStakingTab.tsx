@@ -4,7 +4,7 @@ import Image from "next/image"
 import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { StakeInfo, PendingTxnStaking, IStake } from "@/interface"
-import { contractAddress, fetchCurrNoOfBlocks, getExplorerLink, getUserPrincipal, getUserTokenBalance, network, userSession } from "@/utils/stacks.data"
+import { contractAddress, fetchCurrNoOfBlocks, getExplorerLink, getUserPrincipal, getUserTokenBalance, network, onConnectWallet, userSession } from "@/utils/stacks.data"
 import { calculateRewards, getUserStakeData, getUserStakeStatus } from "@/lib/contracts/staking/goat"
 import { useNotificationConfig } from "@/hooks/useNotification"
 import { txFailMessage, txMessage } from "@/data/constants"
@@ -67,6 +67,7 @@ export const MemeGoatStakingTab = () => {
   const [currBlock, setCurrBlock] = useState<number>(0);
   const [activePeriod, setActivePeriod] = useState<number>(30);
   const [userConnected, setUserConnected] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const { config } = useNotificationConfig();
 
   const selectStakingDays = (
@@ -95,6 +96,7 @@ export const MemeGoatStakingTab = () => {
     return reward
   }
 
+
   function calcAmount(percent: number) {
     const amount = (memegoatBalance * percent) / 100
     amountRef.current.value = amount
@@ -103,6 +105,7 @@ export const MemeGoatStakingTab = () => {
 
   const handleStake = async () => {
     try {
+      setLoading(true)
       if (!amount) return;
       const txStakeIndex = userStake ? formatCVTypeNumber(userStake["stake-index"]) : stakeIndex
       const txData = await generateStakeTransaction(amount * 1e6, txStakeIndex)
@@ -120,6 +123,7 @@ export const MemeGoatStakingTab = () => {
               action: `Stake GOATSTX`
             })
           } catch (e) {
+            setLoading(false)
             console.log(e)
           }
           config({
@@ -128,6 +132,7 @@ export const MemeGoatStakingTab = () => {
             type: "success",
             details_link: getExplorerLink(network, data.txId)
           })
+          setLoading(false)
         },
         onCancel: () => {
           console.log("onCancel:", "Transaction was canceled");
@@ -136,6 +141,7 @@ export const MemeGoatStakingTab = () => {
             title: "Staking",
             type: "error",
           })
+          setLoading(false)
         },
       });
     } catch (e) {
@@ -144,11 +150,13 @@ export const MemeGoatStakingTab = () => {
       } else {
         config({ message: "An unknown error occurred", title: txFailMessage, type: 'error' })
       }
+      setLoading(false)
     }
   }
 
   const handleUnStake = async () => {
     try {
+      setLoading(true)
       const txData = await generateUnstakeTransaction(userStake, rewards)
       doContractCall({
         ...txData,
@@ -164,6 +172,7 @@ export const MemeGoatStakingTab = () => {
               action: `Unstake GOATSTX`
             })
           } catch (e) {
+            setLoading(false)
             console.log(e)
           }
           config({
@@ -172,13 +181,16 @@ export const MemeGoatStakingTab = () => {
             type: "success",
             details_link: getExplorerLink(network, data.txId)
           })
+          setLoading(false)
         },
         onCancel: () => {
+          setLoading(false)
           console.log("onCancel:", "Transaction was canceled");
         },
       });
     } catch (e) {
       console.log(e)
+      setLoading(false)
       if (e instanceof Error) {
         config({ message: e.message, title: txFailMessage, type: 'error' })
       } else {
@@ -376,18 +388,18 @@ export const MemeGoatStakingTab = () => {
 
           {!userConnected ?
             <div>
-              <Button type="primary" className="w-full rounded-lg h-[44px]">
+              <Button type="primary" className="w-full rounded-lg h-[44px]" onClick={() => onConnectWallet()}>
                 Connect Wallet
               </Button>
             </div>
             :
             <div>
-              <Button type="primary" className="w-full rounded-lg h-[44px]" onClick={() => handleStake()}>
-                Stake
+              <Button type="primary" className="w-full rounded-lg h-[44px]" onClick={() => handleStake()} loading={loading}>
+                {loading ? "Submitting Transaction" : "Stake"}
               </Button>
               {userHasStake && userStake &&
-                <Button type='primary' className="w-full rounded-lg h-[44px] mt-3 bg-red-500" disabled={currBlock < formatCVTypeNumber(userStake["end-block"])} onClick={() => handleUnStake()}>
-                  Unstake
+                <Button type='primary' loading={loading} className="w-full rounded-lg h-[44px] mt-3 bg-red-500" disabled={currBlock < formatCVTypeNumber(userStake["end-block"])} onClick={() => handleUnStake()}>
+                  {loading ? "Submitting Transaction" : "UnStake"}
                 </Button>
               }
             </div>
