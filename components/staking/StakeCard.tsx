@@ -8,7 +8,7 @@ import { ITokenMetadata, StakeInterface, TokenData, UserStakeInterface } from "@
 import { useEffect, useState } from "react"
 import { getMetas, getUserEarnings, getUserHasStake, getUserStakeInfo, checkForStake, filterClaimPendingTxn, calcRewardPerblock } from "@/lib/contracts/staking"
 import { getAddress } from "@/utils/helpers"
-import { convertBlocksToDate, formatCVTypeNumber, formatNumber } from "@/utils/format"
+import { convertBlocksToDate, formatBal, formatCVTypeNumber, formatNumber } from "@/utils/format"
 import { fetchCurrNoOfBlocks, getAddressLink, network } from "@/utils/stacks.data"
 import { ClaimBtn } from "./ClaimBtn"
 import { useTokensContext } from "@/provider/Tokens"
@@ -105,8 +105,8 @@ export const StakeCard = ({
                 <div className="inline-flex gap-2 items-center">
                   <Avatar src={stakeToken ? stakeToken.image_uri : sToken?.icon} size={30} />
                   <div>
-                    <span className="mr-3">0.0 {stakeToken ? stakeToken.symbol : ""}</span>
-                    <span className="mr-3 text-gray-400">$0.0</span>
+                    <span className="mr-3">{userStakeInfo ? formatNumber(formatBal(formatCVTypeNumber(userStakeInfo["amount-staked"]))) : '0'} {stakeToken ? stakeToken.symbol : ""}</span>
+                    {/* <span className="mr-3 text-gray-400">$</span> */}
                   </div>
                 </div>
                 <div className="inline-flex gap-2 items-center">
