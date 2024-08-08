@@ -1,42 +1,72 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Spin } from "antd";
-import { userSession } from "@/utils/stacks.data";
+import { getExplorerLink, getUserPrincipal, network, userSession } from "@/utils/stacks.data";
 import { useConnect } from "@stacks/connect-react";
 import { LoadingOutlined } from '@ant-design/icons';
-import { PendingTxnPool } from "@/interface";
-import { fetchTransactionStatus, generateClaimTransaction, storeDB } from "@/lib/contracts/staking";
+import { ITokenMetadata, TokenData } from "@/interface";
+import { generateClaimTransaction } from "@/lib/contracts/staking";
 import { useNotificationConfig } from "@/hooks/useNotification";
+import { txMessage } from "@/data/constants";
+import { storeTransaction } from "@/utils/db";
+import { genHex } from "@/utils/helpers";
 
 interface props {
   stakeId: number;
-  reward_token: string;
-  // update: () => void;
-  pendingTxns: PendingTxnPool[];
+  reward_token: ITokenMetadata | TokenData | null;
+  stake_token: ITokenMetadata | TokenData | null;
   earned: number;
   erpb: number
 }
 
-export const ClaimBtn = ({ stakeId, reward_token, erpb, pendingTxns, earned }: props) => {
-  const [txStatus, setTxStatus] = useState<string>("notactive");
+export const ClaimBtn = ({ stakeId, reward_token, stake_token, erpb, earned }: props) => {
   const [loading, setLoading] = useState<boolean>(false);
   const { config } = useNotificationConfig()
   const { doContractCall } = useConnect();
 
   const hanleClaim = async () => {
     if (!userSession.isUserSignedIn) return;
+    if (!reward_token || !stake_token) return;
     try {
-      const txn = await generateClaimTransaction(stakeId, reward_token, erpb);
+      setLoading(true)
+      const txn = await generateClaimTransaction(stakeId, reward_token.address, erpb, reward_token.name);
       doContractCall({
         ...txn,
         onFinish: async (data) => {
-          storeDB("Claim Tokens", data.txId, earned, reward_token, stakeId.toString());
+          try {
+            await storeTransaction({
+              key: genHex(data.txId),
+              txId: data.txId,
+              txStatus: 'Pending',
+              amount: Number(erpb),
+              tag: "STAKE-POOLS",
+              txSender: getUserPrincipal(),
+              action: `Claim reward from ${reward_token.name}/${stake_token.name} POOL`
+            })
+            setLoading(false)
+          } catch (e) {
+            console.log(e)
+            setLoading(false)
+          }
+          setLoading(false)
+          config({
+            message: txMessage,
+            title: "Stake request successfully received!",
+            type: "success",
+            details_link: getExplorerLink(network, data.txId)
+          })
         },
         onCancel: () => {
-          // setLoading(false)
+          setLoading(false)
+          config({
+            message: "User canceled transaction",
+            title: "Staking",
+            type: "error",
+          })
           console.log("onCancel:", "Transaction was canceled");
         },
       })
     } catch (e) {
+      setLoading(false)
       if (e instanceof Error) {
         config({ message: e.message, title: 'Staking', type: 'error' })
       } else {
@@ -44,36 +74,6 @@ export const ClaimBtn = ({ stakeId, reward_token, erpb, pendingTxns, earned }: p
       }
     }
   }
-
-  useEffect(() => {
-    setTxStatus(pendingTxns.length > 0 ? "pending" : "notactive");
-    const handleTransactionStatus = async () => {
-      if (pendingTxns.length < 0) return;
-      try {
-        const txn = pendingTxns[0];
-        const result = await fetchTransactionStatus(txn);
-        if (result !== "pending") {
-          localStorage.removeItem(txn.key);
-          if (result === "success") {
-            config({ message: `${txn.action} Successful`, title: 'Staking', type: 'success' })
-          } else {
-            config({ message: `${txn.action} Failed`, title: 'Staking', type: 'error' })
-          }
-          // update()
-        }
-      } catch (e) {
-        console.log(e)
-      }
-    }
-
-    const interval = setInterval(() => {
-      if (txStatus === "notactive") return;
-      handleTransactionStatus();
-    }, 1000);
-
-    //Clearing the interval
-    return () => clearInterval(interval);
-  }, [pendingTxns, txStatus, config])
 
   return (
     <button

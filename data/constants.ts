@@ -1,5 +1,6 @@
 import { LaunchpadI } from "@/interface";
 import { LaunchpadDataI } from "@/interface";
+import { address } from "@stacks/transactions/dist/cl";
 import { TokenInfo, Currency } from "alex-sdk";
 
 export const dummyToken: TokenInfo = {
@@ -106,7 +107,7 @@ export const dummyMetadata = {
     cached_thumbnail_image:
       "https://assets.hiro.so/api/mainnet/token-metadata-api/SP2F4QC563WN0A0949WPH5W1YXVC4M1R46QKE0G14.memegoatstx/1-thumb.png",
   },
-  tokenAddress: "STHSSNNW4X73WMDB5XZV387WME91DQCNZMEK833W.testSTX",
+  address: "STHSSNNW4X73WMDB5XZV387WME91DQCNZMEK833W.testSTX",
 };
 
 export const emptyMetadata = {
@@ -129,7 +130,7 @@ export const emptyMetadata = {
     cached_image: "",
     cached_thumbnail_image: "",
   },
-  tokenAddress: "",
+  address: "",
 };
 
 export const initialTokenData = {

@@ -35,7 +35,6 @@ export const StakeCard = ({
   const [endDate, setEndDate] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [userHasStake, setHasStake] = useState<boolean>(false);
-  const pending = []
   const [currBlock, setCurrBlock] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [sToken, setSToken] = useState<TokenData | null>(null);
@@ -50,8 +49,8 @@ export const StakeCard = ({
       setRewardToken(result1.rewardMetadata);
       setStakeToken(result1.stakeMetadata);
       if (result1.rewardMetadata && result1.stakeMetadata) {
-        const sToken = getTokenMetaByAddress(result1.stakeMetadata.tokenAddress)
-        const rToken = getTokenMetaByAddress(result1.rewardMetadata.tokenAddress);
+        const sToken = getTokenMetaByAddress(result1.stakeMetadata.address)
+        const rToken = getTokenMetaByAddress(result1.rewardMetadata.address);
         setSToken(sToken);
         setRToken(rToken)
       }
@@ -112,13 +111,15 @@ export const StakeCard = ({
                 </div>
                 <div className="inline-flex gap-2 items-center">
                   <StakeToken
-                    stake_token={stakeToken}
+                    stake_token={sToken || stakeToken}
+                    reward_token={rToken || rewardToken}
                     disabled={ended || (currBlock < formatCVTypeNumber(stakeInfo["start-block"]))}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
                     token_icon={sToken ? sToken.icon : stakeToken ? stakeToken.image_uri : ""}
                   />
                   <UnstakeToken
-                    stake_token={stakeToken}
+                    stake_token={sToken || stakeToken}
+                    reward_token={rToken || rewardToken}
                     disabled={currBlock < formatCVTypeNumber(stakeInfo["start-block"])}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
                     token_icon={sToken ? sToken.icon : stakeToken ? stakeToken.image_uri : ""}
@@ -141,8 +142,8 @@ export const StakeCard = ({
                 </div>
                 <ClaimBtn
                   stakeId={formatCVTypeNumber(stakeInfo.id)}
-                  reward_token={getAddress(stakeInfo["reward-token"])}
-                  pendingTxns={filterClaimPendingTxn([])}
+                  stake_token={sToken || stakeToken}
+                  reward_token={rToken || rewardToken}
                   erpb={calcRewardPerblock(stakeInfo, userStakeInfo)}
                   earned={earned} />
               </div>
