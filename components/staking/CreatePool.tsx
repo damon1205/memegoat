@@ -38,7 +38,6 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
 
   const { getTokenMetaByAddress } = useTokensContext()
 
-
   const { pendingTxnProgress, setPendingTxnProgress } = usePendingTxnFields()
 
   // eslint-disable-next-line arrow-body-style

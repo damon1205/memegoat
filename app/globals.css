@@ -56,26 +56,3 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
-
-@media (max-width: 992px) {
-  .ant-picker-panel:last-child .ant-picker-date-panel {
-    display: none !important;
-  }
-
-  .ant-picker-panel:first-child
-    .ant-picker-date-panel
-    .ant-picker-header-next-btn,
-  .ant-picker-panel:first-child
-    .ant-picker-date-panel
-    .ant-picker-header-super-next-btn {
-    visibility: initial !important;
-  }
-
-  .ant-picker-panel.ant-picker-range-wrapper {
-    min-width: 288px !important;
-  }
-
-  .ant-picker-presets {
-    display: none !important;
-  }
-}
