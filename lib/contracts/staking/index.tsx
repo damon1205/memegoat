@@ -132,11 +132,12 @@ export const getEndDate = async (stakeInfo: StakeInterface, currBlock: number) =
 
 export const getStartDate = async (stakeInfo: StakeInterface, currBlock: number) => {
   const startBlock = formatCVTypeNumber(stakeInfo["start-block"]);
-  // console(startBlock, currBlock)
   const dist = startBlock - currBlock;
-  const distInMillis = dist * 10 * 60 * 1000;
-  const timeNow = Date.now() + distInMillis;
-  return moment(timeNow).format("LLL");
+  const distInSecs = dist * 600 * 1000;
+  const now = Date.now();
+  const timeNow = now - distInSecs;
+  const date = new Date(timeNow).toISOString();
+  return moment(date).format("LLL");
 };
 
 export const storeDB = (
