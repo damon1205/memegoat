@@ -4,13 +4,14 @@ import { BiLinkExternal } from "react-icons/bi"
 import { StakeToken } from "./StakeToken"
 import { UnstakeToken } from "./UnstakeToken"
 import Link from "next/link"
-import { ITokenMetadata, PendingTxnPool, StakeInterface, UserStakeInterface } from "@/interface"
+import { ITokenMetadata, PendingTxnPool, StakeInterface, TokenData, UserStakeInterface } from "@/interface"
 import { useEffect, useState } from "react"
 import { getEndDate, getMetas, getUserEarnings, getUserHasStake, getUserStakeInfo, getStoredPendingTransactions, checkForStake, filterStakePendingTxn, filterClaimPendingTxn, calcRewardPerblock, getStartDate } from "@/lib/contracts/staking"
 import { getAddress } from "@/utils/helpers"
 import { formatCVTypeNumber, formatNumber } from "@/utils/format"
 import { fetchCurrNoOfBlocks, getAddressLink, network } from "@/utils/stacks.data"
 import { ClaimBtn } from "./ClaimBtn"
+import { useTokensContext } from "@/provider/Tokens"
 
 interface props {
   stakeInfo: StakeInterface
@@ -26,6 +27,7 @@ export const StakeCard = ({
   const [userStakeInfo, setUserStakeInfo] = useState<UserStakeInterface | null>(
     null,
   );
+  const { getTokenMetaByAddress } = useTokensContext()
   const [stakeToken, setStakeToken] = useState<ITokenMetadata | null>(null);
   const [rewardToken, setRewardToken] = useState<ITokenMetadata | null>(null);
   const [earned, setEarned] = useState<number>(0);
@@ -35,14 +37,24 @@ export const StakeCard = ({
   const [pendingTxns, setPendingTxns] = useState<PendingTxnPool[]>([]);
   const [currBlock, setCurrBlock] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
+  const [sToken, setSToken] = useState<TokenData | null>(null);
+  const [rToken, setRToken] = useState<TokenData | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true)
       const result = await getUserStakeInfo(stakeInfo);
       setUserStakeInfo(result);
       const result1 = await getMetas(stakeInfo);
       setRewardToken(result1.rewardMetadata);
       setStakeToken(result1.stakeMetadata);
+      if (result1.rewardMetadata && result1.stakeMetadata) {
+        const sToken = getTokenMetaByAddress(result1.stakeMetadata.tokenAddress)
+        const rToken = getTokenMetaByAddress(result1.rewardMetadata.tokenAddress);
+        console.log(sToken, rToken)
+        setSToken(sToken);
+        setRToken(rToken)
+      }
       const result2 = await getEndDate(stakeInfo);
       setEndDate(result2);
       const result7 = await getStartDate(stakeInfo);
@@ -55,13 +67,14 @@ export const StakeCard = ({
       setPendingTxns(result5)
       const result6 = await fetchCurrNoOfBlocks();
       setCurrBlock(result6)
+      setLoading(false)
     }
 
     fetchData()
 
-  }, [stakeInfo]);
+  }, [stakeInfo, getTokenMetaByAddress]);
 
-  console.log(stakeToken, rewardToken)
+  // console.log(stakeToken, rewardToken)
 
   return (
     <>
@@ -69,13 +82,13 @@ export const StakeCard = ({
         <div className="border-[1px] border-primary-100">
           <div className="py-3 px-5 bg-primary-100/30 border-b-[2px] border-b-primary-100 rounded-t-[3px] flex flex-wrap items-center justify-between">
             <div>
-              <h3 className="font-medium">Earn {rewardToken ? rewardToken.symbol : ""}</h3>
-              <p className="text-xs mt-2">Stake {stakeToken ? stakeToken.symbol : ""}</p>
+              <h3 className="font-medium">Earn {rToken ? rToken.name : rewardToken ? rewardToken.symbol : ""}</h3>
+              <p className="text-xs mt-2">Stake {sToken ? sToken.name : stakeToken ? stakeToken.name : ""}</p>
             </div>
             <div className="relative">
-              <Avatar src={rewardToken ? rewardToken.image_uri : ""} size={60} />
+              <Avatar src={rToken ? rToken.icon : rewardToken ? rewardToken.image_uri : ""} size={60} />
               <Avatar
-                src={stakeToken ? stakeToken.image_uri : ""}
+                src={sToken ? sToken.icon : stakeToken ? stakeToken.image_uri : ""}
                 size={30}
                 className="absolute bottom-[0px] right-[-5px]"
               />
@@ -91,7 +104,7 @@ export const StakeCard = ({
               <p className="text-gray-400 mb-2">Your Staked</p>
               <div className="flex items-center justify-between">
                 <div className="inline-flex gap-2 items-center">
-                  <Avatar src={stakeToken ? stakeToken.image_uri : ""} size={30} />
+                  <Avatar src={stakeToken ? stakeToken.image_uri : sToken?.icon} size={30} />
                   <div>
                     <span className="mr-3">0.0 {stakeToken ? stakeToken.symbol : ""}</span>
                     <span className="mr-3 text-gray-400">$0.0</span>

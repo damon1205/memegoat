@@ -72,10 +72,10 @@ export const StakingTabs = () => {
         style={{ backdropFilter: "blur(22px)" }}
       >
         <TabHead {...tabHeadProps} />
-        <div className="text-gray-300 flex gap-2 items-center">
+        {/* <div className="text-gray-300 flex gap-2 items-center">
           <p className="text-md md:tex-sm">Staked Only</p>
           <Switch />
-        </div>
+        </div> */}
         <div className="flex items-center justify-start mb-2 gap-2 right-0">
           <PendingTransactions txRequest={{ tag: "STAKE-POOLS", address: getUserPrincipal() }} />
         </div>

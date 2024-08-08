@@ -162,7 +162,7 @@ export const StakeToken = ({ stakeId, stake_token, token_icon, disabled, pending
               size="large"
               type="primary"
             >
-              Stake
+              {loading ? "Submitting Transaction" : "Stake"}
             </Button>
           </Modal>
           <button

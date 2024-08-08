@@ -129,7 +129,7 @@ export const getEndDate = async (stakeInfo: StakeInterface | null) => {
   const distInSecs = dist * 600 * 1000;
   const timeNow = now + distInSecs;
   const date = new Date(timeNow).toISOString();
-  return moment(date).format("LL");
+  return moment(date).format("LLL");
 };
 
 export const getStartDate = async (stakeInfo: StakeInterface | null) => {
@@ -141,7 +141,7 @@ export const getStartDate = async (stakeInfo: StakeInterface | null) => {
   const distInSecs = dist * 600 * 1000;
   const timeNow = now + distInSecs;
   const date = new Date(timeNow).toISOString();
-  return moment(date).format("LL");
+  return moment(date).format("LLL");
 };
 
 export const storeDB = (

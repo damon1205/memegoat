@@ -2,14 +2,13 @@
 import { txMessage } from "@/data/constants";
 import { useNotificationConfig } from "@/hooks/useNotification";
 import { ITokenMetadata, PendingTxnPool } from "@/interface";
-import { fetchTransactionStatus, generateUnstakeTransaction, storeDB } from "@/lib/contracts/staking";
+import { generateUnstakeTransaction } from "@/lib/contracts/staking";
 import { storeTransaction } from "@/utils/db";
-import { truncateTokenAddress } from "@/utils/format";
-import { genHex, splitToken } from "@/utils/helpers";
+import { genHex } from "@/utils/helpers";
 import { getExplorerLink, getUserPrincipal, network, userSession } from "@/utils/stacks.data";
 import { useConnect } from "@stacks/connect-react";
 import { Avatar, Button, Checkbox, Input, Modal } from "antd"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { SlClose } from "react-icons/sl"
 
 interface props {
@@ -30,7 +29,6 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
   const [amount, setAmount] = useState<number>(0)
   const setMax = () => setAmount(staked_amount)
   const [checked, setChecked] = useState<boolean>(false)
-  const [txStatus, setTxStatus] = useState<string>("notactive");
   const hasStake = () => staked_amount > 0;
   const [loading, setLoading] = useState<boolean>(true)
 
@@ -39,7 +37,7 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
     if (!userSession.isUserSignedIn) return;
     if (!stake_token) return
     try {
-      const txn = await generateUnstakeTransaction(stakeId, amount, stake_token.tokenAddress)
+      const txn = await generateUnstakeTransaction(stakeId, amount, stake_token.tokenAddress, stake_token.name)
       doContractCall({
         ...txn,
         onFinish: async (data) => {
@@ -68,6 +66,7 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
           })
         },
         onCancel: () => {
+          setLoading(false)
           console.log("onCancel:", "Transaction was canceled");
           config({
             message: "User canceled transaction",
@@ -77,6 +76,7 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
         },
       })
     } catch (e) {
+      setLoading(false)
       if (e instanceof Error) {
         config({ message: e.message, title: 'Staking', type: 'error' })
       } else {
@@ -84,36 +84,6 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
       }
     }
   }
-
-  useEffect(() => {
-    setTxStatus(pendingTxns.length > 0 ? "pending" : "notactive");
-    const handleTransactionStatus = async () => {
-      if (pendingTxns.length < 0) return;
-      try {
-        const txn = pendingTxns[0];
-        const result = await fetchTransactionStatus(txn);
-        if (result !== "pending") {
-          localStorage.removeItem(txn.key);
-          if (result === "success") {
-            config({ message: `${txn.action} Successful`, title: 'Staking', type: 'success' })
-          } else {
-            config({ message: `${txn.action} Failed`, title: 'Staking', type: 'error' })
-          }
-          // update()
-        }
-      } catch (e) {
-        console.log(e)
-      }
-    }
-
-    const interval = setInterval(() => {
-      if (txStatus === "notactive") return;
-      handleTransactionStatus();
-    }, 1000);
-
-    //Clearing the interval
-    return () => clearInterval(interval);
-  }, [pendingTxns, txStatus, config])
 
   return (
     <>
@@ -182,7 +152,7 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
             size="large"
             type="primary"
           >
-            Unstake
+            {loading ? "Submitting Transaction" : "UnStake"}
           </Button>
         </Modal>
         <button
