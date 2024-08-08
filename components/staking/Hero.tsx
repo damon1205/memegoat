@@ -3,9 +3,10 @@ import Image from "next/image"
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { CreatePool } from "./CreatePool"
-import { getAllUserTokens } from "@/utils/stacks.data"
+import { getAllUserTokens, getUserPrincipal } from "@/utils/stacks.data"
 import { TokenData } from "@/interface"
 import { useTokensContext } from "@/provider/Tokens"
+import { PendingTransactions } from "../shared/PendingTransactions"
 
 export const Hero = () => {
   const [tokens, setTokens] = useState<TokenData[]>([])
@@ -41,9 +42,15 @@ export const Hero = () => {
         transition={{ duration: 1 }}
         className="flex flex-col items-center justify-center md:h-[70vh] relative z-[10]"
       >
-        <div className="p-2 px-5 uppercase text-xs border-[1px] border-primary-10/20 rounded-full mb-5">
-          <p>staking pool</p>
+        <div className="flex">
+          <div className="p-2 px-5 uppercase text-xs border-[1px] border-primary-10/20 rounded-full mb-5">
+            <p>staking pool</p>
+          </div>
+          {/* <div className="flex items-center justify-end mb-2 gap-2 right-0">
+            <PendingTransactions txRequest={{ tag: "STAKE-POOLS", address: getUserPrincipal() }} />
+          </div> */}
         </div>
+
         <div className="">
           <h3 className="md:text-8xl hidden md:block font-medium text-center neonText special-text">
             Stake & deploy a pool.
@@ -59,6 +66,7 @@ export const Hero = () => {
           your favourite community.
         </p>
         <CreatePool tokens={tokens || []} />
+
       </motion.div>
     </>
   )

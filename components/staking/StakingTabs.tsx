@@ -1,7 +1,7 @@
 "use client"
 import { Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { Empty, Switch } from "antd"
+import { Empty, Skeleton, Switch } from "antd"
 import { StakeCard } from "./StakeCard"
 import {
   filterActiveStakes,
@@ -24,18 +24,15 @@ export const StakingTabs = () => {
   const [activeStakes, setActiveStakes] = useState<StakeInterface[]>([])
   const [endedStakes, setEndedStakes] = useState<StakeInterface[]>([])
   const [stakeOnly, setStakeOnly] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false)
 
   const tabItems: TabItem[] = [
-    // {
-    //   title: "GoatSTX",
-    //   key: 1,
-    //   content: <MemeGoatStakingTab />,
-    // },
     {
       title: "live pools",
       key: 1,
       content: (
         <TabContent
+          loading={loading}
           stakes={activeStakes}
           stakedOnly={stakeOnly}
           ended={false}
@@ -46,7 +43,7 @@ export const StakingTabs = () => {
       title: "finished",
       key: 2,
       content: (
-        <TabContent stakes={endedStakes} stakedOnly={stakeOnly} ended={false} />
+        <TabContent loading={loading} stakes={endedStakes} stakedOnly={stakeOnly} ended={false} />
       ),
     },
   ]
@@ -54,6 +51,7 @@ export const StakingTabs = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true)
       const stakeIndex = await getStakeNonce()
       const stakes = await getStakes(stakeIndex)
       const currBlock = await fetchCurrNoOfBlocks()
@@ -61,6 +59,7 @@ export const StakingTabs = () => {
       setActiveStakes(activeStakes)
       const endedStakes = filterEndedStakes(stakes, currBlock)
       setEndedStakes(endedStakes)
+      setLoading(false)
     }
     fetchData()
   }, [])
@@ -122,21 +121,33 @@ const TabContent = ({
   stakes,
   stakedOnly,
   ended,
+  loading,
 }: {
   stakes: StakeInterface[]
   stakedOnly: boolean
   ended: boolean
+  loading: boolean
 }) => {
   return (
-    <div className="grid md:grid-cols-3 grid-cols-1 gap-7 content-stretch">
-      {stakes.map((stake, index) => (
-        <StakeCard
-          key={index}
-          stakeInfo={stake}
-          stakedOnly={stakedOnly}
-          ended={ended}
-        />
-      ))}
+    <div>
+      {loading ?
+        <div className="grid md:grid-cols-3 grid-cols-1 gap-7 content-stretch">
+          <Loading />
+        </div>
+        :
+        <div className="grid md:grid-cols-3 grid-cols-1 gap-7 content-stretch">
+          {stakes.map((stake, index) => (
+            <StakeCard
+              key={index}
+              stakeInfo={stake}
+              stakedOnly={stakedOnly}
+              ended={ended}
+            />
+          ))}
+        </div>
+      }
     </div>
   )
 }
+
+const Loading: React.FC = () => <Skeleton active />;
