@@ -152,9 +152,7 @@ export const StakeToken = ({ stakeId, stake_token, reward_token, token_icon, dis
                 onChange={({ target: { checked } }) => setChecked(checked)}
               />
               <p className="text-sm font-medium tracking-wide">
-                The staked tokens and staking income are locked for 3days by
-                default. Each time the stake is increased, the locking time will be
-                reset.
+                This will increase your position for earning pool rewards.
               </p>
             </div>
             <Button
