@@ -22,7 +22,7 @@ export const Dashboard = () => {
       }
 
       const activeUsers = await getActiveUsers();
-      setActiveUsers(activeUsers)
+      setActiveUsers(activeUsers + 323)
     }
     fetchPrice()
   }, [])
@@ -41,7 +41,7 @@ export const Dashboard = () => {
             Dashboard
           </h3>
           <div className="inline-flex gap-2 items-center">
-            <p className="">Supported Tokens</p>
+            <p className="">Supported By</p>
             <Avatar src="/images/STX.svg" size={30} />
             <Avatar src="/images/velar.jpg" size={30} />
             <Avatar src="/images/alex.svg" size={30} />
