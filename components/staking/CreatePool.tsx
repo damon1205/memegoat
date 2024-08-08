@@ -38,14 +38,13 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
 
   const { getTokenMetaByAddress } = useTokensContext()
 
-
   const { pendingTxnProgress, setPendingTxnProgress } = usePendingTxnFields()
 
   // eslint-disable-next-line arrow-body-style
   const disabledDateStart: RangePickerProps["disabledDate"] = (current) => {
-    return current && current < dayjs().startOf("day")
-  }
-
+    const now = dayjs().add(1, 'hour'); // Add 1 hour to the current time
+    return current && current.isBefore(now, 'minute');
+  };
   // eslint-disable-next-line arrow-body-style
   const disabledDateEnd: RangePickerProps["disabledDate"] = (current) => {
     if (form.getFieldsValue().start_date) {
@@ -229,6 +228,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                     showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                     className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
                     onChange={() => updateRate()}
+                    size="small"
                   // onChange={calculateDifference}
                   />
                 </Form.Item>
@@ -245,6 +245,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                     showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                     className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
                     onChange={() => updateRate()}
+                    size="small"
                   />
                 </Form.Item>
               </div>

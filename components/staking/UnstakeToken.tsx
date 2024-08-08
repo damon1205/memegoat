@@ -1,7 +1,7 @@
 "use client"
 import { txMessage } from "@/data/constants";
 import { useNotificationConfig } from "@/hooks/useNotification";
-import { ITokenMetadata, PendingTxnPool } from "@/interface";
+import { ITokenMetadata, TokenData } from "@/interface";
 import { generateUnstakeTransaction } from "@/lib/contracts/staking";
 import { storeTransaction } from "@/utils/db";
 import { genHex } from "@/utils/helpers";
@@ -13,15 +13,15 @@ import { SlClose } from "react-icons/sl"
 
 interface props {
   stakeId: number;
-  stake_token: ITokenMetadata | null;
-  token_icon: string;
+  stake_token: ITokenMetadata | TokenData | null;
+  reward_token: ITokenMetadata | TokenData | null;
+  token_icon: string | undefined;
   disabled: boolean;
   // update: () => void;
   staked_amount: number;
-  pendingTxns: PendingTxnPool[];
 }
 
-export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendingTxns, staked_amount }: props) => {
+export const UnstakeToken = ({ stakeId, disabled, stake_token, reward_token, token_icon, staked_amount }: props) => {
   const { doContractCall } = useConnect()
   const { config } = useNotificationConfig()
   const [open, setOpen] = useState(false)
@@ -35,13 +35,13 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
   const handleUnstake = async (amount: number) => {
     if (!amount) return;
     if (!userSession.isUserSignedIn) return;
-    if (!stake_token) return
+    if (!stake_token || !reward_token) return
     try {
-      const txn = await generateUnstakeTransaction(stakeId, amount, stake_token.tokenAddress, stake_token.name)
+      const txn = await generateUnstakeTransaction(stakeId, amount, stake_token.address, stake_token.name)
       doContractCall({
         ...txn,
         onFinish: async (data) => {
-          // storeDB("Unstake Tokens", data.txId, amount, stake_token.tokenAddress, stakeId.toString());
+          // storeDB("Unstake Tokens", data.txId, amount, stake_token.address, stakeId.toString());
           try {
             await storeTransaction({
               key: genHex(data.txId),
@@ -50,7 +50,7 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
               amount: Number(amount),
               tag: "STAKE-POOLS",
               txSender: getUserPrincipal(),
-              action: `Unstake in ${stake_token.symbol} POOL`
+              action: `Unstake in ${reward_token.name}/${stake_token.name} POOL`
             })
             setLoading(false)
           } catch (e) {
@@ -102,11 +102,11 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
             },
           }}
         >
-          <h3 className="text-xl font-medium mb-7">Unstake {stake_token.symbol}</h3>
+          <h3 className="text-xl font-medium mb-7">Unstake {stake_token.name}</h3>
           <div className="flex justify-end items-center gap-2">
             <p>
               <span className="text-[#7ff39c]">Available</span>{" "}
-              <span>{`${staked_amount} ${stake_token.symbol}`}</span>
+              <span>{`${staked_amount} ${stake_token.name}`}</span>
             </p>
             <Avatar src={token_icon} size={30} />
             <p className="border-[1px] border-accent/40 text-accent  p-[1px] px-[4px]">
@@ -140,9 +140,7 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, token_icon, pendi
               onChange={({ target: { checked } }) => setChecked(checked)}
             />
             <p className="text-sm font-medium tracking-wide">
-              The staked tokens and staking income are locked for 3days by
-              default. Each time the stake is increased, the locking time will be
-              reset.
+              This will reduce your position for earning pool rewards.
             </p>
           </div>
           <Button

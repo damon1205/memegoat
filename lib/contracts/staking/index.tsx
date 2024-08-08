@@ -120,25 +120,25 @@ export const getMetas = async (stakeInfo: StakeInterface | null) => {
   return { rewardMetadata: rewardMetadata, stakeMetadata: stakeMetadata }
 };
 
-export const getEndDate = async (stakeInfo: StakeInterface, currBlock: number) => {
-  const endBlock = formatCVTypeNumber(stakeInfo["end-block"]);
-  const now = Date.now();
-  const dist = endBlock - currBlock;
-  const distInSecs = dist * 600 * 1000;
-  const timeNow = now + distInSecs;
-  const date = new Date(timeNow).toISOString();
-  return moment(date).format("LLL");
-};
+// export const getEndDate = async (stakeInfo: StakeInterface, currBlock: number) => {
+//   const endBlock = formatCVTypeNumber(stakeInfo["end-block"]);
+//   const now = Date.now();
+//   const dist = endBlock - currBlock;
+//   const distInSecs = dist * 600 * 1000;
+//   const timeNow = now + distInSecs;
+//   const date = new Date(timeNow).toISOString();
+//   return moment(date).format("LLL");
+// };
 
-export const getStartDate = async (stakeInfo: StakeInterface, currBlock: number) => {
-  const startBlock = formatCVTypeNumber(stakeInfo["start-block"]);
-  const dist = startBlock - currBlock;
-  const distInSecs = dist * 600 * 1000;
-  const now = Date.now();
-  const timeNow = now - distInSecs;
-  const date = new Date(timeNow).toISOString();
-  return moment(date).format("LLL");
-};
+// export const getStartDate = async (stakeInfo: StakeInterface, currBlock: number) => {
+//   const startBlock = formatCVTypeNumber(stakeInfo["start-block"]);
+//   const dist = startBlock - currBlock;
+//   const distInSecs = dist * 600 * 1000;
+//   const now = Date.now();
+//   const timeNow = now - distInSecs;
+//   const date = new Date(timeNow).toISOString();
+//   return moment(date).format("LLL");
+// };
 
 export const storeDB = (
   action: string,
@@ -339,35 +339,47 @@ export async function generateUnstakeTransaction(stakeId: number, amount: number
   };
 }
 
-export async function generateClaimTransaction(stakeId: number, reward_token: string, erpb: number) {
+export async function generateClaimTransaction(stakeId: number, reward_token: string, erpb: number, symbol: string) {
   const token = splitToken(reward_token);
-  let assetName: string;
-  const postConditionCode = FungibleConditionCode.LessEqual;
-  const assetContractName = token[1];
-  if (network === "devnet") {
-    assetName = 'mewstx';
-  } else {
-    assetName = await getTokenSource(token[0], token[1]);
-  }
-  console.log(assetName);
-  if (assetName === "") {
-    throw new Error("Error with token contract");
-  }
-  const fungibleAssetInfo = createAssetInfo(
-    token[0],
-    assetContractName,
-    assetName,
-  );
   const earnings = await getUserEarnings(stakeId);
   if (earnings <= 0) throw new Error("Earning are below zero");
   const postConditionAmount = BigInt((earnings / 1e6 + (erpb * 2)).toFixed(0));
-  const fungiblePostCondition = makeContractFungiblePostCondition(
-    contractAddress,
-    'memegoat-stakepool-vault-v1',
-    postConditionCode,
-    postConditionAmount,
-    fungibleAssetInfo,
-  );
+  let postConditions = []
+
+  if (symbol.toLowerCase() === 'stx') {
+    const postConditionCodeSTX = FungibleConditionCode.LessEqual;
+    const postConditionAmountSTX = BigInt(earnings);
+    const standardSTXPostCondition = makeStandardSTXPostCondition(
+      getUserPrincipal(),
+      postConditionCodeSTX,
+      postConditionAmountSTX,
+    );
+    postConditions.push(standardSTXPostCondition)
+  } else {
+    const postConditionCode = FungibleConditionCode.LessEqual;
+    const assetContractName = token[1];
+    const assetName = await getTokenSource(token[0], token[1]);
+
+    if (assetName === "") {
+      throw new Error("Error with token contract");
+    }
+    const fungibleAssetInfo = createAssetInfo(
+      token[0],
+      assetContractName,
+      assetName,
+    );
+
+    const fungiblePostCondition = makeContractFungiblePostCondition(
+      contractAddress,
+      'memegoat-stakepool-vault-v1',
+      postConditionCode,
+      postConditionAmount,
+      fungibleAssetInfo,
+    );
+
+    postConditions.push(fungiblePostCondition)
+  }
+
   return {
     network: networkInstance,
     anchorMode: AnchorMode.Any,
@@ -376,7 +388,7 @@ export async function generateClaimTransaction(stakeId: number, reward_token: st
     functionName: "claim-reward",
     functionArgs: [uintCV(stakeId), contractPrincipalCV(token[0], token[1])],
     postConditionMode: PostConditionMode.Deny,
-    postConditions: [fungiblePostCondition],
+    postConditions,
   }
 }
 
