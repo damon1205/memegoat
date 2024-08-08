@@ -1,11 +1,11 @@
 "use client"
 import { txMessage } from "@/data/constants";
 import { useNotificationConfig } from "@/hooks/useNotification";
-import { PendingTxnPool, ITokenMetadata, TokenData } from "@/interface";
-import { fetchTransactionStatus, generateStakeTransaction, storeDB } from "@/lib/contracts/staking";
+import { ITokenMetadata, TokenData } from "@/interface";
+import { generateStakeTransaction } from "@/lib/contracts/staking";
 import { storeTransaction } from "@/utils/db";
-import { formatNumber, truncateTokenAddress } from "@/utils/format";
-import { genHex, splitToken } from "@/utils/helpers";
+import { formatNumber } from "@/utils/format";
+import { genHex } from "@/utils/helpers";
 import { getExplorerLink, getUserPrincipal, getUserTokenBalance, network, userSession } from "@/utils/stacks.data";
 import { useConnect } from "@stacks/connect-react";
 import { Avatar, Button, Checkbox, Input, Modal } from "antd"

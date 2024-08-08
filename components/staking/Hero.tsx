@@ -3,17 +3,20 @@ import Image from "next/image"
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { CreatePool } from "./CreatePool"
-import { getAllUserTokens, getUserPrincipal } from "@/utils/stacks.data"
+import { getAllUserTokens, getUserPrincipal, onConnectWallet, userSession } from "@/utils/stacks.data"
 import { TokenData } from "@/interface"
 import { useTokensContext } from "@/provider/Tokens"
 import { PendingTransactions } from "../shared/PendingTransactions"
+import { Button } from "antd"
 
 export const Hero = () => {
   const [tokens, setTokens] = useState<TokenData[]>([])
   const { getTokenMeta } = useTokensContext()
+  const [connected, setConnected] = useState<boolean>(false)
 
   useEffect(() => {
     const fetchData = async () => {
+      setConnected(userSession.isUserSignedIn())
       const stxToken = getTokenMeta('STX')
       const tokens = await getAllUserTokens()
       if (stxToken) {
@@ -62,7 +65,12 @@ export const Hero = () => {
           community. <span className="text-primary-20">Earn</span> rewards from
           your favourite community.
         </p>
-        <CreatePool tokens={tokens || []} />
+        {connected ? <CreatePool tokens={tokens || []} /> :
+          <div className="mt-2">
+            <Button type="primary" className="w-full md:px-10 mt-7 border-primary-90" onClick={() => onConnectWallet()}>
+              Connect Wallet
+            </Button>
+          </div>}
 
       </motion.div>
     </>
