@@ -6,9 +6,9 @@ import {
   StacksNetwork,
   StacksTestnet,
 } from "@stacks/network";
-import axios from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import { instance } from "./api";
-import { cleanIPFS, getTokenURI, splitToken } from "./helpers";
+import { cleanIPFS, getTokenURI, hashTransaction, splitToken } from "./helpers";
 import { ITokenMetadata } from "@/interface";
 import { dummyMetadata, emptyMetadata } from "@/data/constants";
 import config from "./config";
@@ -348,19 +348,22 @@ export const getAllUserTokens = async () => {
 };
 
 export const storeTransaction = async (data: TxData) => {
-  const hash = crypto
-    .createHmac("sha512", config.WEBHOOK_SECRET)
-    .update(JSON.stringify({ event: "transaction", data }))
-    .digest("hex");
-  await axios.post(
-    "https://games-server.memegoat.io/webhook",
-    { event: "transaction", data },
-    {
-      headers: {
-        "x-webhook-signature": hash,
-      },
-    }
-  );
+  const hash = hashTransaction({ event: "transaction", data });
+  try {
+    const tx = await axios.post(
+      "https://games-server.memegoat.io/webhook",
+      { event: "transaction", data },
+      {
+        headers: {
+          "x-webhook-signature": hash,
+        },
+      }
+    );
+    return tx;
+  } catch (error) {
+    console.error("Failed to store transaction:", error);
+    throw error; // Rethrow to ensure error is not silently swallowed
+  }
 };
 
 export const getRecentTransactions = async (data: TxRequest) => {

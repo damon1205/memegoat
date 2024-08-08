@@ -1,12 +1,11 @@
 "use client"
-import { ITokenMetadata, TokenData } from "@/interface"
+import { TokenData } from "@/interface"
 import { fetchTokenMetadata, getAllUserTokens, userSession } from "@/utils/stacks.data"
 import { Avatar, Button } from "antd"
 import Link from "next/link"
 import React, { useEffect, useState } from "react"
 import { BsDot, BsLockFill } from "react-icons/bs"
 import { SelectToken } from "../shared/SelectToken"
-import { useTokensContext } from "@/provider/Tokens"
 import { useTokenLocker } from "@/hooks/useTokenLocker"
 
 export const Locker = () => {
@@ -14,8 +13,6 @@ export const Locker = () => {
   const [metadata, setMetadata] = useState<TokenData | null>(null);
 
   const { setTokenLockerDetails } = useTokenLocker()
-
-  const tokensContext = useTokensContext();
 
   const handleChange = async (token: TokenData) => {
 
@@ -85,8 +82,6 @@ export const Locker = () => {
 
           <div className="my-5">
             <p className="text-custom-white/60 mb-3">Select Token</p>
-            {/* <SelectToken tokens={tokens} action={handleChange} /> */}
-
             <div className="px-2 py-2 rounded-lg bg-[#00000033] border-[1px] border-[#FFFFFF1A] w-100">
               <SelectToken tokens={tokens} action={handleChange} />
             </div>

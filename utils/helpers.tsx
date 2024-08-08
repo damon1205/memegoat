@@ -1,13 +1,14 @@
 import axios from 'axios';
 import { NFTStorage } from 'nft.storage';
-import { ApiURLS, getContractLink, getUserPrincipal, network, traitAddress, userSession } from './stacks.data';
+import { getContractLink, getUserPrincipal, network, traitAddress, userSession } from './stacks.data';
 import { callReadOnlyFunction, cvToValue, StandardPrincipalCV } from '@stacks/transactions';
 import { StacksNetwork } from '@stacks/network';
-import { cvValue } from '@/interface';
+import { cvValue, TX, } from '@/interface';
 import { PutFileOptions, Storage } from "@stacks/storage";
 import config from './config';
 import moment from 'moment';
-
+import SHA256 from 'crypto-js/sha256';
+import { enc, HmacSHA512 } from 'crypto-js';
 export interface MetadataI {
   name: string,
   description: string,
@@ -234,4 +235,14 @@ export function generateContract(token_name: string, token_uri: string, token_ti
   )
 }
 
+export function genHex(input: string) {
+  const hash = SHA256(input);
+  const hexString = hash.toString(enc.Hex);
+  return hexString
+}
 
+export function hashTransaction(tx: TX) {
+  const hash = HmacSHA512(JSON.stringify(tx), config.WEBHOOK_SECRET);
+  const hexString = hash.toString(enc.Hex);
+  return hexString
+}
