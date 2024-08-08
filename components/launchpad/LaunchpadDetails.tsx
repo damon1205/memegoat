@@ -33,13 +33,13 @@ import {
   fetchCurrNoOfBlocks,
   fetchSTXBalance,
   getUserPrincipal,
-  storeTransaction,
 } from "@/utils/stacks.data"
 import { uintCV } from "@stacks/transactions"
 import { useConnect } from "@stacks/connect-react"
 import { PendingTransactions } from "../shared/PendingTransactions"
 import { useNotificationConfig } from "@/hooks/useNotification"
 import { createHash } from "crypto"
+import { storeTransaction } from "@/utils/db"
 
 export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
   const { doContractCall } = useConnect()

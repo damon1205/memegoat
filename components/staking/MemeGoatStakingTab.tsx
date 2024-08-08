@@ -4,7 +4,7 @@ import Image from "next/image"
 import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { StakeInfo, PendingTxnStaking, IStake } from "@/interface"
-import { contractAddress, fetchCurrNoOfBlocks, getExplorerLink, getUserPrincipal, getUserTokenBalance, network, storeTransaction, userSession } from "@/utils/stacks.data"
+import { contractAddress, fetchCurrNoOfBlocks, getExplorerLink, getUserPrincipal, getUserTokenBalance, network, userSession } from "@/utils/stacks.data"
 import { calculateRewards, getUserStakeData, getUserStakeStatus } from "@/lib/contracts/staking/goat"
 import { useNotificationConfig } from "@/hooks/useNotification"
 import { txFailMessage, txMessage } from "@/data/constants"
@@ -14,6 +14,7 @@ import { PendingTransactions } from "../shared/PendingTransactions"
 import { useConnect } from "@stacks/connect-react"
 import { genHex } from "@/utils/helpers"
 import moment from "moment"
+import { storeTransaction } from "@/utils/db"
 
 const stakesDays: IStake[] = [
   {

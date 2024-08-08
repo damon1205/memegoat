@@ -8,12 +8,11 @@ import {
 } from "@stacks/network";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { instance } from "./api";
-import { cleanIPFS, getTokenURI, hashTransaction, splitToken } from "./helpers";
+import { cleanIPFS, getTokenURI, splitToken } from "./helpers";
 import { ITokenMetadata } from "@/interface";
 import { dummyMetadata, emptyMetadata } from "@/data/constants";
 import config from "./config";
 import { splitColons } from "./format";
-import * as crypto from "crypto";
 
 export const pointsAPI =
   "https://memegoat-referral-backend.onrender.com/points";
@@ -345,33 +344,4 @@ export const getAllUserTokens = async () => {
     tokenList.push(token);
   }
   return tokenList;
-};
-
-export const storeTransaction = async (data: TxData) => {
-  const hash = hashTransaction({ event: "transaction", data });
-  try {
-    const tx = await axios.post(
-      "https://games-server.memegoat.io/webhook",
-      { event: "transaction", data },
-      {
-        headers: {
-          "x-webhook-signature": hash,
-        },
-      }
-    );
-    return tx;
-  } catch (error) {
-    console.error("Failed to store transaction:", error);
-    throw error; // Rethrow to ensure error is not silently swallowed
-  }
-};
-
-export const getRecentTransactions = async (data: TxRequest) => {
-  const result = await axios.get(
-    "https://games-server.memegoat.io/webhook/transactions",
-    {
-      params: data,
-    }
-  );
-  return result.data.data as TxType[];
 };

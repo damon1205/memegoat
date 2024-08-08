@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from "react"
 import { TransactionTable } from "./TransactionsTable"
 import { TxRequest, TxType } from "@/interface"
-import { getRecentTransactions } from "@/utils/stacks.data"
 import { Button, DatePicker, Input } from "antd"
 import { BiSearch } from "react-icons/bi"
+import { getRecentTransactions } from "@/utils/db"
 
 export const AllTransactions = ({ txRequest }: { txRequest: TxRequest }) => {
   const [transactions, setTransactions] = useState<TxType[]>([])

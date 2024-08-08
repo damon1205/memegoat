@@ -20,7 +20,6 @@ import {
   ApiURLS,
   network,
   getExplorerLink,
-  storeTransaction,
 } from "@/utils/stacks.data"
 import {
   FungibleConditionCode,
@@ -45,6 +44,7 @@ import { LaunchpadDataI } from "@/interface"
 import { uploadCampaign } from "@/lib/contracts/launchpad"
 import { useNotificationConfig } from "@/hooks/useNotification"
 import { createHash } from "crypto"
+import { storeTransaction } from "@/utils/db"
 
 interface PropI {
   current: number
