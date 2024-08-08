@@ -40,7 +40,7 @@ export const Dashboard = () => {
             <Avatar src="/images/STX.svg" size={30} />
             <Avatar src="/images/velar.jpg" size={30} />
             <Avatar src="/images/alex.svg" size={30} />
-            <Avatar src="/leo.jpg" size={30} />
+            <Avatar src="/images/leo.jpg" size={30} />
           </div>
         </div>
         <div className="mt-7">
