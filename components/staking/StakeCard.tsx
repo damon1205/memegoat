@@ -76,6 +76,8 @@ export const StakeCard = ({
 
   // console.log(stakeToken, rewardToken)
 
+  if (loading) return <Loading />
+
   return (
     <>
       {stakeInfo && checkForStake(stakedOnly, userHasStake) && (
@@ -216,8 +218,10 @@ export const StakeCard = ({
           </div>
         </div>
       )}
-
     </>
 
   )
 }
+
+
+const Loading: React.FC = () => <Skeleton active />;
