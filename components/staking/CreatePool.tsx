@@ -39,6 +39,36 @@ type RangePickerProps = GetProps<typeof DatePicker.RangePicker>
 
 dayjs.extend(customParseFormat)
 
+function range(start: number, end: number): number[] {
+  const result: number[] = [];
+  for (let i = start; i < end; i++) {
+    result.push(i);
+  }
+  return result;
+}
+
+// Function to disable specific time slots
+const disabledTime = () => {
+  const now = dayjs().add(1, 'hour');
+  const currentHour = now.hour();
+  const currentMinute = now.minute();
+
+  return {
+    disabledHours: () => {
+      const hours = range(0, 24);
+      // Disable hours before the current hour
+      return hours.filter(hour => hour < currentHour);
+    },
+    disabledMinutes: (selectedHour: number) => {
+      if (selectedHour === currentHour) {
+        return range(0, 60).filter(minute => minute < currentMinute);
+      }
+      return [];
+    },
+    disabledSeconds: () => [] // Keeping seconds enabled
+  };
+};
+
 export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
   const { config } = useNotificationConfig()
   const { doContractCall } = useConnect()
@@ -56,8 +86,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
 
   // eslint-disable-next-line arrow-body-style
   const disabledDateStart: RangePickerProps["disabledDate"] = (current) => {
-    const now = dayjs().add(1, "hour") // Add 1 hour to the current time
-    return current && current.isBefore(now, "minute")
+    return current && current < dayjs().startOf("day")
   }
   // eslint-disable-next-line arrow-body-style
   const disabledDateEnd: RangePickerProps["disabledDate"] = (current) => {
@@ -70,6 +99,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
       return current && current < dayjs().endOf("day")
     }
   }
+
 
   const handleForm = async () => {
     if (!userSession.isUserSignedIn) return
@@ -157,8 +187,17 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
     setRewardToken(token ? token.name : rtoken)
     setSstakeToken(stokne ? stokne.name : stToken)
     const rewardAmount = formData.reward_amount
-    const startDate = formData.start_date
-    const endDate = formData.end_date
+    if (!formData.start_date || !formData.end_date || !formData.start_time || !formData.end_time) return
+    const startDate = dayjs(formData.start_date)
+      .hour(dayjs(formData.start_time).hour())
+      .minute(dayjs(formData.start_time).minute())
+      .second(dayjs(formData.start_time).second())
+      .toISOString();
+    const endDate = dayjs(formData.end_date)
+      .hour(dayjs(formData.end_time).hour())
+      .minute(dayjs(formData.end_time).minute())
+      .second(dayjs(formData.end_time).second())
+      .toISOString();
     const result = await calculateRewardPerBlockAtCreation(
       rewardAmount,
       startDate,
@@ -245,25 +284,26 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                   rules={[{ required: true }]}
                 >
                   <DatePicker
-                    format="YYYY-MM-DD HH:mm:ss"
-                    use12Hours={true}
+                    format="YYYY-MM-DD"
+                    // use12Hours={true}
                     disabledDate={disabledDateStart}
                     // showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                     placement="topRight"
                     className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
                     onChange={() => updateRate()}
                     size="small"
-                    // onChange={calculateDifference}
+                  // onChange={calculateDifference}
                   />
                 </Form.Item>
                 <Form.Item name={"start_time"} label="Time">
                   <TimePicker
                     // disabled={loading}
-                    format="YYYY-MM-DD HH:mm:ss"
+                    format="h:mm:ss A"
                     use12Hours={true}
                     placement="topLeft"
                     className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
                     size="small"
+                    disabledTime={disabledTime}
                   />
                 </Form.Item>
               </div>
@@ -275,7 +315,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                 >
                   <DatePicker
                     // disabled={loading}
-                    format="YYYY-MM-DD HH:mm:ss"
+                    format="YYYY-MM-DD"
                     use12Hours={true}
                     disabledDate={disabledDateEnd}
                     // showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
@@ -288,11 +328,12 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                 <Form.Item name={"end_time"} label="Time">
                   <TimePicker
                     // disabled={loading}
-                    format="YYYY-MM-DD HH:mm:ss"
+                    format="h:mm:ss A"
                     use12Hours={true}
                     placement="topLeft"
                     className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
                     size="small"
+
                   />
                 </Form.Item>
               </div>

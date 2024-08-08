@@ -182,7 +182,9 @@ export const pendingInitial = {
   stake_token: "",
   reward_token: "",
   start_date: "",
+  start_time: "",
   end_date: "",
+  end_time: "",
   token_image: "",
 };
 
