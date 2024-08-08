@@ -131,6 +131,11 @@ export const MemeGoatStakingTab = () => {
         },
         onCancel: () => {
           console.log("onCancel:", "Transaction was canceled");
+          config({
+            message: "User canceled transaction",
+            title: "Staking",
+            type: "error",
+          })
         },
       });
     } catch (e) {
