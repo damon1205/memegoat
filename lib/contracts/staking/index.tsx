@@ -120,11 +120,9 @@ export const getMetas = async (stakeInfo: StakeInterface | null) => {
   return { rewardMetadata: rewardMetadata, stakeMetadata: stakeMetadata }
 };
 
-export const getEndDate = async (stakeInfo: StakeInterface | null) => {
-  if (!stakeInfo) return "";
+export const getEndDate = async (stakeInfo: StakeInterface, currBlock: number) => {
   const endBlock = formatCVTypeNumber(stakeInfo["end-block"]);
   const now = Date.now();
-  const currBlock = await fetchCurrNoOfBlocks();
   const dist = endBlock - currBlock;
   const distInSecs = dist * 600 * 1000;
   const timeNow = now + distInSecs;
@@ -132,18 +130,13 @@ export const getEndDate = async (stakeInfo: StakeInterface | null) => {
   return moment(date).format("LLL");
 };
 
-export const getStartDate = async (stakeInfo: StakeInterface | null) => {
-  console.log(stakeInfo)
-  if (!stakeInfo) return "";
-  console.log(stakeInfo)
-  const endBlock = formatCVTypeNumber(stakeInfo["start-block"]);
-  const currBlock = await fetchCurrNoOfBlocks();
-  const dist = endBlock - currBlock;
-  const distInSecs = dist * 600 * 1000;
-  const now = Date.now();
-  const timeNow = now - distInSecs;
-  const date = new Date(timeNow).toISOString();
-  return moment(date).format("LLL");
+export const getStartDate = async (stakeInfo: StakeInterface, currBlock: number) => {
+  const startBlock = formatCVTypeNumber(stakeInfo["start-block"]);
+  // console(startBlock, currBlock)
+  const dist = startBlock - currBlock;
+  const distInMillis = dist * 10 * 60 * 1000;
+  const timeNow = Date.now() + distInMillis;
+  return moment(timeNow).format("LLL");
 };
 
 export const storeDB = (

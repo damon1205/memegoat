@@ -55,18 +55,19 @@ export const StakeCard = ({
         setSToken(sToken);
         setRToken(rToken)
       }
+      const result6 = await fetchCurrNoOfBlocks();
+      setCurrBlock(result6)
 
       if (stakeInfo) {
-        const result2 = await getEndDate(stakeInfo);
+        const result2 = await getEndDate(stakeInfo, result6);
         setEndDate(result2);
-        const result7 = await getStartDate(stakeInfo);
+        const result7 = await getStartDate(stakeInfo, result6);
         setStartDate(result7);
         const result3 = await getUserEarnings(formatCVTypeNumber(stakeInfo.id));
         setEarned(result3);
         const result4 = await getUserHasStake(stakeInfo);
         setHasStake(result4);
-        const result6 = await fetchCurrNoOfBlocks();
-        setCurrBlock(result6)
+
       }
       setLoading(false)
     }
@@ -114,7 +115,7 @@ export const StakeCard = ({
                 <div className="inline-flex gap-2 items-center">
                   <StakeToken
                     stake_token={stakeToken}
-                    disabled={true}
+                    disabled={false}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
                     pendingTxns={filterStakePendingTxn(pendingTxns)}
                     token_icon={stakeToken ? stakeToken.image_uri : ""}
