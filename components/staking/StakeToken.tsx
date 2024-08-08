@@ -161,6 +161,7 @@ export const StakeToken = ({ stakeId, stake_token, reward_token, token_icon, dis
               className="h-[40px] rounded-[3px] w-full bg-primary-40"
               size="large"
               type="primary"
+              loading={loading}
             >
               {loading ? "Submitting Transaction" : "Stake"}
             </Button>

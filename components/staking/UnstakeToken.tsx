@@ -149,6 +149,7 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, reward_token, tok
             className="h-[40px] rounded-[3px] w-full bg-accent"
             size="large"
             type="primary"
+            loading={loading}
           >
             {loading ? "Submitting Transaction" : "UnStake"}
           </Button>
