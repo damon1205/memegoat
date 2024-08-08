@@ -7,20 +7,21 @@ import type { FormInstance, GetProps } from "antd"
 import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 import { useForm } from "antd/es/form/Form"
-import { getUserPrincipal, userSession } from "@/utils/stacks.data"
+import { getExplorerLink, getUserPrincipal, network, userSession } from "@/utils/stacks.data"
 import {
   calculateRewardPerBlockAtCreation,
   fetchTransactionStatus,
   generateCreatePoolTxn,
 } from "@/lib/contracts/staking"
-import { splitToken } from "@/utils/helpers"
+import { genHex, splitToken } from "@/utils/helpers"
 import { useConnect } from "@stacks/connect-react"
 import { usePendingTxnFields } from "@/hooks/useTokenMinterHooks"
 import { convertToIso } from "@/utils/format"
 import { PendingTxnsI, TokenData } from "@/interface"
-import { pendingInitial } from "@/data/constants"
+import { pendingInitial, txMessage } from "@/data/constants"
 import { useNotificationConfig } from "@/hooks/useNotification"
 import { SelectToken } from "../shared/SelectToken"
+import { storeTransaction } from "@/utils/db"
 type RangePickerProps = GetProps<typeof DatePicker.RangePicker>
 
 dayjs.extend(customParseFormat)
@@ -32,7 +33,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
   const toggleModal = useCallback(() => setOpen(!open), [open])
   const [rewardPerBlock, setRewardPerBlock] = useState<number>(0)
   const [rewardToken, setRewardToken] = useState<string>("")
-  const [loading, setLoading] = useState<boolean>(false)
+  const [stakeToken, setSstakeToken] = useState<string>("")
   const [form] = useForm<PendingTxnsI>()
 
   const { pendingTxnProgress, setPendingTxnProgress } = usePendingTxnFields()
@@ -57,7 +58,6 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
   const handleForm = async () => {
     if (!userSession.isUserSignedIn) return
     try {
-      setLoading(true)
       const formData = form.getFieldsValue()
       const rewardToken = formData.reward_token
       const stakeToken = formData.stake_token
@@ -73,23 +73,29 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
       )
       doContractCall({
         ...txn,
-        onFinish: (data) => {
-          setPendingTxnProgress({
-            action: "Create Pool",
-            txID: data.txId,
-            userAddr: getUserPrincipal(),
-            tag: "stakepool",
-            txStatus: "pending",
-            reward_amount: formData.reward_amount,
-            stake_token: formData.stake_token,
-            reward_token: formData.reward_token,
-            start_date: convertToIso(formData.start_date),
-            end_date: convertToIso(formData.end_date),
-            token_image: "s",
+        onFinish: async (data) => {
+          try {
+            await storeTransaction({
+              key: genHex(data.txId),
+              txId: data.txId,
+              txStatus: 'Pending',
+              amount: Number(rewardAmount),
+              tag: "STAKE-POOLS",
+              txSender: getUserPrincipal(),
+              action: `Create ${rewardToken}/${stakeToken} POOL`
+            })
+          } catch (e) {
+            console.log(e)
+          }
+          config({
+            message: txMessage,
+            title: "Pool Creation request successfully received!",
+            type: "success",
+            details_link: getExplorerLink(network, data.txId)
           })
+          setPendingTxnProgress({ ...pendingInitial })
         },
         onCancel: () => {
-          setLoading(false)
           console.log("onCancel:", "Transaction was canceled")
           config({
             message: "User canceled transaction",
@@ -122,7 +128,9 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
   const updateRate = async () => {
     const formData = form.getFieldsValue()
     const token = formData.reward_token
+    const stToken = formData.stake_token
     setRewardToken(splitToken(token)[1])
+    setSstakeToken(splitToken(stToken)[1])
     const rewardAmount = formData.reward_amount
     const startDate = formData.start_date
     const endDate = formData.end_date
@@ -134,44 +142,44 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
     setRewardPerBlock(result)
   }
 
-  useEffect(() => {
-    if (pendingTxnProgress.txStatus !== "pending") return
-    const handleTransactionStatus = async () => {
-      try {
-        const txn = pendingTxnProgress
-        const result = await fetchTransactionStatus(txn)
-        if (result !== "pending") {
-          if (result === "success") {
-            config({
-              message: `${txn.action} Successful`,
-              title: "Staking",
-              type: "success",
-            })
-            form.resetFields()
-            setPendingTxnProgress({ ...pendingInitial })
-            toggleModal()
-          } else {
-            config({
-              message: `${txn.action} Failed`,
-              title: "Staking",
-              type: "error",
-            })
-            setPendingTxnProgress({ ...txn })
-          }
-        }
-      } catch (e) {
-        console.log(e)
-      }
-    }
+  // useEffect(() => {
+  //   if (pendingTxnProgress.txStatus !== "pending") return
+  //   const handleTransactionStatus = async () => {
+  //     try {
+  //       const txn = pendingTxnProgress
+  //       const result = await fetchTransactionStatus(txn)
+  //       if (result !== "pending") {
+  //         if (result === "success") {
+  //           config({
+  //             message: `${txn.action} Successful`,
+  //             title: "Staking",
+  //             type: "success",
+  //           })
+  //           form.resetFields()
+  //           setPendingTxnProgress({ ...pendingInitial })
+  //           toggleModal()
+  //         } else {
+  //           config({
+  //             message: `${txn.action} Failed`,
+  //             title: "Staking",
+  //             type: "error",
+  //           })
+  //           setPendingTxnProgress({ ...txn })
+  //         }
+  //       }
+  //     } catch (e) {
+  //       console.log(e)
+  //     }
+  //   }
 
-    const interval = setInterval(() => {
-      if (pendingTxnProgress.txStatus !== "pending") return
-      handleTransactionStatus()
-    }, 1000)
+  //   const interval = setInterval(() => {
+  //     if (pendingTxnProgress.txStatus !== "pending") return
+  //     handleTransactionStatus()
+  //   }, 1000)
 
-    //Clearing the interval
-    return () => clearInterval(interval)
-  }, [form, pendingTxnProgress, setPendingTxnProgress, toggleModal, config])
+  //   //Clearing the interval
+  //   return () => clearInterval(interval)
+  // }, [form, pendingTxnProgress, setPendingTxnProgress, toggleModal, config])
 
   return (
     <div>
@@ -246,7 +254,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                     showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                     className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
                     onChange={() => updateRate()}
-                    // onChange={calculateDifference}
+                  // onChange={calculateDifference}
                   />
                 </Form.Item>
                 <Form.Item

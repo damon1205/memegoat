@@ -5,18 +5,22 @@ import { motion } from "framer-motion"
 import { CreatePool } from "./CreatePool"
 import { getAllUserTokens } from "@/utils/stacks.data"
 import { TokenData } from "@/interface"
+import { useTokensContext } from "@/provider/Tokens"
 
 export const Hero = () => {
   const [tokens, setTokens] = useState<TokenData[]>([])
+  const { getTokenMeta } = useTokensContext()
 
   useEffect(() => {
     const fetchData = async () => {
+      const stxToken = getTokenMeta('STX')
       const tokens = await getAllUserTokens()
-      setTokens(tokens)
+      if (stxToken) {
+        setTokens([stxToken, ...tokens])
+      }
     }
-
     fetchData()
-  }, [])
+  }, [getTokenMeta])
   return (
     <>
       <div className="fixed top-0 left-[50%] translate-x-[-50%] w-[430px] h-[340px] blur-[300px] bg-primary-20 hidden md:block" />
