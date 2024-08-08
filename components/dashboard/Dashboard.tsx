@@ -91,7 +91,7 @@ export const Dashboard = () => {
               </div>
             </div>
             <div className="bg-primary-100/10 border-[1px] border-primary-90 w-full px-5 py-5">
-              <p className="text-sm">No of Active Users</p>
+              <p className="text-sm">Number of Active Users</p>
               <p className="text-2xl font-semibold mt-3">{activeUsers}</p>
             </div>
 

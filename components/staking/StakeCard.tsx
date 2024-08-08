@@ -61,6 +61,8 @@ export const StakeCard = ({
 
   }, [stakeInfo]);
 
+  console.log(stakeToken, rewardToken)
+
   return (
     <>
       {stakeInfo && checkForStake(stakedOnly, userHasStake) && (
@@ -97,14 +99,14 @@ export const StakeCard = ({
                 </div>
                 <div className="inline-flex gap-2 items-center">
                   <StakeToken
-                    stake_token={getAddress(stakeInfo['stake-token'])}
+                    stake_token={stakeToken}
                     disabled={ended || (currBlock < formatCVTypeNumber(stakeInfo["start-block"]))}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
                     pendingTxns={filterStakePendingTxn(pendingTxns)}
                     token_icon={stakeToken ? stakeToken.image_uri : ""}
                   />
                   <UnstakeToken
-                    stake_token={getAddress(stakeInfo['stake-token'])}
+                    stake_token={stakeToken}
                     disabled={currBlock < formatCVTypeNumber(stakeInfo["start-block"])}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
                     pendingTxns={filterStakePendingTxn(pendingTxns)}

@@ -215,37 +215,49 @@ export const checkForStake = (stakeOnly: boolean, userHasStake: boolean) => {
   }
 }
 
-export async function generateStakeTransaction(stakeId: number, amount: number, stake_token: string) {
+export async function generateStakeTransaction(stakeId: number, amount: number, stake_token: string, symbol: string) {
   const token = splitToken(stake_token);
-
-  let assetName: string;
-
-  const postConditionCode = FungibleConditionCode.LessEqual;
-  const assetContractName = token[1];
-
-  if (network === "devnet") {
-    assetName = 'memegoatstx';
+  let postConditions = []
+  if (symbol.toLowerCase() === 'stx') {
+    const postConditionCodeSTX = FungibleConditionCode.LessEqual;
+    const postConditionAmountSTX = BigInt(amount);
+    const standardSTXPostCondition = makeStandardSTXPostCondition(
+      getUserPrincipal(),
+      postConditionCodeSTX,
+      postConditionAmountSTX,
+    );
+    postConditions.push(standardSTXPostCondition)
   } else {
-    assetName = await getTokenSource(token[0], token[1]);
-  }
-  console.log(assetName);
+    let assetName: string;
 
-  if (assetName === "") {
-    throw new Error('Error with token contract');
-  }
+    const postConditionCode = FungibleConditionCode.LessEqual;
+    const assetContractName = token[1];
 
-  const fungibleAssetInfo = createAssetInfo(
-    token[0],
-    assetContractName,
-    assetName,
-  );
-  const postConditionAmount = BigInt(amount);
-  const fungiblePostCondition = makeStandardFungiblePostCondition(
-    getUserPrincipal(),
-    postConditionCode,
-    postConditionAmount,
-    fungibleAssetInfo,
-  );
+    if (network === "devnet") {
+      assetName = 'memegoatstx';
+    } else {
+      assetName = await getTokenSource(token[0], token[1]);
+    }
+    console.log(assetName);
+
+    if (assetName === "") {
+      throw new Error('Error with token contract');
+    }
+
+    const fungibleAssetInfo = createAssetInfo(
+      token[0],
+      assetContractName,
+      assetName,
+    );
+    const postConditionAmount = BigInt(amount);
+    const fungiblePostCondition = makeStandardFungiblePostCondition(
+      getUserPrincipal(),
+      postConditionCode,
+      postConditionAmount,
+      fungibleAssetInfo,
+    );
+    postConditions.push(fungiblePostCondition)
+  }
   return {
     network: networkInstance,
     anchorMode: AnchorMode.Any,
@@ -258,7 +270,7 @@ export async function generateStakeTransaction(stakeId: number, amount: number, 
       contractPrincipalCV(token[0], token[1]),
     ],
     postConditionMode: PostConditionMode.Deny,
-    postConditions: [fungiblePostCondition],
+    postConditions,
   };
 }
 
@@ -275,33 +287,44 @@ export const fetchTransactionStatus = async (txn: PendingTxnPool | PendingTxnsI)
   return response.data.tx_status;
 };
 
-export async function generateUnstakeTransaction(stakeId: number, amount: number, stake_token: string) {
+export async function generateUnstakeTransaction(stakeId: number, amount: number, stake_token: string, symbol: string) {
   const token = splitToken(stake_token);
-  let assetName: string;
-  const postConditionCode = FungibleConditionCode.LessEqual;
-  const assetContractName = token[1];
-  if (network === "devnet") {
-    assetName = 'memegoatstx';
+  let postConditions = []
+  if (symbol.toLowerCase() === 'stx') {
+    const postConditionCodeSTX = FungibleConditionCode.LessEqual;
+    const postConditionAmountSTX = BigInt(amount);
+    const standardSTXPostCondition = makeStandardSTXPostCondition(
+      getUserPrincipal(),
+      postConditionCodeSTX,
+      postConditionAmountSTX,
+    );
+    postConditions.push(standardSTXPostCondition)
   } else {
-    assetName = await getTokenSource(token[0], token[1]);
+    const assetName = await getTokenSource(token[0], token[1]);
+    const assetContractName = token[1];
+
+    const postConditionCode = FungibleConditionCode.LessEqual;
+
+    console.log(assetName);
+    if (assetName === "") {
+      throw new Error("Error with token contract");
+    }
+    const fungibleAssetInfo = createAssetInfo(
+      token[0],
+      assetContractName,
+      assetName,
+    );
+    const postConditionAmount = BigInt(amount);
+    const fungiblePostCondition = makeContractFungiblePostCondition(
+      contractAddress,
+      'memegoat-stakepool-vault-v1',
+      postConditionCode,
+      postConditionAmount,
+      fungibleAssetInfo,
+    );
+    postConditions.push(fungiblePostCondition)
   }
-  console.log(assetName);
-  if (assetName === "") {
-    throw new Error("Error with token contract");
-  }
-  const fungibleAssetInfo = createAssetInfo(
-    token[0],
-    assetContractName,
-    assetName,
-  );
-  const postConditionAmount = BigInt(amount);
-  const fungiblePostCondition = makeContractFungiblePostCondition(
-    contractAddress,
-    'memegoat-stakepool-vault-v1',
-    postConditionCode,
-    postConditionAmount,
-    fungibleAssetInfo,
-  );
+
   return {
     network: networkInstance,
     anchorMode: AnchorMode.Any,
@@ -314,7 +337,7 @@ export async function generateUnstakeTransaction(stakeId: number, amount: number
       contractPrincipalCV(token[0], token[1]),
     ],
     postConditionMode: PostConditionMode.Deny,
-    postConditions: [fungiblePostCondition],
+    postConditions,
     userSession: userSession,
 
   };

@@ -9,6 +9,7 @@ import { getRecentTransactions } from "@/utils/db"
 
 
 export const PendingTransactions = ({ txRequest }: { txRequest: TxRequest }) => {
+
   const [openModal, setOpenModal] = useState(false)
   const [transactions, setTransactions] = useState<TxType[]>([])
   const toggleModal = () => setOpenModal(!openModal)
