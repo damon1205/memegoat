@@ -4,6 +4,7 @@ import { getAddress, getTokenSource, splitToken } from "@/utils/helpers";
 import { ApiURLS, contractAddress, fetchCurrNoOfBlocks, fetchTokenMetadata, getUserPrincipal, network, networkInstance, userSession } from "@/utils/stacks.data";
 import { AnchorMode, boolCV, BooleanCV, callReadOnlyFunction, contractPrincipalCV, createAssetInfo, cvToValue, FungibleConditionCode, makeContractFungiblePostCondition, makeStandardFungiblePostCondition, makeStandardSTXPostCondition, PostConditionMode, standardPrincipalCV, UIntCV, uintCV } from "@stacks/transactions";
 import axios from "axios";
+import moment from "moment";
 
 export const getStakeNonce = async () => {
   const user = getUserPrincipal() !== "" ? getUserPrincipal() : contractAddress;
@@ -127,8 +128,8 @@ export const getEndDate = async (stakeInfo: StakeInterface | null) => {
   const dist = endBlock - currBlock;
   const distInSecs = dist * 600 * 1000;
   const timeNow = now + distInSecs;
-  const date = new Date(timeNow).toUTCString();
-  return (date);
+  const date = new Date(timeNow).toISOString();
+  return moment(date).format("LL");
 };
 
 export const getStartDate = async (stakeInfo: StakeInterface | null) => {
@@ -139,8 +140,8 @@ export const getStartDate = async (stakeInfo: StakeInterface | null) => {
   const dist = endBlock - currBlock;
   const distInSecs = dist * 600 * 1000;
   const timeNow = now + distInSecs;
-  const date = new Date(timeNow).toUTCString();
-  return (date);
+  const date = new Date(timeNow).toISOString();
+  return moment(date).format("LL");
 };
 
 export const storeDB = (
@@ -375,34 +376,48 @@ export const calculateRewardPerBlockAtCreation = async (rewardAmount: string, st
   return reward
 }
 
-export const generateCreatePoolTxn = async (reward: string, stake: string, rewardAmount: string, startDate: string, endDate: string) => {
+export const generateCreatePoolTxn = async (reward: string, stake: string, rewardAmount: string, startDate: string, endDate: string, rewardIsSTX: boolean) => {
   const postConditionCode = FungibleConditionCode.LessEqual;
   const rewardToken = splitToken(reward);
   const stakeToken = splitToken(stake);
-  const assetContractName = rewardToken[1];
-  const assetName = await getTokenSource(rewardToken[0], rewardToken[1]);
-  if (assetName === "") {
-    throw new Error("Error with token contract")
+  let postConditions = []
+  if (rewardIsSTX) {
+    const postConditionCodeSTX = FungibleConditionCode.LessEqual;
+    const postConditionAmountSTX = BigInt(2000000 + (Number(rewardAmount) * 1e6));
+    const standardSTXPostCondition = makeStandardSTXPostCondition(
+      getUserPrincipal(),
+      postConditionCodeSTX,
+      postConditionAmountSTX,
+    );
+    postConditions.push(standardSTXPostCondition)
+  } else {
+    const assetContractName = rewardToken[1];
+    const assetName = await getTokenSource(rewardToken[0], rewardToken[1]);
+    if (assetName === "") {
+      throw new Error("Error with token contract")
+    }
+    const fungibleAssetInfo = createAssetInfo(
+      rewardToken[0],
+      assetContractName,
+      assetName,
+    );
+    const postConditionAmount = BigInt(Number(rewardAmount) * 1e6)
+    const fungiblePostCondition = makeStandardFungiblePostCondition(
+      getUserPrincipal(),
+      postConditionCode,
+      postConditionAmount,
+      fungibleAssetInfo,
+    );
+    const postConditionCodeSTX = FungibleConditionCode.LessEqual;
+    const postConditionAmountSTX = BigInt(2000000);
+    const standardSTXPostCondition = makeStandardSTXPostCondition(
+      getUserPrincipal(),
+      postConditionCodeSTX,
+      postConditionAmountSTX,
+    );
+    postConditions.push(fungiblePostCondition, standardSTXPostCondition)
   }
-  const fungibleAssetInfo = createAssetInfo(
-    rewardToken[0],
-    assetContractName,
-    assetName,
-  );
-  const postConditionAmount = BigInt(Number(rewardAmount) * 1e6)
-  const fungiblePostCondition = makeStandardFungiblePostCondition(
-    getUserPrincipal(),
-    postConditionCode,
-    postConditionAmount,
-    fungibleAssetInfo,
-  );
-  const postConditionCodeSTX = FungibleConditionCode.LessEqual;
-  const postConditionAmountSTX = BigInt(2000000);
-  const standardSTXPostCondition = makeStandardSTXPostCondition(
-    getUserPrincipal(),
-    postConditionCodeSTX,
-    postConditionAmountSTX,
-  );
+
   const currBlock = await fetchCurrNoOfBlocks();
   const startBlocks = await convertToBlocks(startDate, currBlock);
   const endBlocks = await convertToBlocks(endDate, currBlock);
@@ -422,7 +437,7 @@ export const generateCreatePoolTxn = async (reward: string, stake: string, rewar
       uintCV(Number(rewards.toFixed(6)) * 1e6),
     ],
     postConditionMode: PostConditionMode.Deny,
-    postConditions: [fungiblePostCondition, standardSTXPostCondition],
+    postConditions,
   };
 }
 

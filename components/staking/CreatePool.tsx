@@ -22,6 +22,7 @@ import { pendingInitial, txMessage } from "@/data/constants"
 import { useNotificationConfig } from "@/hooks/useNotification"
 import { SelectToken } from "../shared/SelectToken"
 import { storeTransaction } from "@/utils/db"
+import { useTokensContext } from "@/provider/Tokens"
 type RangePickerProps = GetProps<typeof DatePicker.RangePicker>
 
 dayjs.extend(customParseFormat)
@@ -36,6 +37,8 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
   const [stakesToken, setSstakeToken] = useState<string>("")
   const [form] = useForm<PendingTxnsI>();
   const [loading, setLoading] = useState(false);
+
+  const { getTokenMetaByAddress } = useTokensContext()
 
 
   const { pendingTxnProgress, setPendingTxnProgress } = usePendingTxnFields()
@@ -72,7 +75,8 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
         stakeToken,
         rewardAmount,
         startDate,
-        endDate
+        endDate,
+        rewardsToken.toLowerCase() !== 'stx' ? false : true
       )
       doContractCall({
         ...txn,
@@ -134,10 +138,12 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
 
   const updateRate = async () => {
     const formData = form.getFieldsValue()
-    const token = formData.reward_token
-    const stToken = formData.stake_token
-    setRewardToken(splitToken(token)[1])
-    setSstakeToken(splitToken(stToken)[1])
+    const rtoken = splitToken(formData.reward_token)[1]
+    const stToken = splitToken(formData.stake_token)[1]
+    const token = getTokenMetaByAddress(formData.reward_token)
+    const stokne = getTokenMetaByAddress(formData.stake_token)
+    setRewardToken(token ? token.name : rtoken)
+    setSstakeToken(stokne ? stokne.name : stToken)
     const rewardAmount = formData.reward_amount
     const startDate = formData.start_date
     const endDate = formData.end_date

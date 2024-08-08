@@ -105,6 +105,7 @@ export const MemeGoatStakingTab = () => {
 
   const handleStake = async () => {
     try {
+      if (amount <= 200000) throw new Error("Below Mininum stake")
       setLoading(true)
       if (!amount) return;
       const txStakeIndex = userStake ? formatCVTypeNumber(userStake["stake-index"]) : stakeIndex
