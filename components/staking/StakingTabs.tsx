@@ -10,8 +10,9 @@ import {
   getStakes,
 } from "@/lib/contracts/staking"
 import { StakeInterface } from "@/interface"
-import { fetchCurrNoOfBlocks } from "@/utils/stacks.data"
+import { fetchCurrNoOfBlocks, getUserPrincipal } from "@/utils/stacks.data"
 import { MemeGoatStakingTab } from "./MemeGoatStakingTab"
+import { PendingTransactions } from "../shared/PendingTransactions"
 
 interface TabItem {
   title: ReactNode
@@ -71,9 +72,12 @@ export const StakingTabs = () => {
         style={{ backdropFilter: "blur(22px)" }}
       >
         <TabHead {...tabHeadProps} />
-        <div className="text-gray-300 flex gap-2 items-center">
+        {/* <div className="text-gray-300 flex gap-2 items-center">
           <p className="text-md md:tex-sm">Staked Only</p>
           <Switch />
+        </div> */}
+        <div className="flex items-center justify-start mb-2 gap-2 right-0">
+          <PendingTransactions txRequest={{ tag: "STAKE-POOLS", address: getUserPrincipal() }} />
         </div>
       </div>
       <div className="pb-5">

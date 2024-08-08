@@ -46,9 +46,6 @@ export const Hero = () => {
           <div className="p-2 px-5 uppercase text-xs border-[1px] border-primary-10/20 rounded-full mb-5">
             <p>staking pool</p>
           </div>
-          {/* <div className="flex items-center justify-end mb-2 gap-2 right-0">
-            <PendingTransactions txRequest={{ tag: "STAKE-POOLS", address: getUserPrincipal() }} />
-          </div> */}
         </div>
 
         <div className="">

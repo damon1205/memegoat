@@ -7,7 +7,7 @@ import type { FormInstance, GetProps } from "antd"
 import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
 import { useForm } from "antd/es/form/Form"
-import { getExplorerLink, getUserPrincipal, network, userSession } from "@/utils/stacks.data"
+import { contractAddress, getExplorerLink, getUserPrincipal, network, userSession } from "@/utils/stacks.data"
 import {
   calculateRewardPerBlockAtCreation,
   fetchTransactionStatus,
@@ -102,7 +102,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
             details_link: getExplorerLink(network, data.txId)
           })
           setPendingTxnProgress({ ...pendingInitial })
-          setLoading(true)
+          setLoading(false)
         },
         onCancel: () => {
           console.log("onCancel:", "Transaction was canceled")
@@ -230,16 +230,18 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                 end_date: pendingTxnProgress.end_date
                   ? moment(pendingTxnProgress.end_date)
                   : null,
+                reward_token: 'SP3K8BC0PPEVCV7NZ6QSRWPQ2JE9E5B6N3PA0KBR9.token-wstx',
+                stake_token: `${contractAddress}.memegoatstx`
               }}
             >
               <Form.Item name={"stake_token"} label="Select Stake Token">
                 <div className="px-2 py-1 bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px]">
-                  <SelectToken tokens={tokens} action={setStakeToken} />
+                  <SelectToken tokens={tokens} action={setStakeToken} defaultTokenID="memegoatstx" />
                 </div>
               </Form.Item>
               <Form.Item name={"reward_token"} label="Select Reward Token">
                 <div className="px-2 py-1 bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px]">
-                  <SelectToken tokens={tokens} action={setRewarddToken} />
+                  <SelectToken tokens={tokens} action={setRewarddToken} defaultTokenID="STX" />
                 </div>
               </Form.Item>
               <Form.Item
