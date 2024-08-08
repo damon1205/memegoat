@@ -1,4 +1,4 @@
-import { Launchpad } from "@/components/launchpad/Launchpad"
+// import { Launchpad } from "@/components/launchpad/Launchpad"
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { instance } from "@/utils/api";
 import React from "react"
@@ -14,13 +14,13 @@ const LaunchpadPage = async () => {
     }
   };
 
-  // const targetDate = '2024-08-12T16:00:00Z'
+  const targetDate = '2024-08-12T16:00:00Z'
 
   const launches = await fetchLaunches();
   return (
     <div>
-      <Launchpad data={launches ?? []} />
-      {/* <CountdownTimer targetDate={targetDate} /> */}
+      {/* <Launchpad data={launches ?? []} /> */}
+      <CountdownTimer targetDate={targetDate} />
     </div>
   )
 }

@@ -27,7 +27,7 @@ export interface TxType {
   key: string;
   id: string;
   txId: string;
-  txStatus: "Pending" | "Successful" | "Failed";
+  txStatus: "Pending" | "Success" | "Failed";
   amount: number;
   tag: string;
   txSender: string;
@@ -38,7 +38,7 @@ export interface TxType {
 export interface TxData {
   key: string;
   txId: string;
-  txStatus: "Pending" | "Successful" | "Failed";
+  txStatus: "Pending" | "Success" | "Failed";
   amount: number;
   tag: string;
   txSender: string;
@@ -236,4 +236,37 @@ type TxStatus = "Failed" | "Pending" | "Successful";
 
 export interface VelarToken {
   symbol: string;
+}
+
+export interface PendingTxnStaking {
+  key: string;
+  tag: string;
+  txID: string;
+  userAddr: string;
+  referrerAddr?: string;
+  amount: string;
+  action: string;
+}
+
+export interface IStake {
+  day: number;
+  value: string;
+  stakeIndex: number;
+  apr: string;
+  noOfBlocks: number;
+  interestRate: number;
+}
+
+export interface StakeInfo {
+  "deposit-amount": UIntCV;
+  "deposit-block": UIntCV;
+  "end-block": UIntCV;
+  "lock-rewards": UIntCV;
+  paid: BooleanCV;
+  "stake-index": UIntCV;
+}
+
+export interface TX {
+  event: string;
+  data: TxData;
 }

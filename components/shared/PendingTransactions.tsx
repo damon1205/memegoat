@@ -17,7 +17,14 @@ export const PendingTransactions = ({ txRequest }: { txRequest: TxRequest }) => 
       const transactions = await getRecentTransactions(txRequest);
       setTransactions(transactions)
     }
+
+    const interval = setInterval(() => {
+      fetchData()
+    }, 60000)
+
+
     fetchData()
+    return () => clearInterval(interval)
   }, [txRequest])
 
   return (

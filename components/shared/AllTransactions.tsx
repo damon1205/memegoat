@@ -12,7 +12,7 @@ export const AllTransactions = ({ txRequest }: { txRequest: TxRequest }) => {
   useEffect(() => {
     const fetchData = async () => {
       const transactions = await getRecentTransactions(txRequest);
-      console.log(transactions)
+      // console.log(transactions)
       setTransactions(transactions)
     }
     fetchData()
