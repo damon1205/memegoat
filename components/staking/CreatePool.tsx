@@ -304,6 +304,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                     className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
                     size="small"
                     disabledTime={disabledTime}
+                    onChange={() => updateRate()}
                   />
                 </Form.Item>
               </div>
@@ -333,6 +334,7 @@ export const CreatePool = ({ tokens }: { tokens: TokenData[] }) => {
                     placement="topLeft"
                     className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
                     size="small"
+                    onChange={() => updateRate()}
 
                   />
                 </Form.Item>
