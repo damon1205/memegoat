@@ -38,7 +38,7 @@ export const Dashboard = () => {
           <div className="inline-flex gap-2 items-center">
             <p className="">Supported Tokens</p>
             <Avatar src="/images/STX.svg" size={30} />
-            <Avatar src="/images/velar.png" size={30} />
+            <Avatar src="/images/velar.jpg" size={30} />
             <Avatar src="/images/alex.svg" size={30} />
             <Avatar src="/leo.jpg" size={30} />
           </div>
