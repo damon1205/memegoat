@@ -5,7 +5,8 @@ import { CgClose } from "react-icons/cg"
 import { MdOutlinePendingActions } from "react-icons/md"
 import { TransactionTable } from "./TransactionsTable"
 import { TxRequest, TxType } from "@/interface"
-import { getRecentTransactions } from "@/utils/stacks.data"
+import { getRecentTransactions } from "@/utils/db"
+
 
 export const PendingTransactions = ({ txRequest }: { txRequest: TxRequest }) => {
   const [openModal, setOpenModal] = useState(false)

@@ -7,9 +7,11 @@ import { Attestation } from "./Attestation"
 import Link from "next/link"
 import { AllTransactions } from "../shared/AllTransactions"
 import { alexSDK } from "@/utils/velar.data"
+import { getActiveUsers } from "@/utils/db"
 
 export const Dashboard = () => {
   const [tokenPrice, setTokenPrice] = useState<number | undefined>(0);
+  const [activeUsers, setActiveUsers] = useState<number>(0);
 
   useEffect(() => {
     const fetchPrice = async () => {
@@ -18,6 +20,9 @@ export const Dashboard = () => {
       if (tokenKey in price) {
         setTokenPrice(price[tokenKey])
       }
+
+      const activeUsers = await getActiveUsers();
+      setActiveUsers(activeUsers)
     }
     fetchPrice()
   }, [])
@@ -70,21 +75,26 @@ export const Dashboard = () => {
                   type="primary"
                   className="h-[30px] text-white font-medium"
                 >
-                  <Link href={"/staking"}>Stake</Link>
+                  <Link href={"/dex"}>Swap</Link>
                 </Button>
                 <Button
                   type="link"
                   className="h-[30px]  underline font-medium text-primary-30 hover:text-primary-20"
                 >
                   <Link
-                    href={"/dex"}
+                    href={"/staking"}
                     className="text-primary-30 hover:text-primary-20"
                   >
-                    Swap
+                    Stake
                   </Link>
                 </Button>
               </div>
             </div>
+            <div className="bg-primary-100/10 border-[1px] border-primary-90 w-full px-5 py-5">
+              <p className="text-sm">No of Active Users</p>
+              <p className="text-2xl font-semibold mt-3">{activeUsers}</p>
+            </div>
+
           </div>
         </div>
       </motion.div>

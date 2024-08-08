@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { BsLockFill } from "react-icons/bs"
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { FinishedTxData, useConnect } from "@stacks/connect-react"
-import { contractAddress, fetchCurrNoOfBlocks, fetchSTXBalance, getUserPrincipal, getUserTokenBalance, network, networkInstance, storeTransaction } from "@/utils/stacks.data"
+import { contractAddress, fetchCurrNoOfBlocks, fetchSTXBalance, getUserPrincipal, getUserTokenBalance, network, networkInstance } from "@/utils/stacks.data"
 import { formatBal, formatNumber } from "@/utils/format"
 import { CsvObject } from "@/interface"
 import { tupleCV, uintCV, standardPrincipalCV, createAssetInfo, FungibleConditionCode, makeStandardFungiblePostCondition, makeStandardSTXPostCondition, AnchorMode, boolCV, contractPrincipalCV, listCV, PostConditionMode } from "@stacks/transactions"
@@ -18,6 +18,7 @@ import { useTokenLocker } from "@/hooks/useTokenLocker"
 import { createHash } from "crypto"
 import { useTokensContext } from "@/provider/Tokens"
 import { checkInVelar } from "@/utils/swap"
+import { storeTransaction } from "@/utils/db"
 
 type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
 

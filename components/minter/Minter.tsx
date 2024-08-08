@@ -18,7 +18,6 @@ import {
   getUserPrincipal,
   network,
   networkInstance,
-  storeTransaction,
   userSession,
 } from "@/utils/stacks.data"
 import { uploadToGaia, generateContract } from "@/utils/helpers"
@@ -31,6 +30,7 @@ import { useNotificationConfig } from "@/hooks/useNotification"
 import { createHash, hash } from "crypto"
 import { PendingTransactions } from "../shared/PendingTransactions"
 import Link from "next/link"
+import { storeTransaction } from "@/utils/db"
 
 interface PropI {
   current: number

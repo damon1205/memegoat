@@ -9,6 +9,7 @@ import config from './config';
 import moment from 'moment';
 import SHA256 from 'crypto-js/sha256';
 import { enc, HmacSHA512 } from 'crypto-js';
+import { instance } from './api';
 export interface MetadataI {
   name: string,
   description: string,
