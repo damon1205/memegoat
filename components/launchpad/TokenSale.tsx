@@ -1,6 +1,14 @@
 "use client"
 import React, { useCallback, useEffect, useState } from "react"
-import { Avatar, Button, DatePicker, Divider, Form, Input } from "antd"
+import {
+  Avatar,
+  Button,
+  DatePicker,
+  TimePicker,
+  Divider,
+  Form,
+  Input,
+} from "antd"
 import type { GetProps } from "antd"
 import { useForm } from "antd/es/form/Form"
 import { Rule } from "antd/es/form"
@@ -164,8 +172,8 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
             ? tokenMintProgress.campaign_allocation
             : 0
         ) +
-        Number(formData.listing_allocation) +
-        Number(formData.sale_allocation)
+          Number(formData.listing_allocation) +
+          Number(formData.sale_allocation)
       )
       const fungiblePostCondition = makeStandardFungiblePostCondition(
         getUserPrincipal(),
@@ -197,8 +205,8 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
           uintCV(Number(formData.listing_allocation) * 1000000),
           Number(tokenMintProgress.campaign_allocation) > 0
             ? someCV(
-              uintCV(Number(tokenMintProgress.campaign_allocation) * 1000000)
-            )
+                uintCV(Number(tokenMintProgress.campaign_allocation) * 1000000)
+              )
             : noneCV(),
           boolCV(true),
         ],
@@ -207,13 +215,13 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
         onFinish: async (txData) => {
           try {
             await storeTransaction({
-              key: createHash('sha256').update(txData.txId).digest('hex'),
+              key: createHash("sha256").update(txData.txId).digest("hex"),
               txId: txData.txId,
-              txStatus: 'Pending',
+              txStatus: "Pending",
               amount: Number(formData.token_supply),
               tag: "LAUNCHPAD",
               txSender: getUserPrincipal(),
-              action: 'Create New Launchpad'
+              action: "Create New Launchpad",
             })
 
             setTokenMintProgress({
@@ -232,7 +240,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
             message: txMessage,
             title: "Mint request successfully received!",
             type: "success",
-            details_link: getExplorerLink(network, txData.txId)
+            details_link: getExplorerLink(network, txData.txId),
           })
           setShowTokenSale(false)
         },
@@ -249,9 +257,13 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
     } catch (e) {
       setLoading(false)
       if (e instanceof Error) {
-        config({ message: e.message, title: 'Launchpad', type: 'error' })
+        config({ message: e.message, title: "Launchpad", type: "error" })
       } else {
-        config({ message: "An unknown error occurred", title: 'Launchpad', type: 'error' })
+        config({
+          message: "An unknown error occurred",
+          title: "Launchpad",
+          type: "error",
+        })
       }
     }
   }
@@ -451,13 +463,25 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                     format="YYYY-MM-DD HH:mm:ss"
                     use12Hours={true}
                     disabledDate={disabledDateStart}
-                    showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
+                    // showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                     size="large"
                     className="w-full bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px]"
                     name="start_date"
                     disabled={loading}
                   />
                 </Form.Item>
+                <Form.Item label="Time" name={"start_time"}>
+                  <TimePicker
+                    // disabled={loading}
+                    format="YYYY-MM-DD HH:mm:ss"
+                    use12Hours={true}
+                    placement="topLeft"
+                    className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
+                    size="small"
+                  />
+                </Form.Item>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <Form.Item
                   label="End Date"
                   name={"end_date"}
@@ -468,11 +492,21 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
                     use12Hours={true}
                     format="YYYY-MM-DD HH:mm:ss"
                     disabledDate={disabledDateEnd}
-                    showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
+                    // showTime={{ defaultValue: dayjs("00:00:00", "HH:mm:ss") }}
                     size="large"
                     className="w-full bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px]"
                     name="end_date"
                     disabled={loading}
+                  />
+                </Form.Item>
+                <Form.Item label="Time" name={"end_time"}>
+                  <TimePicker
+                    // disabled={loading}
+                    format="YYYY-MM-DD HH:mm:ss"
+                    use12Hours={true}
+                    placement="topRight"
+                    className="bg-[#FFFFFF0D] border-[#FFFFFF0D] border-[2px] hover:bg-transparent rounded-[8px] h-[43px] w-full"
+                    size="small"
                   />
                 </Form.Item>
               </div>

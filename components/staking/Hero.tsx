@@ -14,7 +14,7 @@ export const Hero = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const stxToken = getTokenMeta('STX')
+      const stxToken = getTokenMeta("STX")
       const tokens = await getAllUserTokens()
       if (stxToken) {
         setTokens([stxToken, ...tokens])
@@ -52,7 +52,9 @@ export const Hero = () => {
           <h3 className="md:text-8xl hidden md:block font-medium text-center neonText special-text">
             Stake & deploy a pool.
           </h3>
-          <h3 className="md:hidden block text-4xl">Stake & deploy a pool.</h3>
+          <h3 className="md:hidden block text-4xl text-center neonText">
+            Stake & deploy a pool.
+          </h3>
         </div>
         <div className="text-center md:mt-10 mt-5 md:text-[16px] text-sm">
           {/* <span className="text-primary-20">Stake</span> GoatSTX to earn tokens. */}
@@ -63,7 +65,6 @@ export const Hero = () => {
           your favourite community.
         </p>
         <CreatePool tokens={tokens || []} />
-
       </motion.div>
     </>
   )
