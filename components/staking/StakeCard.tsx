@@ -136,7 +136,7 @@ export const StakeCard = ({
                     <span className="mr-3">
                       {loading ?
                         <Skeleton.Input active={true} size={'small'} block={false} />
-                        : formatNumber(earned)} {rToken ? rToken.name : rewardToken ? rewardToken.symbol : ""}
+                        : formatNumber(earned / 1e6)} {rToken ? rToken.name : rewardToken ? rewardToken.symbol : ""}
                     </span>
                   </div>
                 </div>
