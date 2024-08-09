@@ -30,7 +30,7 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, reward_token, tok
   const setMax = () => setAmount(staked_amount)
   const [checked, setChecked] = useState<boolean>(false)
   const hasStake = () => staked_amount > 0;
-  const [loading, setLoading] = useState<boolean>(true)
+  const [loading, setLoading] = useState<boolean>(false)
 
   const handleUnstake = async (amount: number) => {
     if (!amount) return;
