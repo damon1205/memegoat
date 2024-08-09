@@ -245,7 +245,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
   return (
     <>
       <div className="flex items-center justify-end mb-2 gap-2">
-        <PendingTransactions txRequest={{ tag: "MINTER", address: getUserPrincipal() }} />
+        <PendingTransactions txRequest={{}} />
       </div>
       <motion.div className="max-w-[485px] mx-auto p-4 md:p-6 mb-7 bg-primary-100/35 rounded-lg  mt-3  py-4 border-[1px] border-primary-100/60">
         <div className="mb-4 flex justify-between items-center">
