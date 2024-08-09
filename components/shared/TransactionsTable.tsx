@@ -174,7 +174,7 @@ export const TransactionTable = ({ data, dashboard }: { data: TxType[], dashboar
       </div>}
       <Table
         columns={columns}
-        dataSource={data}
+        dataSource={data.reverse()}
         pagination={{
           size: "small",
           responsive: true,
