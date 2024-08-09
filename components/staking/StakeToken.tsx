@@ -31,9 +31,6 @@ export const StakeToken = ({ stakeId, stake_token, reward_token, token_icon, dis
   const [balance, setBalance] = useState<number>(0);
   const setMax = () => setAmount(balance)
   const [loading, setLoading] = useState<boolean>(false);
-
-  console.log(stake_token, reward_token)
-
   const handleStake = async (amount: number) => {
     if (!amount) return;
     if (!stake_token || !reward_token) return
