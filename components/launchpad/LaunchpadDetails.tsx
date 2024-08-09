@@ -336,7 +336,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                   <>
                     <div>
                       <div className="flex items-end justify-end mb-2">
-                        <PendingTransactions txRequest={{ tag: "LAUNCHPAD", address: getUserPrincipal() }} />
+                        <PendingTransactions txRequest={{}} />
                       </div>
                       <div className="bg-primary-60/5 backdrop-blur-[5px] text-sm w-full">
                         <div className="p-4 text-silver border-b-[1px] border-primary-20/20 mb-5">

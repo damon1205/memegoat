@@ -269,7 +269,7 @@ export const MemeGoatStakingTab = () => {
           </div>
 
           <div className="flex items-center justify-end mb-2 gap-2 z-10">
-            <PendingTransactions txRequest={{ tag: "GOAT-STAKING", address: getUserPrincipal() }} />
+            <PendingTransactions txRequest={{}} />
           </div>
         </div>
         <div className="p-4 md:p-6">

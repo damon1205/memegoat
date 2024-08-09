@@ -79,7 +79,7 @@ export const StakingTabs = () => {
           <Switch />
         </div> */}
         <div className="flex items-center justify-start mb-2 gap-2 right-0">
-          <PendingTransactions txRequest={{ tag: "STAKE-POOLS", address: getUserPrincipal() }} />
+          <PendingTransactions txRequest={{}} />
         </div>
       </div>
       {connected && <div className="pb-5">
