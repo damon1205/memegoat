@@ -10,7 +10,7 @@ export const getStakeNonce = async () => {
   const user = getUserPrincipal() !== "" ? getUserPrincipal() : contractAddress;
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-staking-pool-v2",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "get-stake-nonce",
     functionArgs: [],
     senderAddress: user,
@@ -25,9 +25,10 @@ export const getStakes = async (stakeNonce: number) => {
   if (stakeNonce > 0) {
     const stakes: StakeInterface[] = []
     for (let i = 0; i < stakeNonce; i++) {
+      if (i === 1) continue;
       const result = await callReadOnlyFunction({
         contractAddress,
-        contractName: "memegoat-staking-pool-v2",
+        contractName: "memegoat-staking-pool-v2-1",
         functionName: "get-stake-pool",
         functionArgs: [uintCV(i)],
         senderAddress: user,
@@ -53,7 +54,7 @@ export const getUserStakeInfo = async (stakeInfo: StakeInterface | null) => {
   if (!userSession.isUserSignedIn() || !stakeInfo) { return null }
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-staking-pool-v2",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "get-user-staking-data",
     functionArgs: [
       uintCV(formatCVTypeNumber(stakeInfo.id)),
@@ -74,7 +75,7 @@ export const getUserEarnings = async (stakeId: number) => {
   if (!userSession.isUserSignedIn()) return 0
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-staking-pool-v2",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "calculate-rewards",
     functionArgs: [
       uintCV(stakeId),
@@ -92,7 +93,7 @@ export const getUserHasStake = async (stakeInfo: StakeInterface) => {
   const user = getUserPrincipal()
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-staking-pool-v2",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "get-user-stake-has-stake",
     functionArgs: [uintCV(formatCVTypeNumber(stakeInfo.id)), standardPrincipalCV(user)],
     senderAddress: user,
@@ -259,7 +260,7 @@ export async function generateStakeTransaction(stakeId: number, amount: number, 
     network: networkInstance,
     anchorMode: AnchorMode.Any,
     contractAddress,
-    contractName: "memegoat-staking-pool-v2",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "stake",
     functionArgs: [
       uintCV(stakeId),
@@ -326,7 +327,7 @@ export async function generateUnstakeTransaction(stakeId: number, amount: number
     network: networkInstance,
     anchorMode: AnchorMode.Any,
     contractAddress,
-    contractName: "memegoat-staking-pool-v2",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "unstake",
     functionArgs: [
       uintCV(stakeId),
@@ -385,7 +386,7 @@ export async function generateClaimTransaction(stakeId: number, reward_token: st
     network: networkInstance,
     anchorMode: AnchorMode.Any,
     contractAddress,
-    contractName: "memegoat-staking-pool-v2",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "claim-reward",
     functionArgs: [uintCV(stakeId), contractPrincipalCV(token[0], token[1])],
     postConditionMode: PostConditionMode.Deny,
@@ -458,7 +459,7 @@ export const generateCreatePoolTxn = async (reward: string, stake: string, rewar
     network: networkInstance,
     anchorMode: AnchorMode.Any,
     contractAddress,
-    contractName: "memegoat-staking-pool-v2",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "create-pool",
     functionArgs: [
       contractPrincipalCV(stakeToken[0], stakeToken[1]),
