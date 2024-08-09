@@ -157,7 +157,7 @@ export const UnstakeToken = ({ stakeId, disabled, stake_token, reward_token, tok
         <button
           className={`inline-block px-[6px] py-[1px] border-[1px] ${hasStake() || !disabled ? 'border-primary-40/60 text-primary-40' : 'border-gray-500 text-white]'} `}
           onClick={toggleOpen}
-          disabled={hasStake() || disabled}
+          disabled={!hasStake() || disabled}
         >
           -
         </button>
