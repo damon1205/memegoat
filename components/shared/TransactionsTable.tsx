@@ -27,10 +27,10 @@ const columns: TableProps<TxType>["columns"] = [
     title: "Date",
     dataIndex: "date",
     key: "date",
-    render: (text) => (
+    render: (text, record) => (
       <div className="text-sm">
-        <p>{moment(text).format("LL")}</p>
-        <p className="text-xs text-white/70">{moment(text).format("LT")}</p>
+        <p>{moment(record.createdAt).format("LL")}</p>
+        <p className="text-xs text-white/70">{moment(record.createdAt).format("LT")}</p>
       </div>
     ),
   },
