@@ -345,7 +345,7 @@ export async function generateClaimTransaction(stakeId: number, reward_token: st
   const token = splitToken(reward_token);
   const earnings = await getUserEarnings(stakeId);
   if (earnings <= 0) throw new Error("Earning are below zero");
-  const postConditionAmount = BigInt((earnings + (erpb * 2)).toFixed(0));
+  const postConditionAmount = BigInt((earnings + (erpb * 3)).toFixed(0));
   let postConditions = []
 
   if (symbol.toLowerCase() === 'stx') {
