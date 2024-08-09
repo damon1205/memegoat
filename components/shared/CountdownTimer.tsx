@@ -146,7 +146,7 @@ const CountdownFormatter = ({ countdown }: { countdown: string }) => {
 
           {/* Seconds */}
           <div>
-            <p className="text-center text-white/70 mb-3">Days</p>
+            <p className="text-center text-white/70 mb-3">Seconds</p>
             <div className="grid grid-cols-2 gap-2 md:text-3xl text-[16px]">
               <div className="md:px-[26px] px-[12px] relative md:py-[20px] py-[8px] rounded-lg border-[1px] border-[#1AC0574D]">
                 <span className="relative z-[20]">{countdown[6]}</span>

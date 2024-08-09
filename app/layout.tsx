@@ -13,7 +13,8 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   metadataBase: new URL(config.BASE_URL),
   title: "MemeGoat",
-  description: "Secure layer for memes on Bitcoin",
+  description:
+    "Launch | Swap | Raise liquidity | Deploy a pool | Play games | Earn | Promote",
   keywords: [
     "MemeGoat",
     "MemeGoat App",
@@ -28,18 +29,19 @@ export const metadata: Metadata = {
     "MemeGoat website",
     "MemeGoat application",
   ],
-  publisher: "MemeGoat STX",
+  publisher: "MemeGoat",
   openGraph: {
-    title: "MemeGoat STX",
-    description: "Secure layer for memes on Bitcoin",
-    siteName: "MemeGoat STX",
+    title: "MemeGoat",
+    description:
+      "Launch | Swap | Raise liquidity | Deploy a pool | Play games | Earn | Promote",
+    siteName: "MemeGoat",
     url: "https://app.memegoat.io/",
     locale: "en_US",
     type: "website",
     images: [
       {
         url: "https://res.cloudinary.com/osaretinfrank/image/upload/v1723235872/204adf06-dc10-42a0-a5ce-a52b4448103b_ym2sfn.jpg",
-        alt: "MemeGoat STX",
+        alt: "MemeGoat",
         width: 1200,
         height: 675,
       },
@@ -49,13 +51,14 @@ export const metadata: Metadata = {
     images: [
       {
         url: "https://res.cloudinary.com/osaretinfrank/image/upload/v1723235872/204adf06-dc10-42a0-a5ce-a52b4448103b_ym2sfn.jpg",
-        alt: "MemeGoat STX",
+        alt: "MemeGoat",
       },
     ],
     card: "summary_large_image",
     site: "@GoatCoinSTX",
-    title: "MemeGoat STX",
-    description: "Secure layer for memes on Bitcoin",
+    title: "MemeGoat",
+    description:
+      "Launch | Swap | Raise liquidity | Deploy a pool | Play games | Earn | Promote",
   },
 }
 
