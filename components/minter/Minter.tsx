@@ -78,95 +78,85 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
       if (!userSession.isUserSignedIn()) {
         return
       }
-      const BNINJA = 'BNINJA'
-      await storeTransaction({
-        key: genHex('0x751804b50e0633f2b86d33066bc1bc8de34745468fbccb0fcc1d1f10530ee8fa'),
-        txId: '0x751804b50e0633f2b86d33066bc1bc8de34745468fbccb0fcc1d1f10530ee8fa',
-        txStatus: 'Pending',
-        amount: Number(1000000000),
-        tag: "MINTER",
-        txSender: getUserPrincipal(),
-        action: `Mint New Token ${BNINJA}`
+      setLoading(true)
+      const formData = form.getFieldsValue()
+      const metadata = {
+        name: formData.token_name,
+        description: formData.token_desc,
+        image: formData.token_image,
+      }
+      const data = JSON.stringify(metadata)
+      const filename = `${metadata.name.replace(/ /g, "-")}.json`
+      const token_uri = await uploadToGaia(filename, data, "application/json")
+      if (token_uri === "") {
+        config({
+          message: "Please connect Wallet",
+          title: "Staking",
+          type: "error",
+        })
+        return
+      }
+      const contract = generateContract(
+        formData.token_name,
+        token_uri,
+        formData.token_ticker,
+        formData.token_supply
+      )
+      const contractName = `${formData.token_ticker}`
+      const tokenAddress = `${getUserPrincipal()}.${contractName}`
+      await doContractDeploy({
+        network: networkInstance,
+        anchorMode: AnchorMode.Any,
+        codeBody: contract,
+        contractName,
+        onFinish: async (data) => {
+          try {
+            await storeTransaction({
+              key: genHex(data.txId),
+              txId: data.txId,
+              txStatus: 'Pending',
+              amount: Number(formData.token_supply),
+              tag: "MINTER",
+              txSender: getUserPrincipal(),
+              action: `Mint New Token ${'$' + contractName}`
+            })
+            await uploadCampaign({ ...tokenMintProgress, is_campaign: false })
+            if (!minter) {
+              setTokenMintProgress(
+                {
+                  ...tokenMintProgress,
+                  ...form.getFieldsValue(),
+                  tx_id: data.txId,
+                  token_address: tokenAddress,
+                  user_addr: getUserPrincipal(),
+                  action: "Token Mint",
+                  tx_status: "pending"
+                }
+              );
+            }
+          } catch (e) {
+            console.log(e)
+          }
+          config({
+            message: txMessage,
+            title: "Mint request successfully received!",
+            type: "success",
+            details_link: getExplorerLink(network, data.txId)
+          })
+          setLoading(false)
+          resetForm()
+          setTokenMintProgress(initialData)
+        },
+        onCancel: () => {
+          setLoading(false)
+          config({
+            message: "Transaction was canceled",
+            title: "Minter",
+            type: "error",
+          })
+          console.log("onCancel:", "Transaction was canceled")
+        },
       })
-      // setLoading(true)
-      // const formData = form.getFieldsValue()
-      // const metadata = {
-      //   name: formData.token_name,
-      //   description: formData.token_desc,
-      //   image: formData.token_image,
-      // }
-      // const data = JSON.stringify(metadata)
-      // const filename = `${metadata.name.replace(/ /g, "-")}.json`
-      // const token_uri = await uploadToGaia(filename, data, "application/json")
-      // if (token_uri === "") {
-      //   config({
-      //     message: "Please connect Wallet",
-      //     title: "Staking",
-      //     type: "error",
-      //   })
-      //   return
-      // }
-      // const contract = generateContract(
-      //   formData.token_name,
-      //   token_uri,
-      //   formData.token_ticker,
-      //   formData.token_supply
-      // )
-      // const contractName = `${formData.token_ticker}`
-      // const tokenAddress = `${getUserPrincipal()}.${contractName}`
-      // await doContractDeploy({
-      //   network: networkInstance,
-      //   anchorMode: AnchorMode.Any,
-      //   codeBody: contract,
-      //   contractName,
-      //   onFinish: async (data) => {
-      //     try {
-      //       await storeTransaction({
-      //         key: genHex(data.txId),
-      //         txId: data.txId,
-      //         txStatus: 'Pending',
-      //         amount: Number(formData.token_supply),
-      //         tag: "MINTER",
-      //         txSender: getUserPrincipal(),
-      //         action: `Mint New Token ${'$' + contractName}`
-      //       })
-      //       await uploadCampaign({ ...tokenMintProgress, is_campaign: false })
-      //       if (!minter) {
-      //         setTokenMintProgress(
-      //           {
-      //             ...tokenMintProgress,
-      //             ...form.getFieldsValue(),
-      //             tx_id: data.txId,
-      //             token_address: tokenAddress,
-      //             user_addr: getUserPrincipal(),
-      //             action: "Token Mint",
-      //             tx_status: "pending"
-      //           }
-      //         );
-      //       }
-      //     } catch (e) {
-      //       console.log(e)
-      //     }
-      //     config({
-      //       message: txMessage,
-      //       title: "Mint request successfully received!",
-      //       type: "success",
-      //       details_link: getExplorerLink(network, data.txId)
-      //     })
-      //     setLoading(false)
-      //     resetForm()
-      //     setTokenMintProgress(initialData)
-      //   },
-      //   onCancel: () => {
-      //     setLoading(false)
-      //     config({
-      //       message: "Transaction was canceled",
-      //       title: "Minter",
-      //       type: "error",
-      //     })
-      //     console.log("onCancel:", "Transaction was canceled")
-      //   },
-      // })
     } catch (e) {
       setLoading(false)
       console.log(e)

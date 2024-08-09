@@ -41,7 +41,7 @@ import {
   noneCV,
   PostConditionMode,
 } from "@stacks/transactions"
-import { splitToken } from "@/utils/helpers"
+import { genHex, splitToken } from "@/utils/helpers"
 import { useConnect } from "@stacks/connect-react"
 import axios from "axios"
 import Link from "next/link"
@@ -51,7 +51,6 @@ import moment from "moment"
 import { LaunchpadDataI } from "@/interface"
 import { uploadCampaign } from "@/lib/contracts/launchpad"
 import { useNotificationConfig } from "@/hooks/useNotification"
-import { genHex } from "crypto"
 import { storeTransaction } from "@/utils/db"
 
 interface PropI {
@@ -215,7 +214,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
         onFinish: async (txData) => {
           try {
             await storeTransaction({
-              key: genHex("sha256").update(txData.txId).digest("hex"),
+              key: genHex(txData.txId),
               txId: txData.txId,
               txStatus: "Pending",
               amount: Number(formData.token_supply),
