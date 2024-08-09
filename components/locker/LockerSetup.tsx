@@ -10,12 +10,11 @@ import { contractAddress, fetchCurrNoOfBlocks, fetchSTXBalance, getUserPrincipal
 import { formatBal, formatNumber } from "@/utils/format"
 import { CsvObject } from "@/interface"
 import { tupleCV, uintCV, standardPrincipalCV, createAssetInfo, FungibleConditionCode, makeStandardFungiblePostCondition, makeStandardSTXPostCondition, AnchorMode, boolCV, contractPrincipalCV, listCV, PostConditionMode } from "@stacks/transactions"
-import { getTokenSource, splitToken } from "@/utils/helpers"
+import { genHex, getTokenSource, splitToken } from "@/utils/helpers"
 import { storeDB } from "@/lib/contracts/locker"
 import { useRouter } from "next/navigation"
 import { useNotificationConfig } from "@/hooks/useNotification"
 import { useTokenLocker } from "@/hooks/useTokenLocker"
-import { createHash } from "crypto"
 import { useTokensContext } from "@/provider/Tokens"
 import { checkInVelar } from "@/utils/swap"
 import { storeTransaction } from "@/utils/db"
@@ -208,7 +207,7 @@ export const LockerSetup = () => {
           setIsProcessing(false);
           // storeDB(data.txId, amount, noOfBlocks, tokenLockerDetails);
           await storeTransaction({
-            key: createHash('sha256').update(txData.txId).digest('hex'),
+            key: genHex(txData.txId),
             txId: txData.txId,
             txStatus: 'Pending',
             amount: amount,

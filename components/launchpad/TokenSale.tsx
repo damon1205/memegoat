@@ -51,7 +51,7 @@ import moment from "moment"
 import { LaunchpadDataI } from "@/interface"
 import { uploadCampaign } from "@/lib/contracts/launchpad"
 import { useNotificationConfig } from "@/hooks/useNotification"
-import { createHash } from "crypto"
+import { genHex } from "crypto"
 import { storeTransaction } from "@/utils/db"
 
 interface PropI {
@@ -172,8 +172,8 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
             ? tokenMintProgress.campaign_allocation
             : 0
         ) +
-          Number(formData.listing_allocation) +
-          Number(formData.sale_allocation)
+        Number(formData.listing_allocation) +
+        Number(formData.sale_allocation)
       )
       const fungiblePostCondition = makeStandardFungiblePostCondition(
         getUserPrincipal(),
@@ -205,8 +205,8 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
           uintCV(Number(formData.listing_allocation) * 1000000),
           Number(tokenMintProgress.campaign_allocation) > 0
             ? someCV(
-                uintCV(Number(tokenMintProgress.campaign_allocation) * 1000000)
-              )
+              uintCV(Number(tokenMintProgress.campaign_allocation) * 1000000)
+            )
             : noneCV(),
           boolCV(true),
         ],
@@ -215,7 +215,7 @@ export const CreateTokenSale = ({ current, setCurrent }: PropI) => {
         onFinish: async (txData) => {
           try {
             await storeTransaction({
-              key: createHash("sha256").update(txData.txId).digest("hex"),
+              key: genHex("sha256").update(txData.txId).digest("hex"),
               txId: txData.txId,
               txStatus: "Pending",
               amount: Number(formData.token_supply),

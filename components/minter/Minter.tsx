@@ -20,14 +20,13 @@ import {
   networkInstance,
   userSession,
 } from "@/utils/stacks.data"
-import { uploadToGaia, generateContract } from "@/utils/helpers"
+import { uploadToGaia, generateContract, genHex } from "@/utils/helpers"
 import { AnchorMode } from "@stacks/transactions"
 import { showConnect, useConnect } from "@stacks/connect-react"
 import axios from "axios"
 import { initialData, txMessage } from "@/data/constants"
 import { uploadCampaign } from "@/lib/contracts/launchpad"
 import { useNotificationConfig } from "@/hooks/useNotification"
-import { createHash, hash } from "crypto"
 import { PendingTransactions } from "../shared/PendingTransactions"
 import Link from "next/link"
 import { storeTransaction } from "@/utils/db"
@@ -113,13 +112,13 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
         onFinish: async (data) => {
           try {
             await storeTransaction({
-              key: createHash('sha256').update(data.txId).digest('hex'),
+              key: genHex(data.txId),
               txId: data.txId,
               txStatus: 'Pending',
               amount: Number(formData.token_supply),
               tag: "MINTER",
               txSender: getUserPrincipal(),
-              action: 'Mint New Token'
+              action: `Mint New Token ${'$' + contractName}`
             })
             await uploadCampaign({ ...tokenMintProgress, is_campaign: false })
             if (!minter) {
@@ -160,6 +159,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
       })
     } catch (e) {
       setLoading(false)
+      console.log(e)
       if (e instanceof Error) {
         config({ message: e.message, title: 'Launchpad', type: 'error' })
       } else {
