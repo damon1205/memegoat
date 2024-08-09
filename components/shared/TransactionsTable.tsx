@@ -27,10 +27,10 @@ const columns: TableProps<TxType>["columns"] = [
     title: "Date",
     dataIndex: "date",
     key: "date",
-    render: (text) => (
+    render: (text, record) => (
       <div className="text-sm">
-        <p>{moment(text).format("LL")}</p>
-        <p className="text-xs text-white/70">{moment(text).format("LT")}</p>
+        <p>{moment(record.createdAt).format("LL")}</p>
+        <p className="text-xs text-white/70">{moment(record.createdAt).format("LT")}</p>
       </div>
     ),
   },
@@ -85,7 +85,7 @@ const columns: TableProps<TxType>["columns"] = [
     render(value, record) {
       return (
         <div className="font-medium ">
-          {record.txStatus === "Successful" ? (
+          {record.txStatus === "Success" ? (
             <div className="text-primary-40 mb-3 flex gap-1 items-center capitalize">
               <BsDot size={30} />
               <span>{record.txStatus}</span>
@@ -174,7 +174,7 @@ export const TransactionTable = ({ data, dashboard }: { data: TxType[], dashboar
       </div>}
       <Table
         columns={columns}
-        dataSource={data}
+        dataSource={data.reverse()}
         pagination={{
           size: "small",
           responsive: true,

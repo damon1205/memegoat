@@ -33,13 +33,13 @@ import {
   fetchCurrNoOfBlocks,
   fetchSTXBalance,
   getUserPrincipal,
-  storeTransaction,
 } from "@/utils/stacks.data"
 import { uintCV } from "@stacks/transactions"
 import { useConnect } from "@stacks/connect-react"
 import { PendingTransactions } from "../shared/PendingTransactions"
 import { useNotificationConfig } from "@/hooks/useNotification"
-import { createHash } from "crypto"
+import { storeTransaction } from "@/utils/db"
+import { genHex } from "@/utils/helpers"
 
 export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
   const { doContractCall } = useConnect()
@@ -68,7 +68,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
         onFinish: async (txData) => {
           // storePendingTxn("Buy Presale", txData.txId, amount.toString())
           storeTransaction({
-            key: createHash('sha256').update(txData.txId).digest('hex'),
+            key: genHex(txData.txId),
             txId: txData.txId,
             txStatus: 'Pending',
             amount: amount,
@@ -110,7 +110,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
           // )
           const allocation = await calculateAllocation(launchpadId)
           storeTransaction({
-            key: createHash('sha256').update(txData.txId).digest('hex'),
+            key: genHex(txData.txId),
             txId: txData.txId,
             txStatus: 'Pending',
             amount: allocation,
@@ -336,7 +336,7 @@ export const LaunchpadDetails = ({ data }: { data: LaunchpadDataI | null }) => {
                   <>
                     <div>
                       <div className="flex items-end justify-end mb-2">
-                        <PendingTransactions txRequest={{ tag: "LAUNCHPAD", address: getUserPrincipal() }} />
+                        <PendingTransactions txRequest={{}} />
                       </div>
                       <div className="bg-primary-60/5 backdrop-blur-[5px] text-sm w-full">
                         <div className="p-4 text-silver border-b-[1px] border-primary-20/20 mb-5">

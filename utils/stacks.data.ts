@@ -1,19 +1,18 @@
 import { LaunchpadDataI, TxData, TxRequest, TxType } from "@/interface";
-import { AppConfig, UserSession } from "@stacks/connect";
+import { AppConfig, showConnect, UserSession } from "@stacks/connect";
 import {
   StacksMainnet,
   StacksMocknet,
   StacksNetwork,
   StacksTestnet,
 } from "@stacks/network";
-import axios from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import { instance } from "./api";
 import { cleanIPFS, getTokenURI, splitToken } from "./helpers";
 import { ITokenMetadata } from "@/interface";
 import { dummyMetadata, emptyMetadata } from "@/data/constants";
 import config from "./config";
 import { splitColons } from "./format";
-import * as crypto from "crypto";
 
 export const pointsAPI =
   "https://memegoat-referral-backend.onrender.com/points";
@@ -221,7 +220,7 @@ export const fetchTokenMetadata = async (token: string) => {
     const response = await axios.request(config);
     const metadata: ITokenMetadata = {
       ...response.data,
-      tokenAddress: token,
+      address: token,
     };
     return metadata;
   } catch (error) {
@@ -237,14 +236,14 @@ export const fetchTokenMetadata = async (token: string) => {
         description: tokenInfo.token_desc,
         image_uri: tokenInfo.token_image,
         sender_address: tokenInfo.user_addr,
-        tokenAddress: token,
+        address: token,
       };
       return metadata;
     } catch (error) {
       const data = await getTokenURI(token, networkInstance);
       const metadata: ITokenMetadata = {
         ...emptyMetadata,
-        tokenAddress: token,
+        address: token,
         symbol: splitToken(token)[1],
         name: data.name,
         image_uri: cleanIPFS(data.image),
@@ -347,28 +346,12 @@ export const getAllUserTokens = async () => {
   return tokenList;
 };
 
-export const storeTransaction = async (data: TxData) => {
-  const hash = crypto
-    .createHmac("sha512", config.WEBHOOK_SECRET)
-    .update(JSON.stringify({ event: "transaction", data }))
-    .digest("hex");
-  await axios.post(
-    "https://games-server.memegoat.io/webhook",
-    { event: "transaction", data },
-    {
-      headers: {
-        "x-webhook-signature": hash,
-      },
-    }
-  );
-};
-
-export const getRecentTransactions = async (data: TxRequest) => {
-  const result = await axios.get(
-    "https://games-server.memegoat.io/webhook/transactions",
-    {
-      params: data,
-    }
-  );
-  return result.data.data as TxType[];
+export const onConnectWallet = () => {
+  showConnect({
+    appDetails,
+    onFinish: () => {
+      window.location.reload();
+    },
+    userSession,
+  });
 };

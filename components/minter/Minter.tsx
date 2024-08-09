@@ -18,19 +18,18 @@ import {
   getUserPrincipal,
   network,
   networkInstance,
-  storeTransaction,
   userSession,
 } from "@/utils/stacks.data"
-import { uploadToGaia, generateContract } from "@/utils/helpers"
+import { uploadToGaia, generateContract, genHex } from "@/utils/helpers"
 import { AnchorMode } from "@stacks/transactions"
 import { showConnect, useConnect } from "@stacks/connect-react"
 import axios from "axios"
 import { initialData, txMessage } from "@/data/constants"
 import { uploadCampaign } from "@/lib/contracts/launchpad"
 import { useNotificationConfig } from "@/hooks/useNotification"
-import { createHash, hash } from "crypto"
 import { PendingTransactions } from "../shared/PendingTransactions"
 import Link from "next/link"
+import { storeTransaction } from "@/utils/db"
 
 interface PropI {
   current: number
@@ -113,13 +112,13 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
         onFinish: async (data) => {
           try {
             await storeTransaction({
-              key: createHash('sha256').update(data.txId).digest('hex'),
+              key: genHex(data.txId),
               txId: data.txId,
               txStatus: 'Pending',
               amount: Number(formData.token_supply),
               tag: "MINTER",
               txSender: getUserPrincipal(),
-              action: 'Mint New Token'
+              action: `Mint New Token ${'$' + contractName}`
             })
             await uploadCampaign({ ...tokenMintProgress, is_campaign: false })
             if (!minter) {
@@ -160,6 +159,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
       })
     } catch (e) {
       setLoading(false)
+      console.log(e)
       if (e instanceof Error) {
         config({ message: e.message, title: 'Launchpad', type: 'error' })
       } else {
@@ -245,7 +245,7 @@ export const Minter = ({ current, setCurrent, minter }: PropI) => {
   return (
     <>
       <div className="flex items-center justify-end mb-2 gap-2">
-        <PendingTransactions txRequest={{ tag: "MINTER", address: getUserPrincipal() }} />
+        <PendingTransactions txRequest={{}} />
       </div>
       <motion.div className="max-w-[485px] mx-auto p-4 md:p-6 mb-7 bg-primary-100/35 rounded-lg  mt-3  py-4 border-[1px] border-primary-100/60">
         <div className="mb-4 flex justify-between items-center">

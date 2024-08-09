@@ -1,6 +1,6 @@
 "use client"
 import { MinterPage } from "@/components/minter/MinterPage"
-import { CountdownTimer } from "@/components/shared/CountdownTimer"
+// import { CountdownTimer } from "@/components/shared/CountdownTimer"
 import React from "react"
 
 const MintingPage = () => {

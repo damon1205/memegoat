@@ -3,20 +3,33 @@ import Image from "next/image"
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { CreatePool } from "./CreatePool"
-import { getAllUserTokens } from "@/utils/stacks.data"
+import {
+  getAllUserTokens,
+  getUserPrincipal,
+  onConnectWallet,
+  userSession,
+} from "@/utils/stacks.data"
 import { TokenData } from "@/interface"
+import { useTokensContext } from "@/provider/Tokens"
+import { PendingTransactions } from "../shared/PendingTransactions"
+import { Button } from "antd"
 
 export const Hero = () => {
   const [tokens, setTokens] = useState<TokenData[]>([])
+  const { getTokenMeta } = useTokensContext()
+  const [connected, setConnected] = useState<boolean>(false)
 
   useEffect(() => {
     const fetchData = async () => {
+      setConnected(userSession.isUserSignedIn())
+      const stxToken = getTokenMeta("STX")
       const tokens = await getAllUserTokens()
-      setTokens(tokens)
+      if (stxToken) {
+        setTokens([stxToken, ...tokens])
+      }
     }
-
     fetchData()
-  }, [])
+  }, [getTokenMeta])
   return (
     <>
       <div className="fixed top-0 left-[50%] translate-x-[-50%] w-[430px] h-[340px] blur-[300px] bg-primary-20 hidden md:block" />
@@ -37,14 +50,19 @@ export const Hero = () => {
         transition={{ duration: 1 }}
         className="flex flex-col items-center justify-center md:h-[70vh] relative z-[10]"
       >
-        <div className="p-2 px-5 uppercase text-xs border-[1px] border-primary-10/20 rounded-full mb-5">
-          <p>staking pool</p>
+        <div className="flex">
+          <div className="p-2 px-5 uppercase text-xs border-[1px] border-primary-10/20 rounded-full mb-5">
+            <p>staking pool</p>
+          </div>
         </div>
+
         <div className="">
           <h3 className="md:text-8xl hidden md:block font-medium text-center neonText special-text">
             Stake & deploy a pool.
           </h3>
-          <h3 className="md:hidden block text-4xl">Stake & deploy a pool.</h3>
+          <h3 className="md:hidden block text-4xl text-center neonText">
+            Stake & deploy a pool.
+          </h3>
         </div>
         <div className="text-center md:mt-10 mt-5 md:text-[16px] text-sm">
           {/* <span className="text-primary-20">Stake</span> GoatSTX to earn tokens. */}
@@ -54,7 +72,19 @@ export const Hero = () => {
           community. <span className="text-primary-20">Earn</span> rewards from
           your favourite community.
         </p>
-        <CreatePool tokens={tokens || []} />
+        {connected ? (
+          <CreatePool tokens={tokens || []} />
+        ) : (
+          <div className="mt-2">
+            <Button
+              type="primary"
+              className="w-full md:px-10 mt-7 border-primary-90"
+              onClick={() => onConnectWallet()}
+            >
+              Connect Wallet
+            </Button>
+          </div>
+        )}
       </motion.div>
     </>
   )

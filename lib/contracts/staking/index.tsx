@@ -4,12 +4,13 @@ import { getAddress, getTokenSource, splitToken } from "@/utils/helpers";
 import { ApiURLS, contractAddress, fetchCurrNoOfBlocks, fetchTokenMetadata, getUserPrincipal, network, networkInstance, userSession } from "@/utils/stacks.data";
 import { AnchorMode, boolCV, BooleanCV, callReadOnlyFunction, contractPrincipalCV, createAssetInfo, cvToValue, FungibleConditionCode, makeContractFungiblePostCondition, makeStandardFungiblePostCondition, makeStandardSTXPostCondition, PostConditionMode, standardPrincipalCV, UIntCV, uintCV } from "@stacks/transactions";
 import axios from "axios";
+import moment from "moment";
 
 export const getStakeNonce = async () => {
   const user = getUserPrincipal() !== "" ? getUserPrincipal() : contractAddress;
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-staking-pool-v1",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "get-stake-nonce",
     functionArgs: [],
     senderAddress: user,
@@ -24,9 +25,10 @@ export const getStakes = async (stakeNonce: number) => {
   if (stakeNonce > 0) {
     const stakes: StakeInterface[] = []
     for (let i = 0; i < stakeNonce; i++) {
+      if (i === 1) continue;
       const result = await callReadOnlyFunction({
         contractAddress,
-        contractName: "memegoat-staking-pool-v1",
+        contractName: "memegoat-staking-pool-v2-1",
         functionName: "get-stake-pool",
         functionArgs: [uintCV(i)],
         senderAddress: user,
@@ -52,7 +54,7 @@ export const getUserStakeInfo = async (stakeInfo: StakeInterface | null) => {
   if (!userSession.isUserSignedIn() || !stakeInfo) { return null }
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-staking-pool-v1",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "get-user-staking-data",
     functionArgs: [
       uintCV(formatCVTypeNumber(stakeInfo.id)),
@@ -70,10 +72,10 @@ export const getUserStakeInfo = async (stakeInfo: StakeInterface | null) => {
 };
 
 export const getUserEarnings = async (stakeId: number) => {
-  if (userSession.isUserSignedIn()) return 0
+  if (!userSession.isUserSignedIn()) return 0
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-staking-pool-v1",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "calculate-rewards",
     functionArgs: [
       uintCV(stakeId),
@@ -82,6 +84,7 @@ export const getUserEarnings = async (stakeId: number) => {
     senderAddress: getUserPrincipal(),
     network: networkInstance,
   });
+  console.log(stakeId, result)
   return Number((result as unknown as cvValue).value);
 };
 
@@ -90,7 +93,7 @@ export const getUserHasStake = async (stakeInfo: StakeInterface) => {
   const user = getUserPrincipal()
   const result = await callReadOnlyFunction({
     contractAddress,
-    contractName: "memegoat-staking-pool-v1",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "get-user-stake-has-stake",
     functionArgs: [uintCV(formatCVTypeNumber(stakeInfo.id)), standardPrincipalCV(user)],
     senderAddress: user,
@@ -119,29 +122,25 @@ export const getMetas = async (stakeInfo: StakeInterface | null) => {
   return { rewardMetadata: rewardMetadata, stakeMetadata: stakeMetadata }
 };
 
-export const getEndDate = async (stakeInfo: StakeInterface | null) => {
-  if (!stakeInfo) return "";
-  const endBlock = formatCVTypeNumber(stakeInfo["end-block"]);
-  const now = Date.now();
-  const currBlock = await fetchCurrNoOfBlocks();
-  const dist = endBlock - currBlock;
-  const distInSecs = dist * 600 * 1000;
-  const timeNow = now + distInSecs;
-  const date = new Date(timeNow).toUTCString();
-  return (date);
-};
+// export const getEndDate = async (stakeInfo: StakeInterface, currBlock: number) => {
+//   const endBlock = formatCVTypeNumber(stakeInfo["end-block"]);
+//   const now = Date.now();
+//   const dist = endBlock - currBlock;
+//   const distInSecs = dist * 600 * 1000;
+//   const timeNow = now + distInSecs;
+//   const date = new Date(timeNow).toISOString();
+//   return moment(date).format("LLL");
+// };
 
-export const getStartDate = async (stakeInfo: StakeInterface | null) => {
-  if (!stakeInfo) return "";
-  const endBlock = formatCVTypeNumber(stakeInfo["start-block"]);
-  const now = Date.now();
-  const currBlock = await fetchCurrNoOfBlocks();
-  const dist = endBlock - currBlock;
-  const distInSecs = dist * 600 * 1000;
-  const timeNow = now + distInSecs;
-  const date = new Date(timeNow).toUTCString();
-  return (date);
-};
+// export const getStartDate = async (stakeInfo: StakeInterface, currBlock: number) => {
+//   const startBlock = formatCVTypeNumber(stakeInfo["start-block"]);
+//   const dist = startBlock - currBlock;
+//   const distInSecs = dist * 600 * 1000;
+//   const now = Date.now();
+//   const timeNow = now - distInSecs;
+//   const date = new Date(timeNow).toISOString();
+//   return moment(date).format("LLL");
+// };
 
 export const storeDB = (
   action: string,
@@ -214,42 +213,54 @@ export const checkForStake = (stakeOnly: boolean, userHasStake: boolean) => {
   }
 }
 
-export async function generateStakeTransaction(stakeId: number, amount: number, stake_token: string) {
+export async function generateStakeTransaction(stakeId: number, amount: number, stake_token: string, symbol: string) {
   const token = splitToken(stake_token);
-
-  let assetName: string;
-
-  const postConditionCode = FungibleConditionCode.LessEqual;
-  const assetContractName = token[1];
-
-  if (network === "devnet") {
-    assetName = 'memegoatstx';
+  let postConditions = []
+  if (symbol.toLowerCase() === 'stx') {
+    const postConditionCodeSTX = FungibleConditionCode.LessEqual;
+    const postConditionAmountSTX = BigInt(amount);
+    const standardSTXPostCondition = makeStandardSTXPostCondition(
+      getUserPrincipal(),
+      postConditionCodeSTX,
+      postConditionAmountSTX,
+    );
+    postConditions.push(standardSTXPostCondition)
   } else {
-    assetName = await getTokenSource(token[0], token[1]);
-  }
-  console.log(assetName);
+    let assetName: string;
 
-  if (assetName === "") {
-    throw new Error('Error with token contract');
-  }
+    const postConditionCode = FungibleConditionCode.LessEqual;
+    const assetContractName = token[1];
 
-  const fungibleAssetInfo = createAssetInfo(
-    token[0],
-    assetContractName,
-    assetName,
-  );
-  const postConditionAmount = BigInt(amount);
-  const fungiblePostCondition = makeStandardFungiblePostCondition(
-    getUserPrincipal(),
-    postConditionCode,
-    postConditionAmount,
-    fungibleAssetInfo,
-  );
+    if (network === "devnet") {
+      assetName = 'memegoatstx';
+    } else {
+      assetName = await getTokenSource(token[0], token[1]);
+    }
+    console.log(assetName);
+
+    if (assetName === "") {
+      throw new Error('Error with token contract');
+    }
+
+    const fungibleAssetInfo = createAssetInfo(
+      token[0],
+      assetContractName,
+      assetName,
+    );
+    const postConditionAmount = BigInt(amount);
+    const fungiblePostCondition = makeStandardFungiblePostCondition(
+      getUserPrincipal(),
+      postConditionCode,
+      postConditionAmount,
+      fungibleAssetInfo,
+    );
+    postConditions.push(fungiblePostCondition)
+  }
   return {
     network: networkInstance,
     anchorMode: AnchorMode.Any,
     contractAddress,
-    contractName: "memegoat-staking-pool-v1",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "stake",
     functionArgs: [
       uintCV(stakeId),
@@ -257,7 +268,7 @@ export async function generateStakeTransaction(stakeId: number, amount: number, 
       contractPrincipalCV(token[0], token[1]),
     ],
     postConditionMode: PostConditionMode.Deny,
-    postConditions: [fungiblePostCondition],
+    postConditions,
   };
 }
 
@@ -274,38 +285,49 @@ export const fetchTransactionStatus = async (txn: PendingTxnPool | PendingTxnsI)
   return response.data.tx_status;
 };
 
-export async function generateUnstakeTransaction(stakeId: number, amount: number, stake_token: string) {
+export async function generateUnstakeTransaction(stakeId: number, amount: number, stake_token: string, symbol: string) {
   const token = splitToken(stake_token);
-  let assetName: string;
-  const postConditionCode = FungibleConditionCode.LessEqual;
-  const assetContractName = token[1];
-  if (network === "devnet") {
-    assetName = 'memegoatstx';
+  let postConditions = []
+  if (symbol.toLowerCase() === 'stx') {
+    const postConditionCodeSTX = FungibleConditionCode.LessEqual;
+    const postConditionAmountSTX = BigInt(amount);
+    const standardSTXPostCondition = makeStandardSTXPostCondition(
+      getUserPrincipal(),
+      postConditionCodeSTX,
+      postConditionAmountSTX,
+    );
+    postConditions.push(standardSTXPostCondition)
   } else {
-    assetName = await getTokenSource(token[0], token[1]);
+    const assetName = await getTokenSource(token[0], token[1]);
+    const assetContractName = token[1];
+
+    const postConditionCode = FungibleConditionCode.LessEqual;
+
+    console.log(assetName);
+    if (assetName === "") {
+      throw new Error("Error with token contract");
+    }
+    const fungibleAssetInfo = createAssetInfo(
+      token[0],
+      assetContractName,
+      assetName,
+    );
+    const postConditionAmount = BigInt(amount);
+    const fungiblePostCondition = makeContractFungiblePostCondition(
+      contractAddress,
+      'memegoat-stakepool-vault-v1',
+      postConditionCode,
+      postConditionAmount,
+      fungibleAssetInfo,
+    );
+    postConditions.push(fungiblePostCondition)
   }
-  console.log(assetName);
-  if (assetName === "") {
-    throw new Error("Error with token contract");
-  }
-  const fungibleAssetInfo = createAssetInfo(
-    token[0],
-    assetContractName,
-    assetName,
-  );
-  const postConditionAmount = BigInt(amount);
-  const fungiblePostCondition = makeContractFungiblePostCondition(
-    contractAddress,
-    'memegoat-stakepool-vault-v1',
-    postConditionCode,
-    postConditionAmount,
-    fungibleAssetInfo,
-  );
+
   return {
     network: networkInstance,
     anchorMode: AnchorMode.Any,
     contractAddress,
-    contractName: "memegoat-staking-pool-v1",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "unstake",
     functionArgs: [
       uintCV(stakeId),
@@ -313,50 +335,62 @@ export async function generateUnstakeTransaction(stakeId: number, amount: number
       contractPrincipalCV(token[0], token[1]),
     ],
     postConditionMode: PostConditionMode.Deny,
-    postConditions: [fungiblePostCondition],
+    postConditions,
     userSession: userSession,
 
   };
 }
 
-export async function generateClaimTransaction(stakeId: number, reward_token: string, erpb: number) {
+export async function generateClaimTransaction(stakeId: number, reward_token: string, erpb: number, symbol: string) {
   const token = splitToken(reward_token);
-  let assetName: string;
-  const postConditionCode = FungibleConditionCode.LessEqual;
-  const assetContractName = token[1];
-  if (network === "devnet") {
-    assetName = 'mewstx';
-  } else {
-    assetName = await getTokenSource(token[0], token[1]);
-  }
-  console.log(assetName);
-  if (assetName === "") {
-    throw new Error("Error with token contract");
-  }
-  const fungibleAssetInfo = createAssetInfo(
-    token[0],
-    assetContractName,
-    assetName,
-  );
   const earnings = await getUserEarnings(stakeId);
   if (earnings <= 0) throw new Error("Earning are below zero");
-  const postConditionAmount = BigInt((earnings / 1e6 + (erpb * 2)).toFixed(0));
-  const fungiblePostCondition = makeContractFungiblePostCondition(
-    contractAddress,
-    'memegoat-stakepool-vault-v1',
-    postConditionCode,
-    postConditionAmount,
-    fungibleAssetInfo,
-  );
+  const postConditionAmount = BigInt((earnings + (erpb * 3)).toFixed(0));
+  let postConditions = []
+
+  if (symbol.toLowerCase() === 'stx') {
+    const postConditionCodeSTX = FungibleConditionCode.LessEqual;
+    const postConditionAmountSTX = BigInt(earnings);
+    const standardSTXPostCondition = makeStandardSTXPostCondition(
+      getUserPrincipal(),
+      postConditionCodeSTX,
+      postConditionAmountSTX,
+    );
+    postConditions.push(standardSTXPostCondition)
+  } else {
+    const postConditionCode = FungibleConditionCode.LessEqual;
+    const assetContractName = token[1];
+    const assetName = await getTokenSource(token[0], token[1]);
+
+    if (assetName === "") {
+      throw new Error("Error with token contract");
+    }
+    const fungibleAssetInfo = createAssetInfo(
+      token[0],
+      assetContractName,
+      assetName,
+    );
+
+    const fungiblePostCondition = makeContractFungiblePostCondition(
+      contractAddress,
+      'memegoat-stakepool-vault-v1',
+      postConditionCode,
+      postConditionAmount,
+      fungibleAssetInfo,
+    );
+
+    postConditions.push(fungiblePostCondition)
+  }
+
   return {
     network: networkInstance,
     anchorMode: AnchorMode.Any,
     contractAddress,
-    contractName: "memegoat-staking-pool-v1",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "claim-reward",
     functionArgs: [uintCV(stakeId), contractPrincipalCV(token[0], token[1])],
     postConditionMode: PostConditionMode.Deny,
-    postConditions: [fungiblePostCondition],
+    postConditions,
   }
 }
 
@@ -365,8 +399,8 @@ export const calculateRewardPerBlockAtCreation = async (rewardAmount: string, st
     return 0;
   }
   const currBlock = await fetchCurrNoOfBlocks();
-  const startBlock = await convertToBlocks(startDate, currBlock);
-  const endBlock = await convertToBlocks(endDate, currBlock);
+  const startBlock = convertToBlocks(startDate, currBlock);
+  const endBlock = convertToBlocks(endDate, currBlock);
   const diff = endBlock - startBlock;
   if (!diff) {
     return 0;
@@ -375,43 +409,57 @@ export const calculateRewardPerBlockAtCreation = async (rewardAmount: string, st
   return reward
 }
 
-export const generateCreatePoolTxn = async (reward: string, stake: string, rewardAmount: string, startDate: string, endDate: string) => {
+export const generateCreatePoolTxn = async (reward: string, stake: string, rewardAmount: string, startDate: string, endDate: string, rewardIsSTX: boolean) => {
   const postConditionCode = FungibleConditionCode.LessEqual;
   const rewardToken = splitToken(reward);
   const stakeToken = splitToken(stake);
-  const assetContractName = rewardToken[1];
-  const assetName = await getTokenSource(rewardToken[0], rewardToken[1]);
-  if (assetName === "") {
-    throw new Error("Error with token contract")
+  let postConditions = []
+  if (rewardIsSTX) {
+    const postConditionCodeSTX = FungibleConditionCode.LessEqual;
+    const postConditionAmountSTX = BigInt(2000000 + (Number(rewardAmount) * 1e6));
+    const standardSTXPostCondition = makeStandardSTXPostCondition(
+      getUserPrincipal(),
+      postConditionCodeSTX,
+      postConditionAmountSTX,
+    );
+    postConditions.push(standardSTXPostCondition)
+  } else {
+    const assetContractName = rewardToken[1];
+    const assetName = await getTokenSource(rewardToken[0], rewardToken[1]);
+    if (assetName === "") {
+      throw new Error("Error with token contract")
+    }
+    const fungibleAssetInfo = createAssetInfo(
+      rewardToken[0],
+      assetContractName,
+      assetName,
+    );
+    const postConditionAmount = BigInt(Number(rewardAmount) * 1e6)
+    const fungiblePostCondition = makeStandardFungiblePostCondition(
+      getUserPrincipal(),
+      postConditionCode,
+      postConditionAmount,
+      fungibleAssetInfo,
+    );
+    const postConditionCodeSTX = FungibleConditionCode.LessEqual;
+    const postConditionAmountSTX = BigInt(2000000);
+    const standardSTXPostCondition = makeStandardSTXPostCondition(
+      getUserPrincipal(),
+      postConditionCodeSTX,
+      postConditionAmountSTX,
+    );
+    postConditions.push(fungiblePostCondition, standardSTXPostCondition)
   }
-  const fungibleAssetInfo = createAssetInfo(
-    rewardToken[0],
-    assetContractName,
-    assetName,
-  );
-  const postConditionAmount = BigInt(Number(rewardAmount) * 1e6)
-  const fungiblePostCondition = makeStandardFungiblePostCondition(
-    getUserPrincipal(),
-    postConditionCode,
-    postConditionAmount,
-    fungibleAssetInfo,
-  );
-  const postConditionCodeSTX = FungibleConditionCode.LessEqual;
-  const postConditionAmountSTX = BigInt(2000000);
-  const standardSTXPostCondition = makeStandardSTXPostCondition(
-    getUserPrincipal(),
-    postConditionCodeSTX,
-    postConditionAmountSTX,
-  );
+
   const currBlock = await fetchCurrNoOfBlocks();
-  const startBlocks = await convertToBlocks(startDate, currBlock);
-  const endBlocks = await convertToBlocks(endDate, currBlock);
+  const startBlocks = convertToBlocks(startDate, currBlock);
+  const endBlocks = convertToBlocks(endDate, currBlock);
   const rewards = await calculateRewardPerBlockAtCreation(rewardAmount, startDate, endDate);
   return {
     network: networkInstance,
     anchorMode: AnchorMode.Any,
     contractAddress,
-    contractName: "memegoat-staking-pool-v1",
+    contractName: "memegoat-staking-pool-v2-1",
     functionName: "create-pool",
     functionArgs: [
       contractPrincipalCV(stakeToken[0], stakeToken[1]),
@@ -422,7 +470,7 @@ export const generateCreatePoolTxn = async (reward: string, stake: string, rewar
       uintCV(Number(rewards.toFixed(6)) * 1e6),
     ],
     postConditionMode: PostConditionMode.Deny,
-    postConditions: [fungiblePostCondition, standardSTXPostCondition],
+    postConditions,
   };
 }
 

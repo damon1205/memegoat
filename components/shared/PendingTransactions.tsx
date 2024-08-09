@@ -5,9 +5,11 @@ import { CgClose } from "react-icons/cg"
 import { MdOutlinePendingActions } from "react-icons/md"
 import { TransactionTable } from "./TransactionsTable"
 import { TxRequest, TxType } from "@/interface"
-import { getRecentTransactions } from "@/utils/stacks.data"
+import { getRecentTransactions } from "@/utils/db"
+
 
 export const PendingTransactions = ({ txRequest }: { txRequest: TxRequest }) => {
+
   const [openModal, setOpenModal] = useState(false)
   const [transactions, setTransactions] = useState<TxType[]>([])
   const toggleModal = () => setOpenModal(!openModal)
@@ -17,7 +19,14 @@ export const PendingTransactions = ({ txRequest }: { txRequest: TxRequest }) => 
       const transactions = await getRecentTransactions(txRequest);
       setTransactions(transactions)
     }
+
+    const interval = setInterval(() => {
+      fetchData()
+    }, 60000)
+
+
     fetchData()
+    return () => clearInterval(interval)
   }, [txRequest])
 
   return (

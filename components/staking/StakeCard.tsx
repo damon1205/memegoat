@@ -4,13 +4,15 @@ import { BiLinkExternal } from "react-icons/bi"
 import { StakeToken } from "./StakeToken"
 import { UnstakeToken } from "./UnstakeToken"
 import Link from "next/link"
-import { ITokenMetadata, PendingTxnPool, StakeInterface, UserStakeInterface } from "@/interface"
+import { ITokenMetadata, StakeInterface, TokenData, UserStakeInterface } from "@/interface"
 import { useEffect, useState } from "react"
-import { getEndDate, getMetas, getUserEarnings, getUserHasStake, getUserStakeInfo, getStoredPendingTransactions, checkForStake, filterStakePendingTxn, filterClaimPendingTxn, calcRewardPerblock, getStartDate } from "@/lib/contracts/staking"
+import { getMetas, getUserEarnings, getUserHasStake, getUserStakeInfo, checkForStake, filterClaimPendingTxn, calcRewardPerblock } from "@/lib/contracts/staking"
 import { getAddress } from "@/utils/helpers"
-import { formatCVTypeNumber, formatNumber } from "@/utils/format"
+import { convertBlocksToDate, formatBal, formatCVTypeNumber, formatNumber } from "@/utils/format"
 import { fetchCurrNoOfBlocks, getAddressLink, network } from "@/utils/stacks.data"
 import { ClaimBtn } from "./ClaimBtn"
+import { useTokensContext } from "@/provider/Tokens"
+import moment from "moment"
 
 interface props {
   stakeInfo: StakeInterface
@@ -26,40 +28,52 @@ export const StakeCard = ({
   const [userStakeInfo, setUserStakeInfo] = useState<UserStakeInterface | null>(
     null,
   );
+  const { getTokenMetaByAddress } = useTokensContext()
   const [stakeToken, setStakeToken] = useState<ITokenMetadata | null>(null);
   const [rewardToken, setRewardToken] = useState<ITokenMetadata | null>(null);
   const [earned, setEarned] = useState<number>(0);
   const [endDate, setEndDate] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [userHasStake, setHasStake] = useState<boolean>(false);
-  const [pendingTxns, setPendingTxns] = useState<PendingTxnPool[]>([]);
   const [currBlock, setCurrBlock] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
+  const [sToken, setSToken] = useState<TokenData | null>(null);
+  const [rToken, setRToken] = useState<TokenData | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true)
       const result = await getUserStakeInfo(stakeInfo);
       setUserStakeInfo(result);
       const result1 = await getMetas(stakeInfo);
       setRewardToken(result1.rewardMetadata);
       setStakeToken(result1.stakeMetadata);
-      const result2 = await getEndDate(stakeInfo);
-      setEndDate(result2);
-      const result7 = await getStartDate(stakeInfo);
-      setStartDate(result7);
-      const result3 = await getUserEarnings(formatCVTypeNumber(stakeInfo.id));
-      setEarned(result3);
-      const result4 = await getUserHasStake(stakeInfo);
-      setHasStake(result4);
-      const result5 = await getStoredPendingTransactions(stakeInfo)
-      setPendingTxns(result5)
+      if (result1.rewardMetadata && result1.stakeMetadata) {
+        const sToken = getTokenMetaByAddress(result1.stakeMetadata.address)
+        const rToken = getTokenMetaByAddress(result1.rewardMetadata.address);
+        setSToken(sToken);
+        setRToken(rToken)
+      }
       const result6 = await fetchCurrNoOfBlocks();
       setCurrBlock(result6)
-    }
 
+      if (stakeInfo) {
+        const result2 = convertBlocksToDate(formatCVTypeNumber(stakeInfo["end-block"]), result6);
+        setEndDate(result2);
+        const result7 = convertBlocksToDate(formatCVTypeNumber(stakeInfo["start-block"]), result6);
+        setStartDate(result7);
+        const result3 = await getUserEarnings(formatCVTypeNumber(stakeInfo.id));
+        setEarned(result3);
+        const result4 = await getUserHasStake(stakeInfo);
+        setHasStake(result4);
+      }
+      setLoading(false)
+    }
     fetchData()
 
-  }, [stakeInfo]);
+  }, [stakeInfo, getTokenMetaByAddress]);
+
+  if (loading) return <Loading />
 
   return (
     <>
@@ -67,13 +81,13 @@ export const StakeCard = ({
         <div className="border-[1px] border-primary-100">
           <div className="py-3 px-5 bg-primary-100/30 border-b-[2px] border-b-primary-100 rounded-t-[3px] flex flex-wrap items-center justify-between">
             <div>
-              <h3 className="font-medium">Earn {rewardToken ? rewardToken.symbol : ""}</h3>
-              <p className="text-xs mt-2">Stake {stakeToken ? stakeToken.symbol : ""}</p>
+              <h3 className="font-medium">Earn {rToken ? rToken.name : rewardToken ? rewardToken.symbol : ""}</h3>
+              <p className="text-xs mt-2">Stake {sToken ? sToken.name : stakeToken ? stakeToken.name : ""}</p>
             </div>
             <div className="relative">
-              <Avatar src={rewardToken ? rewardToken.image_uri : ""} size={60} />
+              <Avatar src={rToken ? rToken.icon : rewardToken ? rewardToken.image_uri : ""} size={60} />
               <Avatar
-                src={stakeToken ? stakeToken.image_uri : ""}
+                src={sToken ? sToken.icon : stakeToken ? stakeToken.image_uri : ""}
                 size={30}
                 className="absolute bottom-[0px] right-[-5px]"
               />
@@ -89,47 +103,47 @@ export const StakeCard = ({
               <p className="text-gray-400 mb-2">Your Staked</p>
               <div className="flex items-center justify-between">
                 <div className="inline-flex gap-2 items-center">
-                  <Avatar src={stakeToken ? stakeToken.image_uri : ""} size={30} />
+                  <Avatar src={stakeToken ? stakeToken.image_uri : sToken?.icon} size={30} />
                   <div>
-                    <span className="mr-3">0.0 {stakeToken ? stakeToken.symbol : ""}</span>
-                    <span className="mr-3 text-gray-400">$0.0</span>
+                    <span className="mr-3">{userStakeInfo ? formatNumber(formatBal(formatCVTypeNumber(userStakeInfo["amount-staked"]))) : '0'} {stakeToken ? stakeToken.symbol : ""}</span>
+                    {/* <span className="mr-3 text-gray-400">$</span> */}
                   </div>
                 </div>
                 <div className="inline-flex gap-2 items-center">
                   <StakeToken
-                    stake_token={getAddress(stakeInfo['stake-token'])}
+                    stake_token={sToken || stakeToken}
+                    reward_token={rToken || rewardToken}
                     disabled={ended || (currBlock < formatCVTypeNumber(stakeInfo["start-block"]))}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
-                    pendingTxns={filterStakePendingTxn(pendingTxns)}
-                    token_icon={stakeToken ? stakeToken.image_uri : ""}
+                    token_icon={sToken ? sToken.icon : stakeToken ? stakeToken.image_uri : ""}
                   />
                   <UnstakeToken
-                    stake_token={getAddress(stakeInfo['stake-token'])}
+                    stake_token={sToken || stakeToken}
+                    reward_token={rToken || rewardToken}
                     disabled={currBlock < formatCVTypeNumber(stakeInfo["start-block"])}
                     stakeId={formatCVTypeNumber(stakeInfo.id)}
-                    pendingTxns={filterStakePendingTxn(pendingTxns)}
-                    token_icon={stakeToken ? stakeToken.image_uri : ""}
+                    token_icon={sToken ? sToken.icon : stakeToken ? stakeToken.image_uri : ""}
                     staked_amount={userStakeInfo ? formatCVTypeNumber(userStakeInfo["amount-staked"]) / 1e6 : 0}
                   />
                 </div>
               </div>
             </div>
             <div>
-              <p className="text-gray-400 mb-2">{rewardToken ? rewardToken.symbol : ""} earned</p>
+              <p className="text-gray-400 mb-2">{rToken ? rToken.name : rewardToken ? rewardToken.symbol : ""} earned</p>
               <div className="flex items-center justify-between">
                 <div className="inline-flex gap-2 items-center">
                   <div>
                     <span className="mr-3">
                       {loading ?
                         <Skeleton.Input active={true} size={'small'} block={false} />
-                        : formatNumber(earned / 1e12)} {rewardToken ? rewardToken.symbol : ""}
+                        : formatNumber(earned / 1e6)} {rToken ? rToken.name : rewardToken ? rewardToken.symbol : ""}
                     </span>
                   </div>
                 </div>
                 <ClaimBtn
                   stakeId={formatCVTypeNumber(stakeInfo.id)}
-                  reward_token={getAddress(stakeInfo["reward-token"])}
-                  pendingTxns={filterClaimPendingTxn(pendingTxns)}
+                  stake_token={sToken || stakeToken}
+                  reward_token={rToken || rewardToken}
                   erpb={calcRewardPerblock(stakeInfo, userStakeInfo)}
                   earned={earned} />
               </div>
@@ -144,7 +158,7 @@ export const StakeCard = ({
                   {stakeInfo
                     ? formatNumber(formatCVTypeNumber(stakeInfo["total-staked"]) / 1e6)
                     : 0.0}{" "}
-                  {stakeToken ? stakeToken.symbol : ""}
+                  {sToken ? sToken.name : stakeToken ? stakeToken.symbol : ""}
                   {/* <p className="text-end mt-1 text-gray-400">
                     {Intl.NumberFormat("en-US", {
                       currency: "USD",
@@ -159,7 +173,7 @@ export const StakeCard = ({
                   {stakeInfo
                     ? formatCVTypeNumber(stakeInfo["reward-per-block"]) / 1e6
                     : 0}{" "}
-                  {rewardToken ? rewardToken.symbol : ""}
+                  {rToken ? rToken.name : rewardToken ? rewardToken.symbol : ""}
                   {/* <p className="text-end mt-1 text-gray-400">
                     {Intl.NumberFormat("en-US", {
                       currency: "USD",
@@ -173,20 +187,26 @@ export const StakeCard = ({
                 {currBlock > formatCVTypeNumber(stakeInfo["start-block"]) ?
                   (
                     <>
-                      <p className="text-gray-400">Ends In</p>
+                      <p className="text-gray-400">Ends On</p>
                       <div>
-                        <p>{stakeInfo ? endDate : "--"}</p>
+                        <p>{stakeInfo ? moment(endDate).format('LLL') : "--"}</p>
                       </div>
                     </>
                   ) : (
                     <>
                       <p className="text-gray-400">Starts On</p>
                       <div>
-                        <p>{stakeInfo ? startDate : "--"}</p>
+                        <p>{stakeInfo ? moment(startDate).format('LLL') : "--"}</p>
                       </div>
                     </>
                   )
                 }
+              </div>
+              <div className="flex justify-between">
+                <p className="text-gray-400">End Block</p>
+                <div>
+                  <p>{stakeInfo ? formatCVTypeNumber(stakeInfo["end-block"]) : "--"}</p>
+                </div>
               </div>
               <p className="text-end">
                 <Link href={getAddressLink(network, getAddress(stakeInfo.owner))}
@@ -201,8 +221,10 @@ export const StakeCard = ({
           </div>
         </div>
       )}
-
     </>
 
   )
 }
+
+
+const Loading: React.FC = () => <Skeleton active />;

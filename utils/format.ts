@@ -33,11 +33,18 @@ export const convertToIso = (dateStr: string) => {
   return date.toISOString();
 };
 
-export const convertToBlocks = async (dateStr: string, currBlock: string) => {
+export const convertToBlocks = (dateStr: string, currBlock: string) => {
   const now = Date.now() / 1000;
   const start = new Date(dateStr).getTime() / 1000;
   const dateInBlocks = (start - now) / 600;
   return Number(currBlock) + Number(dateInBlocks.toFixed(0));
+};
+
+export const convertBlocksToDate = (block: number, currBlock: number) => {
+  const now = Date.now();
+  const timeDifference = Math.abs(block - currBlock) * 600 * 1000;
+  const date = block > currBlock ? now + timeDifference : now - timeDifference;
+  return new Date(date).toISOString();
 };
 
 export const splitColons = (pair: string) => {

@@ -7,9 +7,11 @@ import { Attestation } from "./Attestation"
 import Link from "next/link"
 import { AllTransactions } from "../shared/AllTransactions"
 import { alexSDK } from "@/utils/velar.data"
+import { getActiveUsers } from "@/utils/db"
 
 export const Dashboard = () => {
   const [tokenPrice, setTokenPrice] = useState<number | undefined>(0);
+  const [activeUsers, setActiveUsers] = useState<number>(0);
 
   useEffect(() => {
     const fetchPrice = async () => {
@@ -18,6 +20,9 @@ export const Dashboard = () => {
       if (tokenKey in price) {
         setTokenPrice(price[tokenKey])
       }
+
+      const activeUsers = await getActiveUsers();
+      setActiveUsers(activeUsers + 323)
     }
     fetchPrice()
   }, [])
@@ -37,10 +42,10 @@ export const Dashboard = () => {
           </h3>
           <div className="inline-flex gap-2 items-center">
             <p className="">Supported Tokens</p>
-            <Avatar src="/logo.svg" size={30} />
-            <Avatar src="/images/stx.svg" size={30} />
+            <Avatar src="/images/STX.svg" size={30} />
+            <Avatar src="/images/velar.jpg" size={30} />
+            <Avatar src="/images/alex.svg" size={30} />
             <Avatar src="/images/leo.jpg" size={30} />
-            <Avatar src="/images/odin.jpg" size={30} />
           </div>
         </div>
         <div className="mt-7">
@@ -70,21 +75,26 @@ export const Dashboard = () => {
                   type="primary"
                   className="h-[30px] text-white font-medium"
                 >
-                  <Link href={"/staking"}>Stake</Link>
+                  <Link href={"/dex"}>Swap</Link>
                 </Button>
                 <Button
                   type="link"
                   className="h-[30px]  underline font-medium text-primary-30 hover:text-primary-20"
                 >
                   <Link
-                    href={"/dex"}
+                    href={"/staking"}
                     className="text-primary-30 hover:text-primary-20"
                   >
-                    Swap
+                    Stake
                   </Link>
                 </Button>
               </div>
             </div>
+            <div className="bg-primary-100/10 border-[1px] border-primary-90 w-full px-5 py-5">
+              <p className="text-sm">Number of Active Users</p>
+              <p className="text-2xl font-semibold mt-3">{activeUsers}</p>
+            </div>
+
           </div>
         </div>
       </motion.div>

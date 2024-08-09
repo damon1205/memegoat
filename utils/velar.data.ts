@@ -511,7 +511,7 @@ export const VelarTokenLists: TokenData[] = [
 //     if (!existsInAlex) {
 //       const tokenData = await getTokenInfo(token);
 //       if (tokenData) {
-//         tokensData.push({ symbol: tokenData.symbol, name: tokenData.name, address: tokenData.tokenAddress })
+//         tokensData.push({ symbol: tokenData.symbol, name: tokenData.name, address: tokenData.address })
 //       }
 //     }
 //   }

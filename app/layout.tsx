@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   description: "Secure layer for memes on Bitcoin",
   keywords: [
     "MemeGoat",
+    "MemeGoat App",
     "Meme",
     "Goat",
     "MemeGoatSTX",
@@ -27,11 +28,34 @@ export const metadata: Metadata = {
     "MemeGoat website",
     "MemeGoat application",
   ],
-  publisher: "MemeGoat",
+  publisher: "MemeGoat STX",
   openGraph: {
-    title: "MemeGoat",
-    siteName: "MemeGoat",
-    images: "/og-image.png",
+    title: "MemeGoat STX",
+    description: "Secure layer for memes on Bitcoin",
+    siteName: "MemeGoat STX",
+    url: "https://app.memegoat.io/",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "https://res.cloudinary.com/osaretinfrank/image/upload/v1723235872/204adf06-dc10-42a0-a5ce-a52b4448103b_ym2sfn.jpg",
+        alt: "MemeGoat STX",
+        width: 1200,
+        height: 675,
+      },
+    ],
+  },
+  twitter: {
+    images: [
+      {
+        url: "https://res.cloudinary.com/osaretinfrank/image/upload/v1723235872/204adf06-dc10-42a0-a5ce-a52b4448103b_ym2sfn.jpg",
+        alt: "MemeGoat STX",
+      },
+    ],
+    card: "summary_large_image",
+    site: "@GoatCoinSTX",
+    title: "MemeGoat STX",
+    description: "Secure layer for memes on Bitcoin",
   },
 }
 

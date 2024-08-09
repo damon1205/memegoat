@@ -1,7 +1,7 @@
 "use client"
 import { Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { Empty, Switch } from "antd"
+import { Empty, Skeleton, Switch } from "antd"
 import { StakeCard } from "./StakeCard"
 import {
   filterActiveStakes,
@@ -10,8 +10,9 @@ import {
   getStakes,
 } from "@/lib/contracts/staking"
 import { StakeInterface } from "@/interface"
-import { fetchCurrNoOfBlocks } from "@/utils/stacks.data"
+import { fetchCurrNoOfBlocks, getUserPrincipal, userSession } from "@/utils/stacks.data"
 import { MemeGoatStakingTab } from "./MemeGoatStakingTab"
+import { PendingTransactions } from "../shared/PendingTransactions"
 
 interface TabItem {
   title: ReactNode
@@ -24,18 +25,16 @@ export const StakingTabs = () => {
   const [activeStakes, setActiveStakes] = useState<StakeInterface[]>([])
   const [endedStakes, setEndedStakes] = useState<StakeInterface[]>([])
   const [stakeOnly, setStakeOnly] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [connected, setConnected] = useState<boolean>()
 
   const tabItems: TabItem[] = [
-    // {
-    //   title: "GoatSTX",
-    //   key: 1,
-    //   content: <MemeGoatStakingTab />,
-    // },
     {
       title: "live pools",
       key: 1,
       content: (
         <TabContent
+          loading={loading}
           stakes={activeStakes}
           stakedOnly={stakeOnly}
           ended={false}
@@ -46,7 +45,7 @@ export const StakingTabs = () => {
       title: "finished",
       key: 2,
       content: (
-        <TabContent stakes={endedStakes} stakedOnly={stakeOnly} ended={false} />
+        <TabContent loading={loading} stakes={endedStakes} stakedOnly={stakeOnly} ended={false} />
       ),
     },
   ]
@@ -54,6 +53,8 @@ export const StakingTabs = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setConnected(userSession.isUserSignedIn())
+      setLoading(true)
       const stakeIndex = await getStakeNonce()
       const stakes = await getStakes(stakeIndex)
       const currBlock = await fetchCurrNoOfBlocks()
@@ -61,6 +62,7 @@ export const StakingTabs = () => {
       setActiveStakes(activeStakes)
       const endedStakes = filterEndedStakes(stakes, currBlock)
       setEndedStakes(endedStakes)
+      setLoading(false)
     }
     fetchData()
   }, [])
@@ -72,14 +74,17 @@ export const StakingTabs = () => {
         style={{ backdropFilter: "blur(22px)" }}
       >
         <TabHead {...tabHeadProps} />
-        <div className="text-gray-300 flex gap-2 items-center">
+        {/* <div className="text-gray-300 flex gap-2 items-center">
           <p className="text-md md:tex-sm">Staked Only</p>
           <Switch />
+        </div> */}
+        <div className="flex items-center justify-start mb-2 gap-2 right-0">
+          <PendingTransactions txRequest={{}} />
         </div>
       </div>
-      <div className="pb-5">
+      {connected && <div className="pb-5">
         {tabItems.find((item) => item.key === current)?.content}
-      </div>
+      </div>}
     </div>
   )
 }
@@ -122,21 +127,33 @@ const TabContent = ({
   stakes,
   stakedOnly,
   ended,
+  loading,
 }: {
   stakes: StakeInterface[]
   stakedOnly: boolean
   ended: boolean
+  loading: boolean
 }) => {
   return (
-    <div className="grid md:grid-cols-3 grid-cols-1 gap-7 content-stretch">
-      {stakes.map((stake, index) => (
-        <StakeCard
-          key={index}
-          stakeInfo={stake}
-          stakedOnly={stakedOnly}
-          ended={ended}
-        />
-      ))}
+    <div>
+      {loading ?
+        <div className="grid md:grid-cols-3 grid-cols-1 gap-7 content-stretch">
+          <Loading />
+        </div>
+        :
+        <div className="grid md:grid-cols-3 grid-cols-1 gap-7 content-stretch">
+          {stakes.map((stake, index) => (
+            <StakeCard
+              key={index}
+              stakeInfo={stake}
+              stakedOnly={stakedOnly}
+              ended={ended}
+            />
+          ))}
+        </div>
+      }
     </div>
   )
 }
+
+const Loading: React.FC = () => <Skeleton active />;
